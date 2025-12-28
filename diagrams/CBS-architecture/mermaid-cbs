@@ -1,0 +1,14 @@
+---
+config:
+  layout: elk
+---
+flowchart TB
+    CBS["CBS API<br>(Batch)"] --> AF["Apache Airflow<br>(Schedule &amp; Orchestration)"]
+    AF --> JOB["Databricks Job<br>(Extract &amp; Load)"] & DBT["dbt (executed by Airflow)<br>(run + test)"]
+    JOB --> BRONZE["Delta Lake - Bronze<br>(Raw, immutable)"]
+    BRONZE --> PROC["Databricks Job<br>(Clean &amp; Normalize)"]
+    PROC --> SILVER["Delta Lake - Silver<br>(Cleaned &amp; normalized)"]
+    SILVER --> STG["Load to Snowflake (staging)<br>(Silver snapshot)"]
+    STG --> SNOW["Snowflake<br>(Staging tables)"]
+    SNOW --> DBT
+    DBT --> GOLD["Snowflake<br>(Gold marts / BI)"]

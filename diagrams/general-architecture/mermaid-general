@@ -1,0 +1,77 @@
+---
+config:
+  layout: elk
+---
+flowchart TB
+ subgraph S["Open Data Sources"]
+        CBS["CBS API (Batch)"]
+        PDOK["PDOK / BAG (Batch)"]
+        NDW["NDW Traffic (Near Real-Time / Poll or Push)"]
+        OTHER["Other APIs / Webhooks"]
+  end
+ subgraph I["Ingestion Layer"]
+        AF["Apache Airflow<br>(Scheduling + Orchestration)"]
+        FUNC["Azure Functions<br>(Webhook receiver / light validation)"]
+        KAFKA["Kafka or Event Hubs<br>(Streaming Bus)"]
+        GRID["Event Grid<br>(Storage events)"]
+  end
+ subgraph P["Processing Layer"]
+        DBX["Databricks Jobs<br>(Spark batch &amp; streaming)"]
+        CONSUMER["Streaming Consumer<br>(DBX Structured Streaming)"]
+        DBT["dbt<br>(Modeling + Tests + Docs)"]
+  end
+ subgraph L["Lakehouse Storage (Delta)"]
+        BRONZE["Bronze<br>Raw, immutable"]
+        SILVER["Silver<br>Cleaned, normalized, enriched"]
+  end
+ subgraph W["Serving & Consumption"]
+        SNOW["Snowflake<br>(Gold marts / BI / SQL consumption)"]
+        CH["ClickHouse (optional)<br>(Fast event/time-series analytics)"]
+  end
+ subgraph Q["Data Quality & Observability"]
+        DQ["Quality Checks<br>(schema, nulls, ranges)"]
+        MON["Monitoring<br>(latency, freshness, failures)"]
+        LOG["Logs &amp; Lineage<br>(runs, docs, lineage)"]
+  end
+    CBS --> AF
+    PDOK --> AF
+    AF --> DBX & DBT & MON & LOG
+    DBX --> BRONZE & SILVER & DQ & MON
+    BRONZE --> DBX & CONSUMER
+    SILVER --> SNOW
+    DBT --> SNOW & DQ & LOG
+    NDW -- "Webhook or poll->event" --> FUNC
+    OTHER -- Webhook --> FUNC
+    FUNC --> KAFKA
+    KAFKA --> CONSUMER
+    CONSUMER --> BRONZE & SILVER
+    SILVER -.-> CH
+    BRONZE -- File written --> GRID
+    GRID --> AF
+    SNOW --> MON
+    CH -.-> MON
+
+     CBS:::source
+     PDOK:::source
+     NDW:::source
+     OTHER:::source
+     AF:::control
+     FUNC:::compute
+     KAFKA:::control
+     GRID:::control
+     DBX:::compute
+     CONSUMER:::compute
+     DBT:::compute
+     BRONZE:::storage
+     SILVER:::storage
+     SNOW:::serve
+     CH:::serve
+     DQ:::obs
+     MON:::obs
+     LOG:::obs
+    classDef source fill:#f6f6f6,stroke:#999,stroke-width:1px
+    classDef control fill:#fff3cd,stroke:#b08a00,stroke-width:1px
+    classDef compute fill:#e8f0ff,stroke:#3b82f6,stroke-width:1px
+    classDef storage fill:#eafff1,stroke:#16a34a,stroke-width:1px
+    classDef serve fill:#f3e8ff,stroke:#7c3aed,stroke-width:1px
+    classDef obs fill:#ffe4e6,stroke:#be123c,stroke-width:1px
