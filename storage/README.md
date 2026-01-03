@@ -1,13 +1,13 @@
-# Storage layout
+# Storage
 
-This folder documents local storage conventions.
+This folder documents storage conventions only.
 
-Delta tables should not be committed to git.
-Use:
+Delta tables must NOT be committed to git.
 
-- Local dev: `.local_storage/`
-- Production: ADLS Gen2 (or equivalent)
+Expected locations:
+- Local development: .local_storage/delta/
+- Production: ADLS Gen2
 
-Expected layers:
+Layers:
 - Bronze: raw snapshots
-- Silver: cleaned and standardized
+- Silver: cleaned and standardized data
