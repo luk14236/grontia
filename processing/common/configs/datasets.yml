@@ -1,9 +1,24 @@
 cbs:
-  tables:
-    - 84583NED  # Kerncijfers wijken en buurten
-    - 83765NED  # WOZ
-    - 82900NED  # Woningvoorraad
-    - 84443NED  # Income households
+  datasets:
+    - table_id: "84583NED"
+      dataset_name: "neighbourhood_key_figures"
+      silver_table: "silver_cbs_neighbourhood_key_figures"
+      description_en: "Key figures by municipality, district and neighbourhood"
+
+    - table_id: "83765NED"
+      dataset_name: "average_woz_value"
+      silver_table: "silver_cbs_average_woz_value"
+      description_en: "Average WOZ property value by region"
+
+    - table_id: "82900NED"
+      dataset_name: "housing_stock"
+      silver_table: "silver_cbs_housing_stock"
+      description_en: "Housing stock by type and construction year"
+
+    - table_id: "84443NED"
+      dataset_name: "household_income"
+      silver_table: "silver_cbs_household_income"
+      description_en: "Household income indicators by region"
 
 pdok:
   datasets: []
