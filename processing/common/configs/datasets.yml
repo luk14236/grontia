@@ -1,0 +1,15 @@
+cbs:
+  tables:
+    - 84583NED  # Kerncijfers wijken en buurten
+    - 83765NED  # WOZ
+    - 82900NED  # Woningvoorraad
+    - 84443NED  # Income households
+
+pdok:
+  datasets: []
+
+knmi:
+  stations: []
+
+ndw:
+  feeds: []
