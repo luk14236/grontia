@@ -1,2 +1,3 @@
 storage/delta/
 .local_storage/
+/orchestration/airflow/include/output
