@@ -45,6 +45,17 @@ def http_get_json(url: str, timeout: int = 60) -> dict:
         raise
 
 
+def fetch_paged_values_optional(url: str, **kwargs) -> list[dict]:
+    try:
+        return fetch_paged_values(url, **kwargs)
+    except requests.HTTPError as e:
+        status = getattr(e.response, "status_code", None)
+        if status == 404:
+            logger.warning("Endpoint not found (404), skipping: %s", url)
+            return []
+        raise
+
+
 def fetch_paged_values(first_url: str, timeout: int = 60, page_size: int = 10000, sleep_s: float = 0.0) -> list[dict]:
     base_url = first_url.split("?", 1)[0]
 
@@ -99,19 +110,55 @@ def ingest_dataset_bronze(dataset: dict, ingestion_date: str) -> None:
     (out_dir / "data_properties.json").write_text(json.dumps(dataprops, ensure_ascii=False, indent=2), encoding="utf-8")
 
     # 3) TypedDataSet (paged)
-    typed_url = f"{CBS_BASE}/{table_id}/TypedDataSet"
-    typed_rows = fetch_paged_values(typed_url)
-    (out_dir / "typed_dataset.json").write_text(json.dumps(typed_rows, ensure_ascii=False), encoding="utf-8")
+    typed_base = f"{CBS_BASE}/{table_id}/TypedDataSet"
+    typed_dir = out_dir / "typed_dataset"
+    typed_dir.mkdir(parents=True, exist_ok=True)
+
+    typed_total = 0
+    part = 0
+
+    for ps in [10000, 5000, 2000, 1000, 500]:
+        try:
+            skip = 0
+            part = 0
+            typed_total = 0
+
+            while True:
+                url = f"{typed_base}?{urlencode({'$top': ps, '$skip': skip})}"
+                payload = http_get_json(url)
+                rows = payload.get("value", [])
+
+                if not rows and skip == 0:
+                    break
+
+                (typed_dir / f"part-{part:05d}.json").write_text(
+                    json.dumps(rows, ensure_ascii=False),
+                    encoding="utf-8"
+                )
+
+                typed_total += len(rows)
+                if len(rows) < ps:
+                    break
+
+                skip += ps
+                part += 1
+
+            break
+
+        except requests.HTTPError as e:
+            logger.warning("TypedDataSet failed with page_size=%s for %s, error=%s", ps, typed_base, str(e))
+            continue
+
 
     # 4) Regions
     regions_url = f"{CBS_BASE}/{table_id}/Regions"
-    regions = fetch_paged_values(regions_url, page_size=10000)
-    (out_dir / "regions.json").write_text(json.dumps(regions, ensure_ascii=False), encoding="utf-8")
+    regions = fetch_paged_values_optional(regions_url, page_size=10000)
+    (out_dir / "regions.json").write_text(json.dumps(regions, ensure_ascii=False, indent=2), encoding="utf-8")
 
     # 5) Perioden
     perioden_url = f"{CBS_BASE}/{table_id}/Perioden"
-    perioden = fetch_paged_values(perioden_url, page_size=10000)
-    (out_dir / "perioden.json").write_text(json.dumps(perioden, ensure_ascii=False), encoding="utf-8")
+    perioden = fetch_paged_values_optional(perioden_url, page_size=10000)
+    (out_dir / "perioden.json").write_text(json.dumps(perioden, ensure_ascii=False, indent=2), encoding="utf-8")
 
 
     # small run summary

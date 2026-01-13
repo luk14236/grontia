@@ -1,5 +1,4 @@
 # Astro Runtime includes the following pre-installed providers packages: https://www.astronomer.io/docs/astro/runtime-image-architecture#provider-packages
 pyyaml
-
+azure-storage-file-datalake==12.16.0
 requests
-pyyaml
