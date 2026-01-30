@@ -1,6 +1,8 @@
-version: "3.1"
-
 services:
   postgres:
     ports:
-      - "5433:5432"
+      - "127.0.0.1:5433:5432"
+
+  api-server:
+    ports:
+      - "127.0.0.1:8081:8080"
