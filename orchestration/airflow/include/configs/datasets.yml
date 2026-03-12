@@ -128,10 +128,28 @@ cbs:
         - median_household_income_eur
 
 pdok:
-  datasets: []
+  datasets:
+    - dataset_name: bag_pand
+      url: "https://service.pdok.nl/lv/bag/wfs/v2_0?service=WFS&version=2.0.0&request=GetFeature&typeName=bag:pand&outputFormat=application/json&count=1000"
+    - dataset_name: bag_verblijfsobject
+      url: "https://service.pdok.nl/lv/bag/wfs/v2_0?service=WFS&version=2.0.0&request=GetFeature&typeName=bag:verblijfsobject&outputFormat=application/json&count=1000"
 
 knmi:
-  stations: []
+  datasets:
+    - dataset_name: daily_weather_all_stations
+      endpoint: "https://www.daggegevens.knmi.nl/klimatologie/daggegevens"
+      format: "csv"
+      params:
+        start_days_ago: 7
+        end_days_ago: 1
+        vars: "ALL"
+        stns: "ALL"
 
 ndw:
-  feeds: []
+  datasets:
+    - dataset_name: current_traffic_sample
+      url: "COLOQUE_AQUI_O_ENDPOINT_REAL_QUE_VOCE_VAI_USAR"
+      method: "GET"
+      format: "xml"
+      headers:
+        Accept: "application/xml"
