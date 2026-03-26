@@ -1,0 +1,87 @@
+name: PR Validation
+
+on:
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'infrastructure/terraform/**'
+      - 'orchestration/airflow/**'
+      - 'analytics/dbt/**'
+
+jobs:
+  terraform-check:
+    name: Terraform Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.6.0"
+
+      - name: Terraform Format
+        run: terraform fmt -check -recursive infrastructure/terraform/
+
+      - name: Terraform Validate
+        run: |
+          cd infrastructure/terraform/
+          terraform init -backend=false
+          terraform validate
+
+  airflow-check:
+    name: Airflow DAG Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install -r orchestration/airflow/requirements.txt
+
+      - name: Validate DAGs
+        run: |
+          python -c "
+          import os
+          import glob
+          from airflow.models import DagBag
+
+          dag_folder = 'orchestration/airflow/dags'
+          dagbag = DagBag(dag_folder=dag_folder, include_examples=False)
+
+          if dagbag.import_errors:
+              print('❌ DAG import errors:')
+              for file, errors in dagbag.import_errors.items():
+                  print(f'  {file}: {errors}')
+              exit(1)
+
+          print(f'✅ Found {len(dagbag.dags)} valid DAGs')
+          for dag_id, dag in dagbag.dags.items():
+              print(f'  - {dag_id}')
+          "
+
+  dbt-check:
+    name: dbt Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install dbt
+        run: pip install dbt-databricks
+
+      - name: dbt Parse
+        run: |
+          cd analytics/dbt
+          dbt parse --target dev
