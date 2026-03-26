@@ -33,10 +33,63 @@ cbs:
         AantalHuishoudens_10: "households"
         GemiddeldInkomenPerInwoner_25: "avg_income_per_resident_eur"
 
-      measures:
-        - population
-        - households
-        - avg_income_per_resident_eur
+pdok:
+  source_name: "pdok"
+  description_en: "Public Services on the Map (PDOK) geospatial data"
+
+  datasets:
+    - dataset_name: "addresses"
+      description_en: "Dutch address data"
+      endpoints:
+        bronze:
+          - "BAG"
+      silver_table: "silver_pdok_addresses"
+
+    - dataset_name: "buildings"
+      description_en: "Dutch building data"
+      endpoints:
+        bronze:
+          - "BAG"
+      silver_table: "silver_pdok_buildings"
+
+knmi:
+  source_name: "knmi"
+  description_en: "Royal Netherlands Meteorological Institute (KNMI) weather data"
+
+  datasets:
+    - dataset_name: "weather_stations"
+      description_en: "Weather station measurements"
+      endpoints:
+        bronze:
+          - "measurements"
+      silver_table: "silver_knmi_weather_stations"
+
+    - dataset_name: "climate_data"
+      description_en: "Historical climate data"
+      endpoints:
+        bronze:
+          - "daily"
+          - "hourly"
+      silver_table: "silver_knmi_climate_data"
+
+ndw:
+  source_name: "ndw"
+  description_en: "National Data Warehouse for Traffic Information (NDW)"
+
+  datasets:
+    - dataset_name: "traffic_flow"
+      description_en: "Real-time traffic flow data"
+      endpoints:
+        bronze:
+          - "flow"
+      silver_table: "silver_ndw_traffic_flow"
+
+    - dataset_name: "traffic_incidents"
+      description_en: "Traffic incident data"
+      endpoints:
+        bronze:
+          - "incidents"
+      silver_table: "silver_ndw_traffic_incidents"
 
     - table_id: "83765NED"
       dataset_name: "average_woz_value"
