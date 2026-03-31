@@ -44,7 +44,7 @@ resource "databricks_job" "cbs_pipeline" {
   }
 
   task {
-    task_key = "cbs_ingestion"
+    task_key        = "cbs_ingestion"
     job_cluster_key = "job_cluster"
 
     python_wheel_task {

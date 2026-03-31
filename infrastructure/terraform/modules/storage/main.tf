@@ -5,7 +5,7 @@ resource "azurerm_storage_account" "this" {
   account_tier             = "Standard"
   account_replication_type = "LRS"
   account_kind             = "StorageV2"
-  is_hns_enabled          = true
+  is_hns_enabled           = true
 
   tags = {
     Environment = var.environment

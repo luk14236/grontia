@@ -50,5 +50,5 @@ module "airflow" {
   resource_group_name = var.resource_group_name
   vnet_id             = module.networking.vnet_id
   subnet_id           = module.airflow.subnet_id
-  acr_login_server   = var.acr_login_server
+  acr_login_server    = var.acr_login_server
 }
