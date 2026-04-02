@@ -7,7 +7,7 @@ terraform {
   }
 
   backend "azurerm" {
-    resource_group_name  = "stgrondia-rg" # substitua com o nome correto do RG onde stgrondiadev12345 está
+    resource_group_name  = "rg-grondia-dev"
     storage_account_name = "stgrondiadev12345"
     container_name       = "tfstate"
     key                  = "dev.terraform.tfstate"
