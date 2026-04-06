@@ -6,12 +6,14 @@ terraform {
     }
   }
 
-  backend "azurerm" {
-    resource_group_name  = "rg-grondia-dev"
-    storage_account_name = "stgrondiadev12345"
-    container_name       = "tfstate"
-    key                  = "dev.terraform.tfstate"
-  }
+  # backend "azurerm" removido — este ambiente é referência apenas (terraform plan).
+  # Para habilitar estado remoto no Azure, descomentar e configurar:
+  # backend "azurerm" {
+  #   resource_group_name  = "rg-grondia-dev"
+  #   storage_account_name = "stgrondiadev12345"
+  #   container_name       = "tfstate"
+  #   key                  = "dev.terraform.tfstate"
+  # }
 }
 
 provider "azurerm" {
