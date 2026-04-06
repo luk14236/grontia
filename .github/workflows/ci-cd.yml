@@ -22,7 +22,6 @@ env:
   AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
   AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
   ASTRONOMER_API_TOKEN: ${{ secrets.ASTRONOMER_API_TOKEN }}
-  DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
 
 jobs:
   validate:
@@ -96,10 +95,10 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
 
-  deploy-infrastructure:
-    name: Deploy Infrastructure
+  terraform-plan:
+    name: Terraform Plan (reference only — no apply)
     runs-on: ubuntu-latest
-    needs: build-airflow
+    needs: validate
     environment: ${{ github.event.inputs.environment || 'dev' }}
     steps:
       - name: Checkout code
@@ -130,17 +129,15 @@ jobs:
       - name: Terraform Plan
         run: |
           cd infrastructure/terraform/envs/${{ github.event.inputs.environment || 'dev' }}
-          terraform plan -out=tfplan
-
-      - name: Terraform Apply
-        run: |
-          cd infrastructure/terraform/envs/${{ github.event.inputs.environment || 'dev' }}
-          terraform apply tfplan
+          terraform plan
+        # NOTE: terraform apply is intentionally omitted.
+        # This pipeline serves as a reference for Azure infrastructure.
+        # No resources are created or billed.
 
   deploy-dags:
     name: Deploy DAGs to Astronomer
     runs-on: ubuntu-latest
-    needs: deploy-infrastructure
+    needs: build-airflow
     environment: ${{ github.event.inputs.environment || 'dev' }}
     steps:
       - name: Checkout code
@@ -160,39 +157,12 @@ jobs:
           cd orchestration/airflow
           astro deploy ${{ secrets.ASTRONOMER_DEPLOYMENT_ID }}
 
-  deploy-dbt:
-    name: Deploy dbt to Databricks
-    runs-on: ubuntu-latest
-    needs: deploy-infrastructure
-    environment: ${{ github.event.inputs.environment || 'dev' }}
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.11'
-
-      - name: Install dbt
-        run: |
-          pip install dbt-databricks
-
-      - name: Deploy dbt models
-        run: |
-          cd analytics/dbt
-          dbt deps
-          dbt run --target ${{ github.event.inputs.environment || 'dev' }}
-        env:
-          DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
-          DATABRICKS_TOKEN: ${{ env.DATABRICKS_TOKEN }}
-
   cleanup:
-    name: Cleanup Resources
+    name: Cleanup on Failure
     runs-on: ubuntu-latest
-    needs: [deploy-dags, deploy-dbt]
+    needs: [build-airflow, terraform-plan, deploy-dags]
     if: failure()
     steps:
       - name: Notify failure
         run: |
-          echo "Deployment failed. Check logs above for details."
+          echo "Pipeline failed. Check logs above for details."

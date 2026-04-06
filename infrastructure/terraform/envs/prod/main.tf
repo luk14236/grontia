@@ -34,15 +34,6 @@ module "storage" {
   container_name      = "bronze"
 }
 
-module "databricks" {
-  source              = "../../modules/databricks"
-  environment         = var.environment
-  location            = var.location
-  resource_group_name = var.resource_group_name
-  vnet_id             = module.networking.vnet_id
-  subnet_id           = module.networking.databricks_private_subnet_id
-}
-
 module "airflow" {
   source              = "../../modules/airflow"
   environment         = var.environment

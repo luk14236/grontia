@@ -234,15 +234,15 @@ default_args = {
     "catchup": False,  # Don't backfill
 }
 
-# Create DAG that runs every hour
+# Create DAG that runs once a day
 with DAG(
     dag_id="20_cbs_hourly_ingestion_adls",
     default_args=default_args,
-    description="Hourly ingestion of CBS datasets to Azure Data Lake Storage",
-    schedule_interval="0 * * * *",  # Every hour at minute 0
+    description="Daily ingestion of CBS datasets to Azure Data Lake Storage",
+    schedule_interval="@daily",  # Once a day at midnight UTC
     max_active_runs=1,  # Only one instance running at a time
     catchup=False,
-    tags=["grondia", "cbs", "bronze", "hourly", "azure"],
+    tags=["grondia", "cbs", "bronze", "daily", "azure"],
 ) as dag:
 
     start_task = EmptyOperator(task_id="start")

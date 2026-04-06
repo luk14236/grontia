@@ -3,7 +3,6 @@ from __future__ import annotations
 from airflow import DAG
 from airflow.providers.standard.operators.python import PythonOperator
 from airflow.providers.standard.operators.empty import EmptyOperator
-from airflow.providers.databricks.operators.databricks import DatabricksSubmitRunOperator
 from airflow.sdk import TaskGroup
 from airflow.decorators import task
 
@@ -377,15 +376,15 @@ default_args = {
     "catchup": False,
 }
 
-# Create DAG that runs every hour
+# Create DAG that runs once a day
 with DAG(
     dag_id="30_multi_source_hourly_ingestion_adls",
     default_args=default_args,
-    description="Hourly ingestion from all data sources (CBS, PDOK, KNMI, NDW) to Azure Data Lake Storage",
-    schedule_interval="0 * * * *",  # Every hour at minute 0
+    description="Daily ingestion from all data sources (CBS, PDOK, KNMI, NDW) to Azure Data Lake Storage",
+    schedule_interval="@daily",  # Once a day at midnight UTC
     max_active_runs=1,
     catchup=False,
-    tags=["grondia", "multi-source", "bronze", "hourly", "azure"],
+    tags=["grondia", "multi-source", "bronze", "daily", "azure"],
 ) as dag:
 
     start_task = EmptyOperator(task_id="start")
@@ -445,28 +444,6 @@ with DAG(
             check_task >> ingest_task >> validate_task
             all_tasks.append(validate_task)
 
-    # Databricks transformation tasks
-    @task
-    def trigger_bronze_to_silver_transformation(ingestion_date: str) -> None:
-        """Trigger Databricks job to transform bronze data to silver."""
-        logger.info(f"Triggering bronze to silver transformation for {ingestion_date}")
-        # This will be called after all ingestion tasks complete
-
-
-    @task
-    def trigger_silver_to_gold_transformation() -> None:
-        """Trigger Databricks job to transform silver data to gold."""
-        logger.info("Triggering silver to gold transformation")
-        # This will be called after bronze to silver completes
-
-
     end_task = EmptyOperator(task_id="end")
 
-    # Get current ingestion date
-    ingestion_date = get_ingestion_date()
-
-    # Chain: Ingestion → Bronze to Silver → Silver to Gold → End
-    bronze_to_silver_task = trigger_bronze_to_silver_transformation(ingestion_date)
-    silver_to_gold_task = trigger_silver_to_gold_transformation()
-
-    start_task >> all_tasks >> bronze_to_silver_task >> silver_to_gold_task >> end_task
+    start_task >> all_tasks >> end_task
