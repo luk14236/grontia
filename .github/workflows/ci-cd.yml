@@ -46,8 +46,8 @@ jobs:
         run: |
           python -m py_compile orchestration/airflow/dags/*.py
 
-  terraform-plan:
-    name: Terraform Plan (reference only)
+  terraform-validate:
+    name: Terraform Syntax Check (reference only)
     runs-on: ubuntu-latest
     needs: validate
     steps:
@@ -62,12 +62,11 @@ jobs:
       - name: Terraform Init
         run: |
           cd infrastructure/terraform/envs/${{ github.event.inputs.environment || 'dev' }}
-          terraform init
+          terraform init -backend=false
 
-      - name: Terraform Plan
+      - name: Terraform Validate
         run: |
           cd infrastructure/terraform/envs/${{ github.event.inputs.environment || 'dev' }}
-          terraform plan
-        # terraform apply é intencionalmente omitido.
-        # Este pipeline serve apenas como referência da infraestrutura Azure.
-        # Nenhum recurso é criado ou cobrado.
+          terraform validate
+        # Apenas valida sintaxe e estrutura dos arquivos .tf.
+        # Não conecta no Azure, não cria recursos, sem custo.

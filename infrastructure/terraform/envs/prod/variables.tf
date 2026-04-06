@@ -1,6 +1,7 @@
 variable "subscription_id" {
   description = "Azure subscription ID"
   type        = string
+  default     = "00000000-0000-0000-0000-000000000000" # placeholder — reference only
 }
 
 variable "environment" {
@@ -24,4 +25,5 @@ variable "resource_group_name" {
 variable "acr_login_server" {
   description = "Azure Container Registry login server"
   type        = string
+  default     = "grontiaprodacr.azurecr.io" # placeholder — reference only
 }
