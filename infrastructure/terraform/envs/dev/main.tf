@@ -40,7 +40,7 @@ module "databricks" {
   location            = var.location
   resource_group_name = var.resource_group_name
   vnet_id             = module.networking.vnet_id
-  subnet_id           = module.netabricks.subnet_id
+  subnet_id           = module.networking.databricks_private_subnet_id
 }
 
 module "airflow" {
@@ -49,6 +49,6 @@ module "airflow" {
   location            = var.location
   resource_group_name = var.resource_group_name
   vnet_id             = module.networking.vnet_id
-  subnet_id           = module.airflow.subnet_id
+  subnet_id           = module.networking.airflow_subnet_id
   acr_login_server    = var.acr_login_server
 }
