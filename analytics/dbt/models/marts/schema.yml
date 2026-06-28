@@ -1,0 +1,22 @@
+version: 2
+
+models:
+  - name: mart_regional_dashboard
+    description: >
+      Consolidated regional dashboard combining CBS neighbourhood figures,
+      property values and household income. One row per (region, period).
+    columns:
+      - name: region_code
+        description: "CBS region identifier"
+        tests:
+          - not_null
+      - name: period_code
+        description: "Reporting period"
+        tests:
+          - not_null
+      - name: population
+        description: "Total population in the region"
+      - name: avg_woz_value_eur
+        description: "Average WOZ (property) value in EUR"
+      - name: avg_household_income_eur
+        description: "Average gross household income in EUR"

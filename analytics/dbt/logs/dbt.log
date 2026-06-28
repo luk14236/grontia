@@ -1,0 +1,1585 @@
+[0m21:08:52.953992 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'start', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x000002BBA54EC850>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x000002BBA53E9B10>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x000002BBA57AB050>]}
+
+
+============================== 21:08:52.969152 | b891a20c-3ff6-4e5f-a441-0bfc45b05a73 ==============================
+[0m21:08:52.969152 [info ] [MainThread]: Running with dbt=1.11.11
+[0m21:08:52.970152 [debug] [MainThread]: running dbt with arguments {'version_check': 'True', 'no_print': 'None', 'static_parser': 'True', 'warn_error_options': 'WarnErrorOptionsV2(error=[], warn=[], silence=[])', 'target_path': 'None', 'printer_width': '80', 'write_json': 'True', 'introspect': 'True', 'log_cache_events': 'False', 'empty': 'False', 'cache_selected_only': 'False', 'log_format': 'default', 'debug': 'False', 'fail_fast': 'False', 'profiles_dir': 'C:\\Users\\Luk\\Documents\\GitHub\\grontia\\analytics\\dbt', 'send_anonymous_usage_stats': 'True', 'quiet': 'False', 'warn_error': 'None', 'partial_parse': 'True', 'use_colors': 'True', 'indirect_selection': 'eager', 'invocation_command': 'dbt run --target motherduck', 'use_experimental_parser': 'False', 'log_path': 'C:\\Users\\Luk\\Documents\\GitHub\\grontia\\analytics\\dbt\\logs'}
+[0m21:08:52.982028 [error] [MainThread]: Encountered an error:
+Parsing Error
+  Env var required but not provided: 'MOTHERDUCK_TOKEN'
+[0m21:08:52.984538 [debug] [MainThread]: Command `dbt run` failed at 21:08:52.984538 after 0.12 seconds
+[0m21:08:52.984538 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'end', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x000002BB9F65F290>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x000002BBA569A550>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x000002BBA574DA10>]}
+[0m21:08:52.985628 [debug] [MainThread]: Flushing usage events
+[0m21:08:53.791404 [debug] [MainThread]: An error was encountered while trying to flush usage events
+[0m21:24:44.623616 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'start', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x0000025B11817810>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x0000025B11756310>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x0000025B11756250>]}
+
+
+============================== 21:24:44.627651 | ea2d2ca0-955e-416d-a095-6fcfb0318c33 ==============================
+[0m21:24:44.627651 [info ] [MainThread]: Running with dbt=1.11.11
+[0m21:24:44.628654 [debug] [MainThread]: running dbt with arguments {'version_check': 'True', 'no_print': 'None', 'static_parser': 'True', 'warn_error_options': 'WarnErrorOptionsV2(error=[], warn=[], silence=[])', 'target_path': 'None', 'printer_width': '80', 'write_json': 'True', 'empty': 'False', 'log_cache_events': 'False', 'introspect': 'True', 'cache_selected_only': 'False', 'fail_fast': 'False', 'debug': 'False', 'log_format': 'default', 'partial_parse': 'True', 'send_anonymous_usage_stats': 'True', 'quiet': 'False', 'warn_error': 'None', 'profiles_dir': 'C:\\Users\\Luk\\Documents\\GitHub\\grontia\\analytics\\dbt', 'invocation_command': 'dbt run --target motherduck', 'indirect_selection': 'eager', 'use_colors': 'True', 'use_experimental_parser': 'False', 'log_path': 'C:\\Users\\Luk\\Documents\\GitHub\\grontia\\analytics\\dbt\\logs'}
+[0m21:24:45.093151 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'project_id', 'label': 'ea2d2ca0-955e-416d-a095-6fcfb0318c33', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x0000025B117C0E90>]}
+[0m21:24:45.137605 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'adapter_info', 'label': 'ea2d2ca0-955e-416d-a095-6fcfb0318c33', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x0000025B0D3D9190>]}
+[0m21:24:45.160010 [info ] [MainThread]: Registered adapter: duckdb=1.10.1
+[0m21:24:45.576796 [debug] [MainThread]: checksum: cf5123c5b214ce4e6c8761bc489f93a04e4c43e34731d4fed08a3e7a83b2c828, vars: {}, profile: , target: motherduck, version: 1.11.11
+[0m21:24:45.578824 [info ] [MainThread]: Unable to do partial parsing because saved manifest not found. Starting full parse.
+[0m21:24:45.578824 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'partial_parser', 'label': 'ea2d2ca0-955e-416d-a095-6fcfb0318c33', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x0000025B11A6DC10>]}
+[0m21:24:47.369169 [warn ] [MainThread]: [[33mWARNING[0m]: Configuration paths exist in your dbt_project.yml file which do not apply to any resources.
+There are 1 unused configuration paths:
+- models.grontia.intermediate
+[0m21:24:47.375123 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'load_project', 'label': 'ea2d2ca0-955e-416d-a095-6fcfb0318c33', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x0000025B130C5490>]}
+[0m21:24:47.438239 [debug] [MainThread]: Wrote artifact WritableManifest to C:\Users\Luk\Documents\GitHub\grontia\analytics\dbt\target\manifest.json
+[0m21:24:47.451239 [debug] [MainThread]: Wrote artifact SemanticManifest to C:\Users\Luk\Documents\GitHub\grontia\analytics\dbt\target\semantic_manifest.json
+[0m21:24:47.509581 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'resource_counts', 'label': 'ea2d2ca0-955e-416d-a095-6fcfb0318c33', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x0000025B11E8C950>]}
+[0m21:24:47.510681 [info ] [MainThread]: Found 5 models, 12 data tests, 485 macros
+[0m21:24:47.510681 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'runnable_timing', 'label': 'ea2d2ca0-955e-416d-a095-6fcfb0318c33', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x0000025B11747510>]}
+[0m21:24:47.513187 [info ] [MainThread]: 
+[0m21:24:47.513187 [info ] [MainThread]: Concurrency: 4 threads (target='motherduck')
+[0m21:24:47.513187 [info ] [MainThread]: 
+[0m21:24:47.514574 [debug] [MainThread]: Acquiring new duckdb connection 'master'
+[0m21:24:47.518640 [debug] [ThreadPool]: Acquiring new duckdb connection 'list_grontia'
+[0m21:24:47.518640 [debug] [ThreadPool]: Acquiring new duckdb connection 'list_grontia'
+[0m21:24:49.646677 [debug] [ThreadPool]: Using duckdb connection "list_grontia"
+[0m21:24:49.647677 [debug] [ThreadPool]: Using duckdb connection "list_grontia"
+[0m21:24:49.647677 [debug] [ThreadPool]: On list_grontia: /* {"app": "dbt", "dbt_version": "1.11.11", "profile_name": "grontia", "target_name": "motherduck", "connection_name": "list_grontia"} */
+
+    
+    select schema_name
+    from system.information_schema.schemata
+    
+    where lower(catalog_name) = '"grontia"'
+    
+  
+  
+[0m21:24:49.647677 [debug] [ThreadPool]: On list_grontia: /* {"app": "dbt", "dbt_version": "1.11.11", "profile_name": "grontia", "target_name": "motherduck", "connection_name": "list_grontia"} */
+
+    
+    select schema_name
+    from system.information_schema.schemata
+    
+    where lower(catalog_name) = '"grontia"'
+    
+  
+  
+[0m21:24:49.648700 [debug] [ThreadPool]: Opening a new connection, currently in state init
+[0m21:24:49.648700 [debug] [ThreadPool]: Opening a new connection, currently in state init
+[0m21:24:51.363302 [debug] [ThreadPool]: DuckDB adapter: duckdb error: Invalid Input Error: Initialization function "motherduck_duckdb_cpp_init" from file "C:\Users\Luk\.duckdb\extensions\v1.5.4\windows_amd64\motherduck.duckdb_extension" threw an exception: "Invalid Error: Request failed: Your request is not authenticated. Please check your MotherDuck token. (Jwt is not in the form of Header.Payload.Signature with two dots and 3 sections, request id: '819f0fb1-1472-4fa5-9810-c8a584dfd597')"
+[0m21:24:51.365358 [debug] [ThreadPool]: DuckDB adapter: Error running SQL: /* {"app": "dbt", "dbt_version": "1.11.11", "profile_name": "grontia", "target_name": "motherduck", "connection_name": "list_grontia"} */
+
+    
+    select schema_name
+    from system.information_schema.schemata
+    
+    where lower(catalog_name) = '"grontia"'
+    
+  
+  
+[0m21:24:51.366373 [debug] [ThreadPool]: DuckDB adapter: Rolling back transaction.
+[0m21:24:51.366373 [debug] [ThreadPool]: Opening a new connection, currently in state init
+[0m21:24:51.593295 [debug] [ThreadPool]: DuckDB adapter: duckdb error: Invalid Input Error: Initialization function "motherduck_duckdb_cpp_init" from file "C:\Users\Luk\.duckdb\extensions\v1.5.4\windows_amd64\motherduck.duckdb_extension" threw an exception: "Invalid Error: Request failed: Your request is not authenticated. Please check your MotherDuck token. (Jwt is not in the form of Header.Payload.Signature with two dots and 3 sections, request id: '819f0fb1-157a-43da-9b40-61c6bc3e810b')"
+[0m21:24:51.594633 [debug] [ThreadPool]: DuckDB adapter: Error running SQL: /* {"app": "dbt", "dbt_version": "1.11.11", "profile_name": "grontia", "target_name": "motherduck", "connection_name": "list_grontia"} */
+
+    
+    select schema_name
+    from system.information_schema.schemata
+    
+    where lower(catalog_name) = '"grontia"'
+    
+  
+  
+[0m21:24:51.594633 [debug] [ThreadPool]: DuckDB adapter: Rolling back transaction.
+[0m21:24:51.595632 [debug] [ThreadPool]: Opening a new connection, currently in state init
+[0m21:24:51.812311 [debug] [ThreadPool]: DuckDB adapter: duckdb error: Invalid Input Error: Initialization function "motherduck_duckdb_cpp_init" from file "C:\Users\Luk\.duckdb\extensions\v1.5.4\windows_amd64\motherduck.duckdb_extension" threw an exception: "Invalid Error: Request failed: Your request is not authenticated. Please check your MotherDuck token. (Jwt is not in the form of Header.Payload.Signature with two dots and 3 sections, request id: '819f0fb1-165e-4357-a886-3cdfcc111a45')"
+[0m21:24:51.813816 [debug] [ThreadPool]: DuckDB adapter: Error running SQL: macro list_schemas
+[0m21:24:51.813816 [debug] [ThreadPool]: DuckDB adapter: Rolling back transaction.
+[0m21:24:51.814824 [debug] [ThreadPool]: Opening a new connection, currently in state init
+[0m21:24:52.031866 [debug] [ThreadPool]: DuckDB adapter: duckdb error: Invalid Input Error: Initialization function "motherduck_duckdb_cpp_init" from file "C:\Users\Luk\.duckdb\extensions\v1.5.4\windows_amd64\motherduck.duckdb_extension" threw an exception: "Invalid Error: Request failed: Your request is not authenticated. Please check your MotherDuck token. (Jwt is not in the form of Header.Payload.Signature with two dots and 3 sections, request id: '819f0fb1-1739-4ad8-bbcf-89e57fc893dd')"
+[0m21:24:52.033370 [debug] [ThreadPool]: DuckDB adapter: Error running SQL: macro list_schemas
+[0m21:24:52.033370 [debug] [ThreadPool]: DuckDB adapter: Rolling back transaction.
+[0m21:24:52.034383 [debug] [ThreadPool]: Opening a new connection, currently in state init
+[0m21:24:52.490303 [debug] [MainThread]: Connection 'master' was properly closed.
+[0m21:24:52.491543 [debug] [MainThread]: Connection 'list_grontia' was properly closed.
+[0m21:24:52.491543 [debug] [MainThread]: Connection 'list_grontia' was properly closed.
+[0m21:24:52.491543 [info ] [MainThread]: 
+[0m21:24:52.493046 [info ] [MainThread]: Finished running  in 0 hours 0 minutes and 4.98 seconds (4.98s).
+[0m21:24:52.493046 [error] [MainThread]: Encountered an error:
+Invalid Input Error: Initialization function "motherduck_duckdb_cpp_init" from file "C:\Users\Luk\.duckdb\extensions\v1.5.4\windows_amd64\motherduck.duckdb_extension" threw an exception: "Invalid Error: Request failed: Your request is not authenticated. Please check your MotherDuck token. (Jwt is not in the form of Header.Payload.Signature with two dots and 3 sections, request id: '819f0fb1-1817-41dd-960b-d03e4659d3ef')"
+[0m21:24:52.502398 [error] [MainThread]: Traceback (most recent call last):
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\dbt\adapters\duckdb\connections.py", line 95, in exception_handler
+    yield
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\dbt\adapters\sql\connections.py", line 147, in add_query
+    cursor = connection.handle.cursor()
+             ^^^^^^^^^^^^^^^^^
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\dbt\adapters\contracts\connection.py", line 96, in handle
+    self._handle.resolve(self)
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\dbt\adapters\contracts\connection.py", line 120, in resolve
+    return self.opener(connection)
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\dbt\adapters\duckdb\connections.py", line 53, in open
+    connection.handle = cls._ENV.handle()
+                        ^^^^^^^^^^^^^^^^^
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\dbt\adapters\duckdb\environments\local.py", line 75, in handle
+    self.conn = self.initialize_db(self.creds, self._plugins)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\dbt\adapters\duckdb\environments\__init__.py", line 159, in initialize_db
+    conn = duckdb.connect(creds.path, read_only=False, config=config)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_duckdb.InvalidInputException: Invalid Input Error: Initialization function "motherduck_duckdb_cpp_init" from file "C:\Users\Luk\.duckdb\extensions\v1.5.4\windows_amd64\motherduck.duckdb_extension" threw an exception: "Invalid Error: Request failed: Your request is not authenticated. Please check your MotherDuck token. (Jwt is not in the form of Header.Payload.Signature with two dots and 3 sections, request id: '819f0fb1-1472-4fa5-9810-c8a584dfd597')"
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\dbt\adapters\duckdb\connections.py", line 95, in exception_handler
+    yield
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\dbt\adapters\base\impl.py", line 1357, in execute_macro
+    result = macro_function(**kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\dbt_common\clients\jinja.py", line 427, in __call__
+    return self.call_macro(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\dbt_common\clients\jinja.py", line 395, in call_macro
+    return macro(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\jinja2\runtime.py", line 770, in __call__
+    return self._invoke(arguments, autoescape)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\jinja2\runtime.py", line 784, in _invoke
+    rv = self._func(*arguments)
+         ^^^^^^^^^^^^^^^^^^^^^^
+  File "<template>", line 20, in macro
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\jinja2\sandbox.py", line 401, in call
+    return __context.call(__obj, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\jinja2\runtime.py", line 303, in call
+    return __obj(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\dbt\clients\jinja.py", line 82, in __call__
+    return self.call_macro(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\dbt_common\clients\jinja.py", line 395, in call_macro
+    return macro(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\jinja2\runtime.py", line 770, in __call__
+    return self._invoke(arguments, autoescape)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\jinja2\runtime.py", line 784, in _invoke
+    rv = self._func(*arguments)
+         ^^^^^^^^^^^^^^^^^^^^^^
+  File "<template>", line 50, in macro
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\jinja2\sandbox.py", line 401, in call
+    return __context.call(__obj, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\jinja2\runtime.py", line 303, in call
+    return __obj(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\dbt\clients\jinja.py", line 82, in __call__
+    return self.call_macro(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\dbt_common\clients\jinja.py", line 395, in call_macro
+    return macro(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\jinja2\runtime.py", line 770, in __call__
+    return self._invoke(arguments, autoescape)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\jinja2\runtime.py", line 784, in _invoke
+    rv = self._func(*arguments)
+         ^^^^^^^^^^^^^^^^^^^^^^
+  File "<template>", line 33, in macro
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\jinja2\sandbox.py", line 401, in call
+    return __context.call(__obj, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\jinja2\runtime.py", line 303, in call
+    return __obj(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\dbt\clients\jinja.py", line 82, in __call__
+    return self.call_macro(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\dbt_common\clients\jinja.py", line 395, in call_macro
+    return macro(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\jinja2\runtime.py", line 770, in __call__
+    return self._invoke(arguments, autoescape)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\jinja2\runtime.py", line 784, in _invoke
+    rv = self._func(*arguments)
+         ^^^^^^^^^^^^^^^^^^^^^^
+  File "<template>", line 52, in macro
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\jinja2\sandbox.py", line 401, in call
+    return __context.call(__obj, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\jinja2\runtime.py", line 303, in call
+    return __obj(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\dbt_common\record.py", line 538, in record_replay_wrapper
+    return func_to_record(*call_args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\dbt\adapters\base\impl.py", line 508, in execute
+    return self.connections.execute(sql=sql, auto_begin=auto_begin, fetch=fetch, limit=limit)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\dbt\adapters\duckdb\connections.py", line 130, in execute
+    return super().execute(sql, auto_begin, fetch, limit)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\dbt\adapters\sql\connections.py", line 219, in execute
+    _, cursor = self.add_query(sql, auto_begin)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\dbt\adapters\sql\connections.py", line 131, in add_query
+    with self.exception_handler(sql):
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.11_3.11.2544.0_x64__qbz5n2kfra8p0\Lib\contextlib.py", line 158, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\dbt\adapters\duckdb\connections.py", line 102, in exception_handler
+    self.rollback_if_open()
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\dbt\adapters\base\connections.py", line 125, in rollback_if_open
+    if conn is not None and conn.handle and conn.transaction_open:
+                            ^^^^^^^^^^^
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\dbt\adapters\contracts\connection.py", line 96, in handle
+    self._handle.resolve(self)
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\dbt\adapters\contracts\connection.py", line 120, in resolve
+    return self.opener(connection)
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\dbt\adapters\duckdb\connections.py", line 53, in open
+    connection.handle = cls._ENV.handle()
+                        ^^^^^^^^^^^^^^^^^
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\dbt\adapters\duckdb\environments\local.py", line 75, in handle
+    self.conn = self.initialize_db(self.creds, self._plugins)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\dbt\adapters\duckdb\environments\__init__.py", line 159, in initialize_db
+    conn = duckdb.connect(creds.path, read_only=False, config=config)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_duckdb.InvalidInputException: Invalid Input Error: Initialization function "motherduck_duckdb_cpp_init" from file "C:\Users\Luk\.duckdb\extensions\v1.5.4\windows_amd64\motherduck.duckdb_extension" threw an exception: "Invalid Error: Request failed: Your request is not authenticated. Please check your MotherDuck token. (Jwt is not in the form of Header.Payload.Signature with two dots and 3 sections, request id: '819f0fb1-165e-4357-a886-3cdfcc111a45')"
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\dbt\cli\requires.py", line 182, in wrapper
+    result, success = func(*args, **kwargs)
+                      ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\dbt\cli\requires.py", line 128, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\dbt\cli\requires.py", line 276, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\dbt\cli\requires.py", line 321, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\dbt\cli\requires.py", line 391, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\dbt\cli\requires.py", line 368, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\dbt\cli\requires.py", line 408, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\dbt\cli\main.py", line 593, in run
+    results = task.run()
+              ^^^^^^^^^^
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\dbt\task\runnable.py", line 626, in run
+    result = self.execute_with_hooks(selected_uids)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\dbt\task\runnable.py", line 559, in execute_with_hooks
+    before_run_status = self.before_run(adapter, selected_uids)
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\dbt\task\run.py", line 1114, in before_run
+    self.create_schemas(adapter, required_schemas)
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\dbt\task\runnable.py", line 734, in create_schemas
+    existing_schemas_lowered.update(ls_future.result())
+                                    ^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.11_3.11.2544.0_x64__qbz5n2kfra8p0\Lib\concurrent\futures\_base.py", line 449, in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.11_3.11.2544.0_x64__qbz5n2kfra8p0\Lib\concurrent\futures\_base.py", line 401, in __get_result
+    raise self._exception
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.11_3.11.2544.0_x64__qbz5n2kfra8p0\Lib\concurrent\futures\thread.py", line 58, in run
+    result = self.fn(*self.args, **self.kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\dbt_common\utils\executor.py", line 16, in connected
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\dbt\task\runnable.py", line 709, in list_schemas
+    for s in adapter.list_schemas(database_quoted)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\dbt\adapters\sql\impl.py", line 219, in list_schemas
+    results = self.execute_macro(LIST_SCHEMAS_MACRO_NAME, kwargs={"database": database})
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\dbt\adapters\base\impl.py", line 1356, in execute_macro
+    with self.connections.exception_handler(f"macro {macro_name}"):
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.11_3.11.2544.0_x64__qbz5n2kfra8p0\Lib\contextlib.py", line 158, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\dbt\adapters\duckdb\connections.py", line 102, in exception_handler
+    self.rollback_if_open()
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\dbt\adapters\base\connections.py", line 125, in rollback_if_open
+    if conn is not None and conn.handle and conn.transaction_open:
+                            ^^^^^^^^^^^
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\dbt\adapters\contracts\connection.py", line 96, in handle
+    self._handle.resolve(self)
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\dbt\adapters\contracts\connection.py", line 120, in resolve
+    return self.opener(connection)
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\dbt\adapters\duckdb\connections.py", line 53, in open
+    connection.handle = cls._ENV.handle()
+                        ^^^^^^^^^^^^^^^^^
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\dbt\adapters\duckdb\environments\local.py", line 75, in handle
+    self.conn = self.initialize_db(self.creds, self._plugins)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\dbt\adapters\duckdb\environments\__init__.py", line 159, in initialize_db
+    conn = duckdb.connect(creds.path, read_only=False, config=config)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_duckdb.InvalidInputException: Invalid Input Error: Initialization function "motherduck_duckdb_cpp_init" from file "C:\Users\Luk\.duckdb\extensions\v1.5.4\windows_amd64\motherduck.duckdb_extension" threw an exception: "Invalid Error: Request failed: Your request is not authenticated. Please check your MotherDuck token. (Jwt is not in the form of Header.Payload.Signature with two dots and 3 sections, request id: '819f0fb1-1817-41dd-960b-d03e4659d3ef')"
+
+[0m21:24:52.504600 [debug] [MainThread]: Command `dbt run` failed at 21:24:52.504600 after 7.96 seconds
+[0m21:24:52.505684 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'end', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x0000025B11747690>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x0000025B11747B10>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x0000025B0B65E650>]}
+[0m21:24:52.505684 [debug] [MainThread]: Flushing usage events
+[0m21:24:53.300298 [debug] [MainThread]: An error was encountered while trying to flush usage events
+[0m21:27:28.538161 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'start', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x000002327BB4BED0>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x000002327BB4AF50>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x000002327BB4B150>]}
+
+
+============================== 21:27:28.542690 | 1819fcc9-c903-4c6b-9236-c9ab4044fed8 ==============================
+[0m21:27:28.542690 [info ] [MainThread]: Running with dbt=1.11.11
+[0m21:27:28.543704 [debug] [MainThread]: running dbt with arguments {'version_check': 'True', 'no_print': 'None', 'static_parser': 'True', 'target_path': 'None', 'warn_error_options': 'WarnErrorOptionsV2(error=[], warn=[], silence=[])', 'printer_width': '80', 'write_json': 'True', 'introspect': 'True', 'log_cache_events': 'False', 'empty': 'False', 'cache_selected_only': 'False', 'fail_fast': 'False', 'debug': 'False', 'log_format': 'default', 'profiles_dir': 'C:\\Users\\Luk\\Documents\\GitHub\\grontia\\analytics\\dbt', 'send_anonymous_usage_stats': 'True', 'quiet': 'False', 'warn_error': 'None', 'partial_parse': 'True', 'indirect_selection': 'eager', 'invocation_command': 'dbt run --target motherduck', 'use_colors': 'True', 'use_experimental_parser': 'False', 'log_path': 'C:\\Users\\Luk\\Documents\\GitHub\\grontia\\analytics\\dbt\\logs'}
+[0m21:27:28.755995 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'project_id', 'label': '1819fcc9-c903-4c6b-9236-c9ab4044fed8', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x000002327BC7F650>]}
+[0m21:27:28.801633 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'adapter_info', 'label': '1819fcc9-c903-4c6b-9236-c9ab4044fed8', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x00000232767DDC10>]}
+[0m21:27:28.804144 [info ] [MainThread]: Registered adapter: duckdb=1.10.1
+[0m21:27:29.185623 [debug] [MainThread]: checksum: cf5123c5b214ce4e6c8761bc489f93a04e4c43e34731d4fed08a3e7a83b2c828, vars: {}, profile: , target: motherduck, version: 1.11.11
+[0m21:27:29.317590 [debug] [MainThread]: Partial parsing enabled: 0 files deleted, 0 files added, 0 files changed.
+[0m21:27:29.317590 [debug] [MainThread]: Nothing changed, skipping partial parsing.
+[0m21:27:29.318600 [debug] [MainThread]: Partial parsing enabled, no changes found, skipping parsing
+[0m21:27:29.323134 [warn ] [MainThread]: [[33mWARNING[0m]: Configuration paths exist in your dbt_project.yml file which do not apply to any resources.
+There are 1 unused configuration paths:
+- models.grontia.intermediate
+[0m21:27:29.348211 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'load_project', 'label': '1819fcc9-c903-4c6b-9236-c9ab4044fed8', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x000002327BBFCB10>]}
+[0m21:27:29.412021 [debug] [MainThread]: Wrote artifact WritableManifest to C:\Users\Luk\Documents\GitHub\grontia\analytics\dbt\target\manifest.json
+[0m21:27:29.415264 [debug] [MainThread]: Wrote artifact SemanticManifest to C:\Users\Luk\Documents\GitHub\grontia\analytics\dbt\target\semantic_manifest.json
+[0m21:27:29.426054 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'resource_counts', 'label': '1819fcc9-c903-4c6b-9236-c9ab4044fed8', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x000002327D10BE10>]}
+[0m21:27:29.426054 [info ] [MainThread]: Found 5 models, 12 data tests, 485 macros
+[0m21:27:29.427066 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'runnable_timing', 'label': '1819fcc9-c903-4c6b-9236-c9ab4044fed8', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x000002327D10BF10>]}
+[0m21:27:29.429076 [info ] [MainThread]: 
+[0m21:27:29.429076 [info ] [MainThread]: Concurrency: 4 threads (target='motherduck')
+[0m21:27:29.430090 [info ] [MainThread]: 
+[0m21:27:29.431111 [debug] [MainThread]: Acquiring new duckdb connection 'master'
+[0m21:27:29.434653 [debug] [ThreadPool]: Acquiring new duckdb connection 'list_grontia'
+[0m21:27:29.435714 [debug] [ThreadPool]: Acquiring new duckdb connection 'list_grontia'
+[0m21:27:29.620305 [debug] [ThreadPool]: Using duckdb connection "list_grontia"
+[0m21:27:29.621810 [debug] [ThreadPool]: Using duckdb connection "list_grontia"
+[0m21:27:29.621810 [debug] [ThreadPool]: On list_grontia: /* {"app": "dbt", "dbt_version": "1.11.11", "profile_name": "grontia", "target_name": "motherduck", "connection_name": "list_grontia"} */
+
+    
+    select schema_name
+    from system.information_schema.schemata
+    
+    where lower(catalog_name) = '"grontia"'
+    
+  
+  
+[0m21:27:29.621810 [debug] [ThreadPool]: On list_grontia: /* {"app": "dbt", "dbt_version": "1.11.11", "profile_name": "grontia", "target_name": "motherduck", "connection_name": "list_grontia"} */
+
+    
+    select schema_name
+    from system.information_schema.schemata
+    
+    where lower(catalog_name) = '"grontia"'
+    
+  
+  
+[0m21:27:29.623002 [debug] [ThreadPool]: Opening a new connection, currently in state init
+[0m21:27:29.623002 [debug] [ThreadPool]: Opening a new connection, currently in state init
+[0m21:27:30.235157 [debug] [ThreadPool]: DuckDB adapter: duckdb error: Invalid Input Error: Initialization function "motherduck_duckdb_cpp_init" from file "C:\Users\Luk\.duckdb\extensions\v1.5.4\windows_amd64\motherduck.duckdb_extension" threw an exception: "Invalid Error: Request failed: Your request is not authenticated. Please check your MotherDuck token. (Jwt is not in the form of Header.Payload.Signature with two dots and 3 sections, request id: '819f0fb3-812b-444f-86ed-9713e4ad8886')"
+[0m21:27:30.236185 [debug] [ThreadPool]: DuckDB adapter: Error running SQL: /* {"app": "dbt", "dbt_version": "1.11.11", "profile_name": "grontia", "target_name": "motherduck", "connection_name": "list_grontia"} */
+
+    
+    select schema_name
+    from system.information_schema.schemata
+    
+    where lower(catalog_name) = '"grontia"'
+    
+  
+  
+[0m21:27:30.237204 [debug] [ThreadPool]: DuckDB adapter: Rolling back transaction.
+[0m21:27:30.237204 [debug] [ThreadPool]: Opening a new connection, currently in state init
+[0m21:27:30.460193 [debug] [ThreadPool]: DuckDB adapter: duckdb error: Invalid Input Error: Initialization function "motherduck_duckdb_cpp_init" from file "C:\Users\Luk\.duckdb\extensions\v1.5.4\windows_amd64\motherduck.duckdb_extension" threw an exception: "Invalid Error: Request failed: Your request is not authenticated. Please check your MotherDuck token. (Jwt is not in the form of Header.Payload.Signature with two dots and 3 sections, request id: '819f0fb3-8218-4907-beb9-4455c92e73c7')"
+[0m21:27:30.460193 [debug] [ThreadPool]: DuckDB adapter: Error running SQL: /* {"app": "dbt", "dbt_version": "1.11.11", "profile_name": "grontia", "target_name": "motherduck", "connection_name": "list_grontia"} */
+
+    
+    select schema_name
+    from system.information_schema.schemata
+    
+    where lower(catalog_name) = '"grontia"'
+    
+  
+  
+[0m21:27:30.461697 [debug] [ThreadPool]: DuckDB adapter: Rolling back transaction.
+[0m21:27:30.461697 [debug] [ThreadPool]: Opening a new connection, currently in state init
+[0m21:27:30.681890 [debug] [ThreadPool]: DuckDB adapter: duckdb error: Invalid Input Error: Initialization function "motherduck_duckdb_cpp_init" from file "C:\Users\Luk\.duckdb\extensions\v1.5.4\windows_amd64\motherduck.duckdb_extension" threw an exception: "Invalid Error: Request failed: Your request is not authenticated. Please check your MotherDuck token. (Jwt is not in the form of Header.Payload.Signature with two dots and 3 sections, request id: '819f0fb3-82f0-4337-8aef-2db8b528fad4')"
+[0m21:27:30.683169 [debug] [ThreadPool]: DuckDB adapter: Error running SQL: macro list_schemas
+[0m21:27:30.684173 [debug] [ThreadPool]: DuckDB adapter: Rolling back transaction.
+[0m21:27:30.684173 [debug] [ThreadPool]: Opening a new connection, currently in state init
+[0m21:27:30.891836 [debug] [ThreadPool]: DuckDB adapter: duckdb error: Invalid Input Error: Initialization function "motherduck_duckdb_cpp_init" from file "C:\Users\Luk\.duckdb\extensions\v1.5.4\windows_amd64\motherduck.duckdb_extension" threw an exception: "Invalid Error: Request failed: Your request is not authenticated. Please check your MotherDuck token. (Jwt is not in the form of Header.Payload.Signature with two dots and 3 sections, request id: '819f0fb3-83d0-43fa-9226-dfca81ef3901')"
+[0m21:27:30.892845 [debug] [ThreadPool]: DuckDB adapter: Error running SQL: macro list_schemas
+[0m21:27:30.894034 [debug] [ThreadPool]: DuckDB adapter: Rolling back transaction.
+[0m21:27:30.894034 [debug] [ThreadPool]: Opening a new connection, currently in state init
+[0m21:27:31.376031 [debug] [MainThread]: Connection 'master' was properly closed.
+[0m21:27:31.377031 [debug] [MainThread]: Connection 'list_grontia' was properly closed.
+[0m21:27:31.377031 [debug] [MainThread]: Connection 'list_grontia' was properly closed.
+[0m21:27:31.378054 [info ] [MainThread]: 
+[0m21:27:31.378054 [info ] [MainThread]: Finished running  in 0 hours 0 minutes and 1.95 seconds (1.95s).
+[0m21:27:31.379058 [error] [MainThread]: Encountered an error:
+Invalid Input Error: Initialization function "motherduck_duckdb_cpp_init" from file "C:\Users\Luk\.duckdb\extensions\v1.5.4\windows_amd64\motherduck.duckdb_extension" threw an exception: "Invalid Error: Request failed: Your request is not authenticated. Please check your MotherDuck token. (Jwt is not in the form of Header.Payload.Signature with two dots and 3 sections, request id: '819f0fb3-84a2-47a4-a250-00331c80d18b')"
+[0m21:27:31.387644 [error] [MainThread]: Traceback (most recent call last):
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\dbt\adapters\duckdb\connections.py", line 95, in exception_handler
+    yield
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\dbt\adapters\sql\connections.py", line 147, in add_query
+    cursor = connection.handle.cursor()
+             ^^^^^^^^^^^^^^^^^
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\dbt\adapters\contracts\connection.py", line 96, in handle
+    self._handle.resolve(self)
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\dbt\adapters\contracts\connection.py", line 120, in resolve
+    return self.opener(connection)
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\dbt\adapters\duckdb\connections.py", line 53, in open
+    connection.handle = cls._ENV.handle()
+                        ^^^^^^^^^^^^^^^^^
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\dbt\adapters\duckdb\environments\local.py", line 75, in handle
+    self.conn = self.initialize_db(self.creds, self._plugins)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\dbt\adapters\duckdb\environments\__init__.py", line 159, in initialize_db
+    conn = duckdb.connect(creds.path, read_only=False, config=config)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_duckdb.InvalidInputException: Invalid Input Error: Initialization function "motherduck_duckdb_cpp_init" from file "C:\Users\Luk\.duckdb\extensions\v1.5.4\windows_amd64\motherduck.duckdb_extension" threw an exception: "Invalid Error: Request failed: Your request is not authenticated. Please check your MotherDuck token. (Jwt is not in the form of Header.Payload.Signature with two dots and 3 sections, request id: '819f0fb3-812b-444f-86ed-9713e4ad8886')"
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\dbt\adapters\duckdb\connections.py", line 95, in exception_handler
+    yield
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\dbt\adapters\base\impl.py", line 1357, in execute_macro
+    result = macro_function(**kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\dbt_common\clients\jinja.py", line 427, in __call__
+    return self.call_macro(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\dbt_common\clients\jinja.py", line 395, in call_macro
+    return macro(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\jinja2\runtime.py", line 770, in __call__
+    return self._invoke(arguments, autoescape)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\jinja2\runtime.py", line 784, in _invoke
+    rv = self._func(*arguments)
+         ^^^^^^^^^^^^^^^^^^^^^^
+  File "<template>", line 20, in macro
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\jinja2\sandbox.py", line 401, in call
+    return __context.call(__obj, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\jinja2\runtime.py", line 303, in call
+    return __obj(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\dbt\clients\jinja.py", line 82, in __call__
+    return self.call_macro(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\dbt_common\clients\jinja.py", line 395, in call_macro
+    return macro(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\jinja2\runtime.py", line 770, in __call__
+    return self._invoke(arguments, autoescape)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\jinja2\runtime.py", line 784, in _invoke
+    rv = self._func(*arguments)
+         ^^^^^^^^^^^^^^^^^^^^^^
+  File "<template>", line 50, in macro
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\jinja2\sandbox.py", line 401, in call
+    return __context.call(__obj, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\jinja2\runtime.py", line 303, in call
+    return __obj(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\dbt\clients\jinja.py", line 82, in __call__
+    return self.call_macro(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\dbt_common\clients\jinja.py", line 395, in call_macro
+    return macro(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\jinja2\runtime.py", line 770, in __call__
+    return self._invoke(arguments, autoescape)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\jinja2\runtime.py", line 784, in _invoke
+    rv = self._func(*arguments)
+         ^^^^^^^^^^^^^^^^^^^^^^
+  File "<template>", line 33, in macro
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\jinja2\sandbox.py", line 401, in call
+    return __context.call(__obj, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\jinja2\runtime.py", line 303, in call
+    return __obj(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\dbt\clients\jinja.py", line 82, in __call__
+    return self.call_macro(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\dbt_common\clients\jinja.py", line 395, in call_macro
+    return macro(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\jinja2\runtime.py", line 770, in __call__
+    return self._invoke(arguments, autoescape)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\jinja2\runtime.py", line 784, in _invoke
+    rv = self._func(*arguments)
+         ^^^^^^^^^^^^^^^^^^^^^^
+  File "<template>", line 52, in macro
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\jinja2\sandbox.py", line 401, in call
+    return __context.call(__obj, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\jinja2\runtime.py", line 303, in call
+    return __obj(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\dbt_common\record.py", line 538, in record_replay_wrapper
+    return func_to_record(*call_args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\dbt\adapters\base\impl.py", line 508, in execute
+    return self.connections.execute(sql=sql, auto_begin=auto_begin, fetch=fetch, limit=limit)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\dbt\adapters\duckdb\connections.py", line 130, in execute
+    return super().execute(sql, auto_begin, fetch, limit)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\dbt\adapters\sql\connections.py", line 219, in execute
+    _, cursor = self.add_query(sql, auto_begin)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\dbt\adapters\sql\connections.py", line 131, in add_query
+    with self.exception_handler(sql):
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.11_3.11.2544.0_x64__qbz5n2kfra8p0\Lib\contextlib.py", line 158, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\dbt\adapters\duckdb\connections.py", line 102, in exception_handler
+    self.rollback_if_open()
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\dbt\adapters\base\connections.py", line 125, in rollback_if_open
+    if conn is not None and conn.handle and conn.transaction_open:
+                            ^^^^^^^^^^^
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\dbt\adapters\contracts\connection.py", line 96, in handle
+    self._handle.resolve(self)
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\dbt\adapters\contracts\connection.py", line 120, in resolve
+    return self.opener(connection)
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\dbt\adapters\duckdb\connections.py", line 53, in open
+    connection.handle = cls._ENV.handle()
+                        ^^^^^^^^^^^^^^^^^
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\dbt\adapters\duckdb\environments\local.py", line 75, in handle
+    self.conn = self.initialize_db(self.creds, self._plugins)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\dbt\adapters\duckdb\environments\__init__.py", line 159, in initialize_db
+    conn = duckdb.connect(creds.path, read_only=False, config=config)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_duckdb.InvalidInputException: Invalid Input Error: Initialization function "motherduck_duckdb_cpp_init" from file "C:\Users\Luk\.duckdb\extensions\v1.5.4\windows_amd64\motherduck.duckdb_extension" threw an exception: "Invalid Error: Request failed: Your request is not authenticated. Please check your MotherDuck token. (Jwt is not in the form of Header.Payload.Signature with two dots and 3 sections, request id: '819f0fb3-82f0-4337-8aef-2db8b528fad4')"
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\dbt\cli\requires.py", line 182, in wrapper
+    result, success = func(*args, **kwargs)
+                      ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\dbt\cli\requires.py", line 128, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\dbt\cli\requires.py", line 276, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\dbt\cli\requires.py", line 321, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\dbt\cli\requires.py", line 391, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\dbt\cli\requires.py", line 368, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\dbt\cli\requires.py", line 408, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\dbt\cli\main.py", line 593, in run
+    results = task.run()
+              ^^^^^^^^^^
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\dbt\task\runnable.py", line 626, in run
+    result = self.execute_with_hooks(selected_uids)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\dbt\task\runnable.py", line 559, in execute_with_hooks
+    before_run_status = self.before_run(adapter, selected_uids)
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\dbt\task\run.py", line 1114, in before_run
+    self.create_schemas(adapter, required_schemas)
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\dbt\task\runnable.py", line 734, in create_schemas
+    existing_schemas_lowered.update(ls_future.result())
+                                    ^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.11_3.11.2544.0_x64__qbz5n2kfra8p0\Lib\concurrent\futures\_base.py", line 449, in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.11_3.11.2544.0_x64__qbz5n2kfra8p0\Lib\concurrent\futures\_base.py", line 401, in __get_result
+    raise self._exception
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.11_3.11.2544.0_x64__qbz5n2kfra8p0\Lib\concurrent\futures\thread.py", line 58, in run
+    result = self.fn(*self.args, **self.kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\dbt_common\utils\executor.py", line 16, in connected
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\dbt\task\runnable.py", line 709, in list_schemas
+    for s in adapter.list_schemas(database_quoted)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\dbt\adapters\sql\impl.py", line 219, in list_schemas
+    results = self.execute_macro(LIST_SCHEMAS_MACRO_NAME, kwargs={"database": database})
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\dbt\adapters\base\impl.py", line 1356, in execute_macro
+    with self.connections.exception_handler(f"macro {macro_name}"):
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.11_3.11.2544.0_x64__qbz5n2kfra8p0\Lib\contextlib.py", line 158, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\dbt\adapters\duckdb\connections.py", line 102, in exception_handler
+    self.rollback_if_open()
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\dbt\adapters\base\connections.py", line 125, in rollback_if_open
+    if conn is not None and conn.handle and conn.transaction_open:
+                            ^^^^^^^^^^^
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\dbt\adapters\contracts\connection.py", line 96, in handle
+    self._handle.resolve(self)
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\dbt\adapters\contracts\connection.py", line 120, in resolve
+    return self.opener(connection)
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\dbt\adapters\duckdb\connections.py", line 53, in open
+    connection.handle = cls._ENV.handle()
+                        ^^^^^^^^^^^^^^^^^
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\dbt\adapters\duckdb\environments\local.py", line 75, in handle
+    self.conn = self.initialize_db(self.creds, self._plugins)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\dbt\adapters\duckdb\environments\__init__.py", line 159, in initialize_db
+    conn = duckdb.connect(creds.path, read_only=False, config=config)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_duckdb.InvalidInputException: Invalid Input Error: Initialization function "motherduck_duckdb_cpp_init" from file "C:\Users\Luk\.duckdb\extensions\v1.5.4\windows_amd64\motherduck.duckdb_extension" threw an exception: "Invalid Error: Request failed: Your request is not authenticated. Please check your MotherDuck token. (Jwt is not in the form of Header.Payload.Signature with two dots and 3 sections, request id: '819f0fb3-84a2-47a4-a250-00331c80d18b')"
+
+[0m21:27:31.390116 [debug] [MainThread]: Command `dbt run` failed at 21:27:31.390116 after 2.93 seconds
+[0m21:27:31.391116 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'end', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x000002327BB47710>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x000002327D163AD0>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x000002327D163F10>]}
+[0m21:27:31.391116 [debug] [MainThread]: Flushing usage events
+[0m21:27:32.187504 [debug] [MainThread]: An error was encountered while trying to flush usage events
+[0m21:28:09.245759 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'start', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x00000290D3B4D8D0>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x00000290D3B4F250>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x00000290D3B4F750>]}
+
+
+============================== 21:28:09.249763 | ba2ba448-cc9b-47f5-873a-7f2fb9b47788 ==============================
+[0m21:28:09.249763 [info ] [MainThread]: Running with dbt=1.11.11
+[0m21:28:09.251232 [debug] [MainThread]: running dbt with arguments {'static_parser': 'True', 'no_print': 'None', 'version_check': 'True', 'warn_error_options': 'WarnErrorOptionsV2(error=[], warn=[], silence=[])', 'target_path': 'None', 'printer_width': '80', 'write_json': 'True', 'empty': 'False', 'log_cache_events': 'False', 'introspect': 'True', 'cache_selected_only': 'False', 'log_format': 'default', 'debug': 'False', 'fail_fast': 'False', 'profiles_dir': 'C:\\Users\\Luk\\Documents\\GitHub\\grontia\\analytics\\dbt', 'send_anonymous_usage_stats': 'True', 'quiet': 'False', 'warn_error': 'None', 'partial_parse': 'True', 'use_colors': 'True', 'indirect_selection': 'eager', 'invocation_command': 'dbt run --target dev', 'use_experimental_parser': 'False', 'log_path': 'C:\\Users\\Luk\\Documents\\GitHub\\grontia\\analytics\\dbt\\logs'}
+[0m21:28:09.472763 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'project_id', 'label': 'ba2ba448-cc9b-47f5-873a-7f2fb9b47788', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x00000290D3C17F50>]}
+[0m21:28:09.520951 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'adapter_info', 'label': 'ba2ba448-cc9b-47f5-873a-7f2fb9b47788', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x00000290CE82FBD0>]}
+[0m21:28:09.523952 [info ] [MainThread]: Registered adapter: duckdb=1.10.1
+[0m21:28:09.942917 [debug] [MainThread]: checksum: b276df2e725538900e19c36eb2bf632d2152ccbe55054f2124b6d2db0feda968, vars: {}, profile: , target: dev, version: 1.11.11
+[0m21:28:10.014139 [info ] [MainThread]: Unable to do partial parsing because config vars, config profile, or config target have changed
+[0m21:28:10.015175 [debug] [MainThread]: previous checksum: b276df2e725538900e19c36eb2bf632d2152ccbe55054f2124b6d2db0feda968, current checksum: cf5123c5b214ce4e6c8761bc489f93a04e4c43e34731d4fed08a3e7a83b2c828
+[0m21:28:10.015175 [info ] [MainThread]: Unable to do partial parsing because profile has changed
+[0m21:28:10.016304 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'partial_parser', 'label': 'ba2ba448-cc9b-47f5-873a-7f2fb9b47788', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x00000290D1C90ED0>]}
+[0m21:28:11.057152 [warn ] [MainThread]: [[33mWARNING[0m]: Configuration paths exist in your dbt_project.yml file which do not apply to any resources.
+There are 1 unused configuration paths:
+- models.grontia.intermediate
+[0m21:28:11.061485 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'load_project', 'label': 'ba2ba448-cc9b-47f5-873a-7f2fb9b47788', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x00000290D537F490>]}
+[0m21:28:11.124495 [debug] [MainThread]: Wrote artifact WritableManifest to C:\Users\Luk\Documents\GitHub\grontia\analytics\dbt\target\manifest.json
+[0m21:28:11.127703 [debug] [MainThread]: Wrote artifact SemanticManifest to C:\Users\Luk\Documents\GitHub\grontia\analytics\dbt\target\semantic_manifest.json
+[0m21:28:11.139647 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'resource_counts', 'label': 'ba2ba448-cc9b-47f5-873a-7f2fb9b47788', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x00000290D56833D0>]}
+[0m21:28:11.140663 [info ] [MainThread]: Found 5 models, 12 data tests, 485 macros
+[0m21:28:11.141786 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'runnable_timing', 'label': 'ba2ba448-cc9b-47f5-873a-7f2fb9b47788', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x00000290CEBD0090>]}
+[0m21:28:11.144295 [info ] [MainThread]: 
+[0m21:28:11.144295 [info ] [MainThread]: Concurrency: 4 threads (target='dev')
+[0m21:28:11.145313 [info ] [MainThread]: 
+[0m21:28:11.145313 [debug] [MainThread]: Acquiring new duckdb connection 'master'
+[0m21:28:11.149566 [debug] [ThreadPool]: Acquiring new duckdb connection 'list_grontia_dev'
+[0m21:28:11.150570 [debug] [ThreadPool]: Acquiring new duckdb connection 'list_grontia_dev'
+[0m21:28:11.251246 [debug] [ThreadPool]: Using duckdb connection "list_grontia_dev"
+[0m21:28:11.252250 [debug] [ThreadPool]: Using duckdb connection "list_grontia_dev"
+[0m21:28:11.252250 [debug] [ThreadPool]: On list_grontia_dev: /* {"app": "dbt", "dbt_version": "1.11.11", "profile_name": "grontia", "target_name": "dev", "connection_name": "list_grontia_dev"} */
+
+    
+    select schema_name
+    from system.information_schema.schemata
+    
+    where lower(catalog_name) = '"grontia_dev"'
+    
+  
+  
+[0m21:28:11.253287 [debug] [ThreadPool]: On list_grontia_dev: /* {"app": "dbt", "dbt_version": "1.11.11", "profile_name": "grontia", "target_name": "dev", "connection_name": "list_grontia_dev"} */
+
+    
+    select schema_name
+    from system.information_schema.schemata
+    
+    where lower(catalog_name) = '"grontia_dev"'
+    
+  
+  
+[0m21:28:11.253287 [debug] [ThreadPool]: Opening a new connection, currently in state init
+[0m21:28:11.254287 [debug] [ThreadPool]: Opening a new connection, currently in state init
+[0m21:28:13.976737 [debug] [ThreadPool]: DuckDB adapter: duckdb error: IO Error: Cannot open file "//tmp/grontia_dev.duckdb": O caminho da rede não foi encontrado.
+
+[0m21:28:13.977947 [debug] [ThreadPool]: DuckDB adapter: Error running SQL: /* {"app": "dbt", "dbt_version": "1.11.11", "profile_name": "grontia", "target_name": "dev", "connection_name": "list_grontia_dev"} */
+
+    
+    select schema_name
+    from system.information_schema.schemata
+    
+    where lower(catalog_name) = '"grontia_dev"'
+    
+  
+  
+[0m21:28:13.977947 [debug] [ThreadPool]: DuckDB adapter: Rolling back transaction.
+[0m21:28:13.978951 [debug] [ThreadPool]: Opening a new connection, currently in state init
+[0m21:28:13.984610 [debug] [ThreadPool]: DuckDB adapter: duckdb error: IO Error: Cannot open file "//tmp/grontia_dev.duckdb": O caminho da rede não foi encontrado.
+
+[0m21:28:13.984610 [debug] [ThreadPool]: DuckDB adapter: Error running SQL: /* {"app": "dbt", "dbt_version": "1.11.11", "profile_name": "grontia", "target_name": "dev", "connection_name": "list_grontia_dev"} */
+
+    
+    select schema_name
+    from system.information_schema.schemata
+    
+    where lower(catalog_name) = '"grontia_dev"'
+    
+  
+  
+[0m21:28:13.985617 [debug] [ThreadPool]: DuckDB adapter: Rolling back transaction.
+[0m21:28:13.985617 [debug] [ThreadPool]: Opening a new connection, currently in state init
+[0m21:28:13.990698 [debug] [ThreadPool]: DuckDB adapter: duckdb error: IO Error: Cannot open file "//tmp/grontia_dev.duckdb": O caminho da rede não foi encontrado.
+
+[0m21:28:13.990698 [debug] [ThreadPool]: DuckDB adapter: Error running SQL: macro list_schemas
+[0m21:28:13.990698 [debug] [ThreadPool]: DuckDB adapter: Rolling back transaction.
+[0m21:28:13.991702 [debug] [ThreadPool]: Opening a new connection, currently in state init
+[0m21:28:13.996242 [debug] [ThreadPool]: DuckDB adapter: duckdb error: IO Error: Cannot open file "//tmp/grontia_dev.duckdb": O caminho da rede não foi encontrado.
+
+[0m21:28:13.997253 [debug] [ThreadPool]: DuckDB adapter: Error running SQL: macro list_schemas
+[0m21:28:13.997253 [debug] [ThreadPool]: DuckDB adapter: Rolling back transaction.
+[0m21:28:13.997253 [debug] [ThreadPool]: Opening a new connection, currently in state init
+[0m21:28:14.007266 [debug] [MainThread]: Connection 'master' was properly closed.
+[0m21:28:14.008272 [debug] [MainThread]: Connection 'list_grontia_dev' was properly closed.
+[0m21:28:14.008272 [debug] [MainThread]: Connection 'list_grontia_dev' was properly closed.
+[0m21:28:14.008272 [info ] [MainThread]: 
+[0m21:28:14.009389 [info ] [MainThread]: Finished running  in 0 hours 0 minutes and 2.86 seconds (2.86s).
+[0m21:28:14.010395 [error] [MainThread]: Encountered an error:
+IO Error: Cannot open file "//tmp/grontia_dev.duckdb": O caminho da rede não foi encontrado.
+
+[0m21:28:14.019023 [error] [MainThread]: Traceback (most recent call last):
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\dbt\adapters\duckdb\connections.py", line 95, in exception_handler
+    yield
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\dbt\adapters\sql\connections.py", line 147, in add_query
+    cursor = connection.handle.cursor()
+             ^^^^^^^^^^^^^^^^^
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\dbt\adapters\contracts\connection.py", line 96, in handle
+    self._handle.resolve(self)
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\dbt\adapters\contracts\connection.py", line 120, in resolve
+    return self.opener(connection)
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\dbt\adapters\duckdb\connections.py", line 53, in open
+    connection.handle = cls._ENV.handle()
+                        ^^^^^^^^^^^^^^^^^
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\dbt\adapters\duckdb\environments\local.py", line 75, in handle
+    self.conn = self.initialize_db(self.creds, self._plugins)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\dbt\adapters\duckdb\environments\__init__.py", line 159, in initialize_db
+    conn = duckdb.connect(creds.path, read_only=False, config=config)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_duckdb.IOException: IO Error: Cannot open file "//tmp/grontia_dev.duckdb": O caminho da rede não foi encontrado.
+
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\dbt\adapters\duckdb\connections.py", line 95, in exception_handler
+    yield
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\dbt\adapters\base\impl.py", line 1357, in execute_macro
+    result = macro_function(**kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\dbt_common\clients\jinja.py", line 427, in __call__
+    return self.call_macro(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\dbt_common\clients\jinja.py", line 395, in call_macro
+    return macro(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\jinja2\runtime.py", line 770, in __call__
+    return self._invoke(arguments, autoescape)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\jinja2\runtime.py", line 784, in _invoke
+    rv = self._func(*arguments)
+         ^^^^^^^^^^^^^^^^^^^^^^
+  File "<template>", line 20, in macro
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\jinja2\sandbox.py", line 401, in call
+    return __context.call(__obj, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\jinja2\runtime.py", line 303, in call
+    return __obj(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\dbt\clients\jinja.py", line 82, in __call__
+    return self.call_macro(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\dbt_common\clients\jinja.py", line 395, in call_macro
+    return macro(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\jinja2\runtime.py", line 770, in __call__
+    return self._invoke(arguments, autoescape)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\jinja2\runtime.py", line 784, in _invoke
+    rv = self._func(*arguments)
+         ^^^^^^^^^^^^^^^^^^^^^^
+  File "<template>", line 50, in macro
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\jinja2\sandbox.py", line 401, in call
+    return __context.call(__obj, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\jinja2\runtime.py", line 303, in call
+    return __obj(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\dbt\clients\jinja.py", line 82, in __call__
+    return self.call_macro(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\dbt_common\clients\jinja.py", line 395, in call_macro
+    return macro(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\jinja2\runtime.py", line 770, in __call__
+    return self._invoke(arguments, autoescape)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\jinja2\runtime.py", line 784, in _invoke
+    rv = self._func(*arguments)
+         ^^^^^^^^^^^^^^^^^^^^^^
+  File "<template>", line 33, in macro
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\jinja2\sandbox.py", line 401, in call
+    return __context.call(__obj, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\jinja2\runtime.py", line 303, in call
+    return __obj(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\dbt\clients\jinja.py", line 82, in __call__
+    return self.call_macro(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\dbt_common\clients\jinja.py", line 395, in call_macro
+    return macro(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\jinja2\runtime.py", line 770, in __call__
+    return self._invoke(arguments, autoescape)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\jinja2\runtime.py", line 784, in _invoke
+    rv = self._func(*arguments)
+         ^^^^^^^^^^^^^^^^^^^^^^
+  File "<template>", line 52, in macro
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\jinja2\sandbox.py", line 401, in call
+    return __context.call(__obj, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\jinja2\runtime.py", line 303, in call
+    return __obj(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\dbt_common\record.py", line 538, in record_replay_wrapper
+    return func_to_record(*call_args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\dbt\adapters\base\impl.py", line 508, in execute
+    return self.connections.execute(sql=sql, auto_begin=auto_begin, fetch=fetch, limit=limit)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\dbt\adapters\duckdb\connections.py", line 130, in execute
+    return super().execute(sql, auto_begin, fetch, limit)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\dbt\adapters\sql\connections.py", line 219, in execute
+    _, cursor = self.add_query(sql, auto_begin)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\dbt\adapters\sql\connections.py", line 131, in add_query
+    with self.exception_handler(sql):
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.11_3.11.2544.0_x64__qbz5n2kfra8p0\Lib\contextlib.py", line 158, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\dbt\adapters\duckdb\connections.py", line 102, in exception_handler
+    self.rollback_if_open()
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\dbt\adapters\base\connections.py", line 125, in rollback_if_open
+    if conn is not None and conn.handle and conn.transaction_open:
+                            ^^^^^^^^^^^
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\dbt\adapters\contracts\connection.py", line 96, in handle
+    self._handle.resolve(self)
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\dbt\adapters\contracts\connection.py", line 120, in resolve
+    return self.opener(connection)
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\dbt\adapters\duckdb\connections.py", line 53, in open
+    connection.handle = cls._ENV.handle()
+                        ^^^^^^^^^^^^^^^^^
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\dbt\adapters\duckdb\environments\local.py", line 75, in handle
+    self.conn = self.initialize_db(self.creds, self._plugins)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\dbt\adapters\duckdb\environments\__init__.py", line 159, in initialize_db
+    conn = duckdb.connect(creds.path, read_only=False, config=config)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_duckdb.IOException: IO Error: Cannot open file "//tmp/grontia_dev.duckdb": O caminho da rede não foi encontrado.
+
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\dbt\cli\requires.py", line 182, in wrapper
+    result, success = func(*args, **kwargs)
+                      ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\dbt\cli\requires.py", line 128, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\dbt\cli\requires.py", line 276, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\dbt\cli\requires.py", line 321, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\dbt\cli\requires.py", line 391, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\dbt\cli\requires.py", line 368, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\dbt\cli\requires.py", line 408, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\dbt\cli\main.py", line 593, in run
+    results = task.run()
+              ^^^^^^^^^^
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\dbt\task\runnable.py", line 626, in run
+    result = self.execute_with_hooks(selected_uids)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\dbt\task\runnable.py", line 559, in execute_with_hooks
+    before_run_status = self.before_run(adapter, selected_uids)
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\dbt\task\run.py", line 1114, in before_run
+    self.create_schemas(adapter, required_schemas)
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\dbt\task\runnable.py", line 734, in create_schemas
+    existing_schemas_lowered.update(ls_future.result())
+                                    ^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.11_3.11.2544.0_x64__qbz5n2kfra8p0\Lib\concurrent\futures\_base.py", line 449, in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.11_3.11.2544.0_x64__qbz5n2kfra8p0\Lib\concurrent\futures\_base.py", line 401, in __get_result
+    raise self._exception
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.11_3.11.2544.0_x64__qbz5n2kfra8p0\Lib\concurrent\futures\thread.py", line 58, in run
+    result = self.fn(*self.args, **self.kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\dbt_common\utils\executor.py", line 16, in connected
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\dbt\task\runnable.py", line 709, in list_schemas
+    for s in adapter.list_schemas(database_quoted)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\dbt\adapters\sql\impl.py", line 219, in list_schemas
+    results = self.execute_macro(LIST_SCHEMAS_MACRO_NAME, kwargs={"database": database})
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\dbt\adapters\base\impl.py", line 1356, in execute_macro
+    with self.connections.exception_handler(f"macro {macro_name}"):
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.11_3.11.2544.0_x64__qbz5n2kfra8p0\Lib\contextlib.py", line 158, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\dbt\adapters\duckdb\connections.py", line 102, in exception_handler
+    self.rollback_if_open()
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\dbt\adapters\base\connections.py", line 125, in rollback_if_open
+    if conn is not None and conn.handle and conn.transaction_open:
+                            ^^^^^^^^^^^
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\dbt\adapters\contracts\connection.py", line 96, in handle
+    self._handle.resolve(self)
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\dbt\adapters\contracts\connection.py", line 120, in resolve
+    return self.opener(connection)
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\dbt\adapters\duckdb\connections.py", line 53, in open
+    connection.handle = cls._ENV.handle()
+                        ^^^^^^^^^^^^^^^^^
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\dbt\adapters\duckdb\environments\local.py", line 75, in handle
+    self.conn = self.initialize_db(self.creds, self._plugins)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Luk\AppData\Local\Packages\PythonSoftwareFoundation.Python.3.11_qbz5n2kfra8p0\LocalCache\local-packages\Python311\site-packages\dbt\adapters\duckdb\environments\__init__.py", line 159, in initialize_db
+    conn = duckdb.connect(creds.path, read_only=False, config=config)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_duckdb.IOException: IO Error: Cannot open file "//tmp/grontia_dev.duckdb": O caminho da rede não foi encontrado.
+
+
+[0m21:28:14.021642 [debug] [MainThread]: Command `dbt run` failed at 21:28:14.020473 after 4.85 seconds
+[0m21:28:14.021642 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'end', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x00000290D3B56110>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x00000290D569BED0>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x00000290CDA9E650>]}
+[0m21:28:14.022658 [debug] [MainThread]: Flushing usage events
+[0m21:28:14.801613 [debug] [MainThread]: An error was encountered while trying to flush usage events
+[0m22:00:53.841904 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'start', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x0000014866E54250>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x0000014866EBE950>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x0000014866E55D10>]}
+
+
+============================== 22:00:53.846930 | 388c78ea-5564-4ac3-942b-0f5eb0084f0d ==============================
+[0m22:00:53.846930 [info ] [MainThread]: Running with dbt=1.11.11
+[0m22:00:53.846930 [debug] [MainThread]: running dbt with arguments {'static_parser': 'True', 'no_print': 'None', 'version_check': 'True', 'target_path': 'None', 'warn_error_options': 'WarnErrorOptionsV2(error=[], warn=[], silence=[])', 'printer_width': '80', 'write_json': 'True', 'introspect': 'True', 'log_cache_events': 'False', 'empty': 'None', 'cache_selected_only': 'False', 'fail_fast': 'False', 'debug': 'False', 'log_format': 'default', 'profiles_dir': 'C:\\Users\\Luk\\Documents\\GitHub\\grontia\\analytics\\dbt', 'send_anonymous_usage_stats': 'True', 'quiet': 'False', 'warn_error': 'None', 'partial_parse': 'True', 'use_colors': 'True', 'indirect_selection': 'eager', 'invocation_command': 'dbt parse --target dev', 'use_experimental_parser': 'False', 'log_path': 'C:\\Users\\Luk\\Documents\\GitHub\\grontia\\analytics\\dbt\\logs'}
+[0m22:00:54.087512 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'project_id', 'label': '388c78ea-5564-4ac3-942b-0f5eb0084f0d', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x0000014866F071D0>]}
+[0m22:00:54.135207 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'adapter_info', 'label': '388c78ea-5564-4ac3-942b-0f5eb0084f0d', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x0000014861AA91D0>]}
+[0m22:00:54.138746 [info ] [MainThread]: Registered adapter: duckdb=1.10.1
+[0m22:00:54.555512 [debug] [MainThread]: checksum: b276df2e725538900e19c36eb2bf632d2152ccbe55054f2124b6d2db0feda968, vars: {}, profile: , target: dev, version: 1.11.11
+[0m22:00:54.627601 [info ] [MainThread]: Unable to do partial parsing because profile has changed
+[0m22:00:54.628712 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'partial_parser', 'label': '388c78ea-5564-4ac3-942b-0f5eb0084f0d', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x0000014864F85AD0>]}
+[0m22:00:55.736595 [warn ] [MainThread]: [[33mWARNING[0m]: Configuration paths exist in your dbt_project.yml file which do not apply to any resources.
+There are 1 unused configuration paths:
+- models.grontia.intermediate
+[0m22:00:55.741820 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'load_project', 'label': '388c78ea-5564-4ac3-942b-0f5eb0084f0d', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x000001486863EDD0>]}
+[0m22:00:55.744840 [info ] [MainThread]: Performance info: C:\Users\Luk\Documents\GitHub\grontia\analytics\dbt\target\perf_info.json
+[0m22:00:55.813455 [debug] [MainThread]: Wrote artifact WritableManifest to C:\Users\Luk\Documents\GitHub\grontia\analytics\dbt\target\manifest.json
+[0m22:00:55.816969 [debug] [MainThread]: Wrote artifact SemanticManifest to C:\Users\Luk\Documents\GitHub\grontia\analytics\dbt\target\semantic_manifest.json
+[0m22:00:55.817999 [debug] [MainThread]: Command `dbt parse` succeeded at 22:00:55.817999 after 2.08 seconds
+[0m22:00:55.819071 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'end', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x0000014866D9A250>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x0000014866D8BC10>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x0000014860ED1250>]}
+[0m22:00:55.819071 [debug] [MainThread]: Flushing usage events
+[0m22:00:56.627776 [debug] [MainThread]: An error was encountered while trying to flush usage events
+[0m22:01:11.010123 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'start', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x000001C1F5A54BD0>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x000001C1F5AECF90>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x000001C1F5AEC710>]}
+
+
+============================== 22:01:11.015318 | 482a70d7-3e45-41b3-bbb5-a7c92eb0dd9a ==============================
+[0m22:01:11.015318 [info ] [MainThread]: Running with dbt=1.11.11
+[0m22:01:11.016339 [debug] [MainThread]: running dbt with arguments {'static_parser': 'True', 'no_print': 'None', 'version_check': 'True', 'warn_error_options': 'WarnErrorOptionsV2(error=[], warn=[], silence=[])', 'target_path': 'None', 'printer_width': '80', 'write_json': 'True', 'empty': 'False', 'log_cache_events': 'False', 'introspect': 'True', 'cache_selected_only': 'False', 'log_format': 'default', 'debug': 'False', 'fail_fast': 'False', 'profiles_dir': 'C:\\Users\\Luk\\Documents\\GitHub\\grontia\\analytics\\dbt', 'send_anonymous_usage_stats': 'True', 'quiet': 'False', 'warn_error': 'None', 'partial_parse': 'True', 'invocation_command': 'dbt run --target dev', 'indirect_selection': 'eager', 'use_colors': 'True', 'use_experimental_parser': 'False', 'log_path': 'C:\\Users\\Luk\\Documents\\GitHub\\grontia\\analytics\\dbt\\logs'}
+[0m22:01:11.242468 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'project_id', 'label': '482a70d7-3e45-41b3-bbb5-a7c92eb0dd9a', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x000001C1F5B92450>]}
+[0m22:01:11.290344 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'adapter_info', 'label': '482a70d7-3e45-41b3-bbb5-a7c92eb0dd9a', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x000001C1F06C8510>]}
+[0m22:01:11.292374 [info ] [MainThread]: Registered adapter: duckdb=1.10.1
+[0m22:01:11.712685 [debug] [MainThread]: checksum: b276df2e725538900e19c36eb2bf632d2152ccbe55054f2124b6d2db0feda968, vars: {}, profile: , target: dev, version: 1.11.11
+[0m22:01:11.852459 [debug] [MainThread]: Partial parsing enabled: 0 files deleted, 0 files added, 0 files changed.
+[0m22:01:11.852459 [debug] [MainThread]: Nothing changed, skipping partial parsing.
+[0m22:01:11.853527 [debug] [MainThread]: Partial parsing enabled, no changes found, skipping parsing
+[0m22:01:11.858139 [warn ] [MainThread]: [[33mWARNING[0m]: Configuration paths exist in your dbt_project.yml file which do not apply to any resources.
+There are 1 unused configuration paths:
+- models.grontia.intermediate
+[0m22:01:11.884560 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'load_project', 'label': '482a70d7-3e45-41b3-bbb5-a7c92eb0dd9a', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x000001C1F599A250>]}
+[0m22:01:11.951468 [debug] [MainThread]: Wrote artifact WritableManifest to C:\Users\Luk\Documents\GitHub\grontia\analytics\dbt\target\manifest.json
+[0m22:01:11.954548 [debug] [MainThread]: Wrote artifact SemanticManifest to C:\Users\Luk\Documents\GitHub\grontia\analytics\dbt\target\semantic_manifest.json
+[0m22:01:11.967226 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'resource_counts', 'label': '482a70d7-3e45-41b3-bbb5-a7c92eb0dd9a', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x000001C1F7023D90>]}
+[0m22:01:11.967226 [info ] [MainThread]: Found 5 models, 12 data tests, 485 macros
+[0m22:01:11.968437 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'runnable_timing', 'label': '482a70d7-3e45-41b3-bbb5-a7c92eb0dd9a', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x000001C1F5B75D90>]}
+[0m22:01:11.970541 [info ] [MainThread]: 
+[0m22:01:11.971544 [info ] [MainThread]: Concurrency: 4 threads (target='dev')
+[0m22:01:11.971544 [info ] [MainThread]: 
+[0m22:01:11.972553 [debug] [MainThread]: Acquiring new duckdb connection 'master'
+[0m22:01:11.977276 [debug] [ThreadPool]: Acquiring new duckdb connection 'list_grontia_dev'
+[0m22:01:11.978325 [debug] [ThreadPool]: Acquiring new duckdb connection 'list_grontia_dev'
+[0m22:01:12.167450 [debug] [ThreadPool]: Using duckdb connection "list_grontia_dev"
+[0m22:01:12.168940 [debug] [ThreadPool]: Using duckdb connection "list_grontia_dev"
+[0m22:01:12.168940 [debug] [ThreadPool]: On list_grontia_dev: /* {"app": "dbt", "dbt_version": "1.11.11", "profile_name": "grontia", "target_name": "dev", "connection_name": "list_grontia_dev"} */
+
+    
+    select schema_name
+    from system.information_schema.schemata
+    
+    where lower(catalog_name) = '"grontia_dev"'
+    
+  
+  
+[0m22:01:12.170053 [debug] [ThreadPool]: On list_grontia_dev: /* {"app": "dbt", "dbt_version": "1.11.11", "profile_name": "grontia", "target_name": "dev", "connection_name": "list_grontia_dev"} */
+
+    
+    select schema_name
+    from system.information_schema.schemata
+    
+    where lower(catalog_name) = '"grontia_dev"'
+    
+  
+  
+[0m22:01:12.170053 [debug] [ThreadPool]: Opening a new connection, currently in state init
+[0m22:01:12.171073 [debug] [ThreadPool]: Opening a new connection, currently in state init
+[0m22:01:13.143619 [debug] [ThreadPool]: SQL status: OK in 0.973 seconds
+[0m22:01:13.144630 [debug] [ThreadPool]: SQL status: OK in 0.973 seconds
+[0m22:01:13.145690 [debug] [ThreadPool]: On list_grontia_dev: Close
+[0m22:01:13.147195 [debug] [ThreadPool]: On list_grontia_dev: Close
+[0m22:01:13.148219 [debug] [ThreadPool]: Re-using an available connection from the pool (formerly list_grontia_dev, now create_grontia_dev_main_STAGING)
+[0m22:01:13.148219 [debug] [ThreadPool]: Re-using an available connection from the pool (formerly list_grontia_dev, now create_grontia_dev_main_MARTS)
+[0m22:01:13.149297 [debug] [ThreadPool]: Creating schema "database: "grontia_dev"
+schema: "main_STAGING"
+"
+[0m22:01:13.149297 [debug] [ThreadPool]: Creating schema "database: "grontia_dev"
+schema: "main_MARTS"
+"
+[0m22:01:13.155415 [debug] [ThreadPool]: Using duckdb connection "create_grontia_dev_main_STAGING"
+[0m22:01:13.157931 [debug] [ThreadPool]: Using duckdb connection "create_grontia_dev_main_MARTS"
+[0m22:01:13.157931 [debug] [ThreadPool]: On create_grontia_dev_main_STAGING: /* {"app": "dbt", "dbt_version": "1.11.11", "profile_name": "grontia", "target_name": "dev", "connection_name": "create_grontia_dev_main_STAGING"} */
+
+    
+        select type from duckdb_databases()
+        where lower(database_name)='grontia_dev'
+        and type='sqlite'
+    
+  
+[0m22:01:13.158936 [debug] [ThreadPool]: On create_grontia_dev_main_MARTS: /* {"app": "dbt", "dbt_version": "1.11.11", "profile_name": "grontia", "target_name": "dev", "connection_name": "create_grontia_dev_main_MARTS"} */
+
+    
+        select type from duckdb_databases()
+        where lower(database_name)='grontia_dev'
+        and type='sqlite'
+    
+  
+[0m22:01:13.158936 [debug] [ThreadPool]: Opening a new connection, currently in state closed
+[0m22:01:13.160057 [debug] [ThreadPool]: Opening a new connection, currently in state closed
+[0m22:01:13.162085 [debug] [ThreadPool]: SQL status: OK in 0.002 seconds
+[0m22:01:13.163094 [debug] [ThreadPool]: Using duckdb connection "create_grontia_dev_main_STAGING"
+[0m22:01:13.163094 [debug] [ThreadPool]: SQL status: OK in 0.003 seconds
+[0m22:01:13.164099 [debug] [ThreadPool]: On create_grontia_dev_main_STAGING: BEGIN
+[0m22:01:13.165491 [debug] [ThreadPool]: Using duckdb connection "create_grontia_dev_main_MARTS"
+[0m22:01:13.165491 [debug] [ThreadPool]: SQL status: OK in 0.000 seconds
+[0m22:01:13.165491 [debug] [ThreadPool]: On create_grontia_dev_main_MARTS: BEGIN
+[0m22:01:13.166516 [debug] [ThreadPool]: Using duckdb connection "create_grontia_dev_main_STAGING"
+[0m22:01:13.166516 [debug] [ThreadPool]: SQL status: OK in 0.000 seconds
+[0m22:01:13.167516 [debug] [ThreadPool]: On create_grontia_dev_main_STAGING: /* {"app": "dbt", "dbt_version": "1.11.11", "profile_name": "grontia", "target_name": "dev", "connection_name": "create_grontia_dev_main_STAGING"} */
+
+    
+    
+        create schema if not exists "grontia_dev"."main_STAGING"
+    
+[0m22:01:13.167516 [debug] [ThreadPool]: Using duckdb connection "create_grontia_dev_main_MARTS"
+[0m22:01:13.168531 [debug] [ThreadPool]: SQL status: OK in 0.000 seconds
+[0m22:01:13.169541 [debug] [ThreadPool]: On create_grontia_dev_main_MARTS: /* {"app": "dbt", "dbt_version": "1.11.11", "profile_name": "grontia", "target_name": "dev", "connection_name": "create_grontia_dev_main_MARTS"} */
+
+    
+    
+        create schema if not exists "grontia_dev"."main_MARTS"
+    
+[0m22:01:13.169541 [debug] [ThreadPool]: On create_grontia_dev_main_STAGING: COMMIT
+[0m22:01:13.170549 [debug] [ThreadPool]: SQL status: OK in 0.000 seconds
+[0m22:01:13.170549 [debug] [ThreadPool]: Using duckdb connection "create_grontia_dev_main_STAGING"
+[0m22:01:13.171586 [debug] [ThreadPool]: On create_grontia_dev_main_MARTS: COMMIT
+[0m22:01:13.172665 [debug] [ThreadPool]: On create_grontia_dev_main_STAGING: COMMIT
+[0m22:01:13.172665 [debug] [ThreadPool]: Using duckdb connection "create_grontia_dev_main_MARTS"
+[0m22:01:13.173680 [debug] [ThreadPool]: On create_grontia_dev_main_MARTS: COMMIT
+[0m22:01:13.174684 [debug] [ThreadPool]: SQL status: OK in 0.001 seconds
+[0m22:01:13.175773 [debug] [ThreadPool]: On create_grontia_dev_main_STAGING: Close
+[0m22:01:13.175773 [debug] [ThreadPool]: SQL status: OK in 0.001 seconds
+[0m22:01:13.175773 [debug] [ThreadPool]: On create_grontia_dev_main_MARTS: Close
+[0m22:01:13.178299 [debug] [ThreadPool]: Acquiring new duckdb connection 'list_grontia_dev_main_STAGING'
+[0m22:01:13.178299 [debug] [ThreadPool]: Acquiring new duckdb connection 'list_grontia_dev_main_MARTS'
+[0m22:01:13.184376 [debug] [ThreadPool]: Using duckdb connection "list_grontia_dev_main_STAGING"
+[0m22:01:13.186388 [debug] [ThreadPool]: Using duckdb connection "list_grontia_dev_main_MARTS"
+[0m22:01:13.187387 [debug] [ThreadPool]: On list_grontia_dev_main_STAGING: BEGIN
+[0m22:01:13.187891 [debug] [ThreadPool]: On list_grontia_dev_main_MARTS: BEGIN
+[0m22:01:13.187891 [debug] [ThreadPool]: Opening a new connection, currently in state init
+[0m22:01:13.188895 [debug] [ThreadPool]: Opening a new connection, currently in state init
+[0m22:01:13.189904 [debug] [ThreadPool]: SQL status: OK in 0.002 seconds
+[0m22:01:13.190920 [debug] [ThreadPool]: Using duckdb connection "list_grontia_dev_main_STAGING"
+[0m22:01:13.191924 [debug] [ThreadPool]: On list_grontia_dev_main_STAGING: /* {"app": "dbt", "dbt_version": "1.11.11", "profile_name": "grontia", "target_name": "dev", "connection_name": "list_grontia_dev_main_STAGING"} */
+select
+      'grontia_dev' as database,
+      table_name as name,
+      table_schema as schema,
+      CASE table_type
+        WHEN 'BASE TABLE' THEN 'table'
+        WHEN 'VIEW' THEN 'view'
+        WHEN 'LOCAL TEMPORARY' THEN 'table'
+        END as type
+    from system.information_schema.tables
+    where lower(table_schema) = 'main_staging'
+    and lower(table_catalog) = 'grontia_dev'
+  
+[0m22:01:13.191924 [debug] [ThreadPool]: SQL status: OK in 0.003 seconds
+[0m22:01:13.192929 [debug] [ThreadPool]: Using duckdb connection "list_grontia_dev_main_MARTS"
+[0m22:01:13.192929 [debug] [ThreadPool]: On list_grontia_dev_main_MARTS: /* {"app": "dbt", "dbt_version": "1.11.11", "profile_name": "grontia", "target_name": "dev", "connection_name": "list_grontia_dev_main_MARTS"} */
+select
+      'grontia_dev' as database,
+      table_name as name,
+      table_schema as schema,
+      CASE table_type
+        WHEN 'BASE TABLE' THEN 'table'
+        WHEN 'VIEW' THEN 'view'
+        WHEN 'LOCAL TEMPORARY' THEN 'table'
+        END as type
+    from system.information_schema.tables
+    where lower(table_schema) = 'main_marts'
+    and lower(table_catalog) = 'grontia_dev'
+  
+[0m22:01:13.196023 [debug] [ThreadPool]: SQL status: OK in 0.004 seconds
+[0m22:01:13.196023 [debug] [ThreadPool]: SQL status: OK in 0.003 seconds
+[0m22:01:13.197528 [debug] [ThreadPool]: On list_grontia_dev_main_STAGING: ROLLBACK
+[0m22:01:13.198566 [debug] [ThreadPool]: On list_grontia_dev_main_MARTS: ROLLBACK
+[0m22:01:13.199570 [debug] [ThreadPool]: Failed to rollback 'list_grontia_dev_main_STAGING'
+[0m22:01:13.200579 [debug] [ThreadPool]: Failed to rollback 'list_grontia_dev_main_MARTS'
+[0m22:01:13.200579 [debug] [ThreadPool]: On list_grontia_dev_main_STAGING: Close
+[0m22:01:13.201581 [debug] [ThreadPool]: On list_grontia_dev_main_MARTS: Close
+[0m22:01:13.202592 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'runnable_timing', 'label': '482a70d7-3e45-41b3-bbb5-a7c92eb0dd9a', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x000001C1F5B82450>]}
+[0m22:01:13.202592 [debug] [MainThread]: Using duckdb connection "master"
+[0m22:01:13.203601 [debug] [MainThread]: On master: BEGIN
+[0m22:01:13.203601 [debug] [MainThread]: Opening a new connection, currently in state init
+[0m22:01:13.204603 [debug] [MainThread]: SQL status: OK in 0.001 seconds
+[0m22:01:13.205683 [debug] [MainThread]: On master: COMMIT
+[0m22:01:13.205683 [debug] [MainThread]: Using duckdb connection "master"
+[0m22:01:13.205683 [debug] [MainThread]: On master: COMMIT
+[0m22:01:13.207188 [debug] [MainThread]: SQL status: OK in 0.000 seconds
+[0m22:01:13.207188 [debug] [MainThread]: On master: Close
+[0m22:01:13.213888 [debug] [Thread-1 (]: Began running node model.grontia.stg_cbs_average_woz_value
+[0m22:01:13.214893 [debug] [Thread-2 (]: Began running node model.grontia.stg_cbs_household_income
+[0m22:01:13.214893 [debug] [Thread-3 (]: Began running node model.grontia.stg_cbs_housing_stock
+[0m22:01:13.215980 [debug] [Thread-4 (]: Began running node model.grontia.stg_cbs_neighbourhood_key_figures
+[0m22:01:13.215980 [info ] [Thread-1 (]: 1 of 5 START sql view model main_STAGING.stg_cbs_average_woz_value ............. [RUN]
+[0m22:01:13.215980 [info ] [Thread-2 (]: 2 of 5 START sql view model main_STAGING.stg_cbs_household_income .............. [RUN]
+[0m22:01:13.217484 [info ] [Thread-3 (]: 3 of 5 START sql view model main_STAGING.stg_cbs_housing_stock ................. [RUN]
+[0m22:01:13.217484 [info ] [Thread-4 (]: 4 of 5 START sql view model main_STAGING.stg_cbs_neighbourhood_key_figures ..... [RUN]
+[0m22:01:13.218503 [debug] [Thread-1 (]: Acquiring new duckdb connection 'model.grontia.stg_cbs_average_woz_value'
+[0m22:01:13.219700 [debug] [Thread-2 (]: Acquiring new duckdb connection 'model.grontia.stg_cbs_household_income'
+[0m22:01:13.219700 [debug] [Thread-3 (]: Acquiring new duckdb connection 'model.grontia.stg_cbs_housing_stock'
+[0m22:01:13.220718 [debug] [Thread-4 (]: Acquiring new duckdb connection 'model.grontia.stg_cbs_neighbourhood_key_figures'
+[0m22:01:13.220718 [debug] [Thread-1 (]: Began compiling node model.grontia.stg_cbs_average_woz_value
+[0m22:01:13.221722 [debug] [Thread-2 (]: Began compiling node model.grontia.stg_cbs_household_income
+[0m22:01:13.221722 [debug] [Thread-3 (]: Began compiling node model.grontia.stg_cbs_housing_stock
+[0m22:01:13.222781 [debug] [Thread-4 (]: Began compiling node model.grontia.stg_cbs_neighbourhood_key_figures
+[0m22:01:13.229331 [debug] [Thread-1 (]: Writing injected SQL for node "model.grontia.stg_cbs_average_woz_value"
+[0m22:01:13.230733 [debug] [Thread-2 (]: Writing injected SQL for node "model.grontia.stg_cbs_household_income"
+[0m22:01:13.233563 [debug] [Thread-3 (]: Writing injected SQL for node "model.grontia.stg_cbs_housing_stock"
+[0m22:01:13.234567 [debug] [Thread-4 (]: Writing injected SQL for node "model.grontia.stg_cbs_neighbourhood_key_figures"
+[0m22:01:13.239204 [debug] [Thread-1 (]: Began executing node model.grontia.stg_cbs_average_woz_value
+[0m22:01:13.240602 [debug] [Thread-3 (]: Began executing node model.grontia.stg_cbs_housing_stock
+[0m22:01:13.240602 [debug] [Thread-2 (]: Began executing node model.grontia.stg_cbs_household_income
+[0m22:01:13.257215 [debug] [Thread-4 (]: Began executing node model.grontia.stg_cbs_neighbourhood_key_figures
+[0m22:01:13.265482 [debug] [Thread-1 (]: Writing runtime sql for node "model.grontia.stg_cbs_average_woz_value"
+[0m22:01:13.270012 [debug] [Thread-3 (]: Writing runtime sql for node "model.grontia.stg_cbs_housing_stock"
+[0m22:01:13.274021 [debug] [Thread-2 (]: Writing runtime sql for node "model.grontia.stg_cbs_household_income"
+[0m22:01:13.277532 [debug] [Thread-4 (]: Writing runtime sql for node "model.grontia.stg_cbs_neighbourhood_key_figures"
+[0m22:01:13.281696 [debug] [Thread-3 (]: Using duckdb connection "model.grontia.stg_cbs_housing_stock"
+[0m22:01:13.282733 [debug] [Thread-1 (]: Using duckdb connection "model.grontia.stg_cbs_average_woz_value"
+[0m22:01:13.282733 [debug] [Thread-2 (]: Using duckdb connection "model.grontia.stg_cbs_household_income"
+[0m22:01:13.283737 [debug] [Thread-3 (]: On model.grontia.stg_cbs_housing_stock: BEGIN
+[0m22:01:13.283737 [debug] [Thread-4 (]: Using duckdb connection "model.grontia.stg_cbs_neighbourhood_key_figures"
+[0m22:01:13.283737 [debug] [Thread-1 (]: On model.grontia.stg_cbs_average_woz_value: BEGIN
+[0m22:01:13.284764 [debug] [Thread-2 (]: On model.grontia.stg_cbs_household_income: BEGIN
+[0m22:01:13.285770 [debug] [Thread-3 (]: Opening a new connection, currently in state init
+[0m22:01:13.285770 [debug] [Thread-4 (]: On model.grontia.stg_cbs_neighbourhood_key_figures: BEGIN
+[0m22:01:13.285770 [debug] [Thread-1 (]: Opening a new connection, currently in state init
+[0m22:01:13.287273 [debug] [Thread-2 (]: Opening a new connection, currently in state init
+[0m22:01:13.288288 [debug] [Thread-4 (]: Opening a new connection, currently in state init
+[0m22:01:13.290545 [debug] [Thread-3 (]: SQL status: OK in 0.005 seconds
+[0m22:01:13.291553 [debug] [Thread-3 (]: Using duckdb connection "model.grontia.stg_cbs_housing_stock"
+[0m22:01:13.291553 [debug] [Thread-3 (]: On model.grontia.stg_cbs_housing_stock: /* {"app": "dbt", "dbt_version": "1.11.11", "profile_name": "grontia", "target_name": "dev", "node_id": "model.grontia.stg_cbs_housing_stock"} */
+
+  
+  create view "grontia_dev"."main_STAGING"."stg_cbs_housing_stock__dbt_tmp" as (
+    with source as (
+    select * from read_parquet('s3://silver/cbs/housing_stock/**/*.parquet')
+),
+
+renamed as (
+    select
+        RegioS                                  as region_code,
+        RegioNaam                               as region_name,
+        Perioden                                as period_code,
+        TypeWoning_3                            as dwelling_type,
+        try_cast(AantalWoningen_1 as integer)   as number_of_dwellings,
+        ingestion_date::date                    as ingestion_date,
+        ingestion_timestamp
+    from source
+    where RegioS is not null
+      and Perioden is not null
+)
+
+select * from renamed
+  );
+
+[0m22:01:13.292561 [debug] [Thread-1 (]: SQL status: OK in 0.006 seconds
+[0m22:01:13.293565 [debug] [Thread-1 (]: Using duckdb connection "model.grontia.stg_cbs_average_woz_value"
+[0m22:01:13.294570 [debug] [Thread-1 (]: On model.grontia.stg_cbs_average_woz_value: /* {"app": "dbt", "dbt_version": "1.11.11", "profile_name": "grontia", "target_name": "dev", "node_id": "model.grontia.stg_cbs_average_woz_value"} */
+
+  
+  create view "grontia_dev"."main_STAGING"."stg_cbs_average_woz_value__dbt_tmp" as (
+    with source as (
+    select * from read_parquet('s3://silver/cbs/average_woz_value/**/*.parquet')
+),
+
+renamed as (
+    select
+        RegioS                                          as region_code,
+        RegioNaam                                       as region_name,
+        Perioden                                        as period_code,
+        try_cast(GemiddeldeWOZWaarde_1 as double)       as avg_woz_value_eur,
+        ingestion_date::date                            as ingestion_date,
+        ingestion_timestamp
+    from source
+    where RegioS is not null
+      and Perioden is not null
+)
+
+select * from renamed
+  );
+
+[0m22:01:13.295581 [debug] [Thread-2 (]: SQL status: OK in 0.008 seconds
+[0m22:01:13.295581 [debug] [Thread-2 (]: Using duckdb connection "model.grontia.stg_cbs_household_income"
+[0m22:01:13.295581 [debug] [Thread-2 (]: On model.grontia.stg_cbs_household_income: /* {"app": "dbt", "dbt_version": "1.11.11", "profile_name": "grontia", "target_name": "dev", "node_id": "model.grontia.stg_cbs_household_income"} */
+
+  
+  create view "grontia_dev"."main_STAGING"."stg_cbs_household_income__dbt_tmp" as (
+    with source as (
+    select * from read_parquet('s3://silver/cbs/household_income/**/*.parquet')
+),
+
+renamed as (
+    select
+        RegioS                                                  as region_code,
+        RegioNaam                                               as region_name,
+        Perioden                                                as period_code,
+        try_cast(GemiddeldInkomenHuishouden_6 as double)        as avg_household_income_eur,
+        try_cast(MediaanInkomenHuishouden_7 as double)          as median_household_income_eur,
+        ingestion_date::date                                    as ingestion_date,
+        ingestion_timestamp
+    from source
+    where RegioS is not null
+      and Perioden is not null
+)
+
+select * from renamed
+  );
+
+[0m22:01:13.297085 [debug] [Thread-4 (]: SQL status: OK in 0.008 seconds
+[0m22:01:13.297085 [debug] [Thread-4 (]: Using duckdb connection "model.grontia.stg_cbs_neighbourhood_key_figures"
+[0m22:01:13.298249 [debug] [Thread-4 (]: On model.grontia.stg_cbs_neighbourhood_key_figures: /* {"app": "dbt", "dbt_version": "1.11.11", "profile_name": "grontia", "target_name": "dev", "node_id": "model.grontia.stg_cbs_neighbourhood_key_figures"} */
+
+  
+  create view "grontia_dev"."main_STAGING"."stg_cbs_neighbourhood_key_figures__dbt_tmp" as (
+    with source as (
+    select * from read_parquet('s3://silver/cbs/neighbourhood_key_figures/**/*.parquet')
+),
+
+renamed as (
+    select
+        RegioS                                      as region_code,
+        RegioNaam                                   as region_name,
+        SoortRegio_2                                as region_type,
+        Perioden                                    as period_code,
+        try_cast(Inwoners_5 as integer)             as population,
+        try_cast(AantalHuishoudens_10 as integer)   as households,
+        try_cast(GemiddeldInkomenPerInwoner_25 as double) as avg_income_per_resident_eur,
+        ingestion_date::date                        as ingestion_date,
+        ingestion_timestamp
+    from source
+    where RegioS is not null
+      and Perioden is not null
+)
+
+select * from renamed
+  );
+
+[0m22:01:22.799657 [debug] [Thread-2 (]: DuckDB adapter: duckdb error: IO Error: Could not connect to server error for HTTP GET to 'http://localhost:9000/silver/?encoding-type=url&list-type=2&prefix=cbs%2Fhousehold_income%2F'
+
+LINE 6:     select * from read_parquet('s3://silver/cbs/household_income/**/*.parquet...
+                          ^
+[0m22:01:22.800663 [debug] [Thread-3 (]: DuckDB adapter: duckdb error: IO Error: Could not connect to server error for HTTP GET to 'http://localhost:9000/silver/?encoding-type=url&list-type=2&prefix=cbs%2Fhousing_stock%2F'
+
+LINE 6:     select * from read_parquet('s3://silver/cbs/housing_stock/**/*.parquet')
+                          ^
+[0m22:01:22.800663 [debug] [Thread-4 (]: DuckDB adapter: duckdb error: IO Error: Could not connect to server error for HTTP GET to 'http://localhost:9000/silver/?encoding-type=url&list-type=2&prefix=cbs%2Fneighbourhood_key_figures%2F'
+
+LINE 6:     select * from read_parquet('s3://silver/cbs/neighbourhood_key_figures...
+                          ^
+[0m22:01:22.801665 [debug] [Thread-2 (]: DuckDB adapter: Error running SQL: /* {"app": "dbt", "dbt_version": "1.11.11", "profile_name": "grontia", "target_name": "dev", "node_id": "model.grontia.stg_cbs_household_income"} */
+
+  
+  create view "grontia_dev"."main_STAGING"."stg_cbs_household_income__dbt_tmp" as (
+    with source as (
+    select * from read_parquet('s3://silver/cbs/household_income/**/*.parquet')
+),
+
+renamed as (
+    select
+        RegioS                                                  as region_code,
+        RegioNaam                                               as region_name,
+        Perioden                                                as period_code,
+        try_cast(GemiddeldInkomenHuishouden_6 as double)        as avg_household_income_eur,
+        try_cast(MediaanInkomenHuishouden_7 as double)          as median_household_income_eur,
+        ingestion_date::date                                    as ingestion_date,
+        ingestion_timestamp
+    from source
+    where RegioS is not null
+      and Perioden is not null
+)
+
+select * from renamed
+  );
+
+[0m22:01:22.801665 [debug] [Thread-3 (]: DuckDB adapter: Error running SQL: /* {"app": "dbt", "dbt_version": "1.11.11", "profile_name": "grontia", "target_name": "dev", "node_id": "model.grontia.stg_cbs_housing_stock"} */
+
+  
+  create view "grontia_dev"."main_STAGING"."stg_cbs_housing_stock__dbt_tmp" as (
+    with source as (
+    select * from read_parquet('s3://silver/cbs/housing_stock/**/*.parquet')
+),
+
+renamed as (
+    select
+        RegioS                                  as region_code,
+        RegioNaam                               as region_name,
+        Perioden                                as period_code,
+        TypeWoning_3                            as dwelling_type,
+        try_cast(AantalWoningen_1 as integer)   as number_of_dwellings,
+        ingestion_date::date                    as ingestion_date,
+        ingestion_timestamp
+    from source
+    where RegioS is not null
+      and Perioden is not null
+)
+
+select * from renamed
+  );
+
+[0m22:01:22.802999 [debug] [Thread-4 (]: DuckDB adapter: Error running SQL: /* {"app": "dbt", "dbt_version": "1.11.11", "profile_name": "grontia", "target_name": "dev", "node_id": "model.grontia.stg_cbs_neighbourhood_key_figures"} */
+
+  
+  create view "grontia_dev"."main_STAGING"."stg_cbs_neighbourhood_key_figures__dbt_tmp" as (
+    with source as (
+    select * from read_parquet('s3://silver/cbs/neighbourhood_key_figures/**/*.parquet')
+),
+
+renamed as (
+    select
+        RegioS                                      as region_code,
+        RegioNaam                                   as region_name,
+        SoortRegio_2                                as region_type,
+        Perioden                                    as period_code,
+        try_cast(Inwoners_5 as integer)             as population,
+        try_cast(AantalHuishoudens_10 as integer)   as households,
+        try_cast(GemiddeldInkomenPerInwoner_25 as double) as avg_income_per_resident_eur,
+        ingestion_date::date                        as ingestion_date,
+        ingestion_timestamp
+    from source
+    where RegioS is not null
+      and Perioden is not null
+)
+
+select * from renamed
+  );
+
+[0m22:01:22.804004 [debug] [Thread-2 (]: DuckDB adapter: Rolling back transaction.
+[0m22:01:22.804004 [debug] [Thread-3 (]: DuckDB adapter: Rolling back transaction.
+[0m22:01:22.805025 [debug] [Thread-4 (]: DuckDB adapter: Rolling back transaction.
+[0m22:01:22.805025 [debug] [Thread-2 (]: On model.grontia.stg_cbs_household_income: ROLLBACK
+[0m22:01:22.806053 [debug] [Thread-3 (]: On model.grontia.stg_cbs_housing_stock: ROLLBACK
+[0m22:01:22.806053 [debug] [Thread-4 (]: On model.grontia.stg_cbs_neighbourhood_key_figures: ROLLBACK
+[0m22:01:22.809575 [debug] [Thread-2 (]: Failed to rollback 'model.grontia.stg_cbs_household_income'
+[0m22:01:22.809575 [debug] [Thread-3 (]: Failed to rollback 'model.grontia.stg_cbs_housing_stock'
+[0m22:01:22.810582 [debug] [Thread-4 (]: Failed to rollback 'model.grontia.stg_cbs_neighbourhood_key_figures'
+[0m22:01:22.810582 [debug] [Thread-2 (]: On model.grontia.stg_cbs_household_income: Close
+[0m22:01:22.811586 [debug] [Thread-3 (]: On model.grontia.stg_cbs_housing_stock: Close
+[0m22:01:22.812589 [debug] [Thread-4 (]: On model.grontia.stg_cbs_neighbourhood_key_figures: Close
+[0m22:01:22.815892 [debug] [Thread-1 (]: DuckDB adapter: duckdb error: IO Error: Could not connect to server error for HTTP GET to 'http://localhost:9000/silver/?encoding-type=url&list-type=2&prefix=cbs%2Faverage_woz_value%2F'
+
+LINE 6:     select * from read_parquet('s3://silver/cbs/average_woz_value/**/*.parquet...
+                          ^
+[0m22:01:22.817396 [debug] [Thread-1 (]: DuckDB adapter: Error running SQL: /* {"app": "dbt", "dbt_version": "1.11.11", "profile_name": "grontia", "target_name": "dev", "node_id": "model.grontia.stg_cbs_average_woz_value"} */
+
+  
+  create view "grontia_dev"."main_STAGING"."stg_cbs_average_woz_value__dbt_tmp" as (
+    with source as (
+    select * from read_parquet('s3://silver/cbs/average_woz_value/**/*.parquet')
+),
+
+renamed as (
+    select
+        RegioS                                          as region_code,
+        RegioNaam                                       as region_name,
+        Perioden                                        as period_code,
+        try_cast(GemiddeldeWOZWaarde_1 as double)       as avg_woz_value_eur,
+        ingestion_date::date                            as ingestion_date,
+        ingestion_timestamp
+    from source
+    where RegioS is not null
+      and Perioden is not null
+)
+
+select * from renamed
+  );
+
+[0m22:01:22.818429 [debug] [Thread-1 (]: DuckDB adapter: Rolling back transaction.
+[0m22:01:22.819479 [debug] [Thread-1 (]: On model.grontia.stg_cbs_average_woz_value: ROLLBACK
+[0m22:01:22.821514 [debug] [Thread-1 (]: Failed to rollback 'model.grontia.stg_cbs_average_woz_value'
+[0m22:01:22.822520 [debug] [Thread-1 (]: On model.grontia.stg_cbs_average_woz_value: Close
+[0m22:01:22.825539 [debug] [Thread-4 (]: Runtime Error in model stg_cbs_neighbourhood_key_figures (models\staging\cbs\stg_cbs_neighbourhood_key_figures.sql)
+  IO Error: Could not connect to server error for HTTP GET to 'http://localhost:9000/silver/?encoding-type=url&list-type=2&prefix=cbs%2Fneighbourhood_key_figures%2F'
+  
+  LINE 6:     select * from read_parquet('s3://silver/cbs/neighbourhood_key_figures...
+                            ^
+[0m22:01:22.827568 [debug] [Thread-2 (]: Runtime Error in model stg_cbs_household_income (models\staging\cbs\stg_cbs_household_income.sql)
+  IO Error: Could not connect to server error for HTTP GET to 'http://localhost:9000/silver/?encoding-type=url&list-type=2&prefix=cbs%2Fhousehold_income%2F'
+  
+  LINE 6:     select * from read_parquet('s3://silver/cbs/household_income/**/*.parquet...
+                            ^
+[0m22:01:22.829063 [debug] [Thread-3 (]: Runtime Error in model stg_cbs_housing_stock (models\staging\cbs\stg_cbs_housing_stock.sql)
+  IO Error: Could not connect to server error for HTTP GET to 'http://localhost:9000/silver/?encoding-type=url&list-type=2&prefix=cbs%2Fhousing_stock%2F'
+  
+  LINE 6:     select * from read_parquet('s3://silver/cbs/housing_stock/**/*.parquet')
+                            ^
+[0m22:01:22.831071 [debug] [Thread-1 (]: Runtime Error in model stg_cbs_average_woz_value (models\staging\cbs\stg_cbs_average_woz_value.sql)
+  IO Error: Could not connect to server error for HTTP GET to 'http://localhost:9000/silver/?encoding-type=url&list-type=2&prefix=cbs%2Faverage_woz_value%2F'
+  
+  LINE 6:     select * from read_parquet('s3://silver/cbs/average_woz_value/**/*.parquet...
+                            ^
+[0m22:01:22.841141 [debug] [Thread-4 (]: Sending event: {'category': 'dbt', 'action': 'run_model', 'label': '482a70d7-3e45-41b3-bbb5-a7c92eb0dd9a', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x000001C1F5DCCA50>]}
+[0m22:01:22.841141 [debug] [Thread-2 (]: Sending event: {'category': 'dbt', 'action': 'run_model', 'label': '482a70d7-3e45-41b3-bbb5-a7c92eb0dd9a', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x000001C1F706DE10>]}
+[0m22:01:22.841141 [debug] [Thread-3 (]: Sending event: {'category': 'dbt', 'action': 'run_model', 'label': '482a70d7-3e45-41b3-bbb5-a7c92eb0dd9a', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x000001C1F7645010>]}
+[0m22:01:22.842180 [debug] [Thread-1 (]: Sending event: {'category': 'dbt', 'action': 'run_model', 'label': '482a70d7-3e45-41b3-bbb5-a7c92eb0dd9a', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x000001C1F766CC50>]}
+[0m22:01:22.842180 [error] [Thread-4 (]: 4 of 5 ERROR creating sql view model main_STAGING.stg_cbs_neighbourhood_key_figures  [[31mERROR[0m in 9.61s]
+[0m22:01:22.843182 [error] [Thread-2 (]: 2 of 5 ERROR creating sql view model main_STAGING.stg_cbs_household_income ..... [[31mERROR[0m in 9.61s]
+[0m22:01:22.844199 [error] [Thread-3 (]: 3 of 5 ERROR creating sql view model main_STAGING.stg_cbs_housing_stock ........ [[31mERROR[0m in 9.61s]
+[0m22:01:22.845204 [error] [Thread-1 (]: 1 of 5 ERROR creating sql view model main_STAGING.stg_cbs_average_woz_value .... [[31mERROR[0m in 9.61s]
+[0m22:01:22.845204 [debug] [Thread-4 (]: Finished running node model.grontia.stg_cbs_neighbourhood_key_figures
+[0m22:01:22.846269 [debug] [Thread-2 (]: Finished running node model.grontia.stg_cbs_household_income
+[0m22:01:22.846269 [debug] [Thread-3 (]: Finished running node model.grontia.stg_cbs_housing_stock
+[0m22:01:22.847774 [debug] [Thread-1 (]: Finished running node model.grontia.stg_cbs_average_woz_value
+[0m22:01:22.848795 [debug] [Thread-7 (]: Marking all children of 'model.grontia.stg_cbs_neighbourhood_key_figures' to be skipped because of status 'error'.  Reason: Runtime Error in model stg_cbs_neighbourhood_key_figures (models\staging\cbs\stg_cbs_neighbourhood_key_figures.sql)
+  IO Error: Could not connect to server error for HTTP GET to 'http://localhost:9000/silver/?encoding-type=url&list-type=2&prefix=cbs%2Fneighbourhood_key_figures%2F'
+  
+  LINE 6:     select * from read_parquet('s3://silver/cbs/neighbourhood_key_figures...
+                            ^.
+[0m22:01:22.850807 [debug] [Thread-7 (]: Marking all children of 'model.grontia.stg_cbs_household_income' to be skipped because of status 'error'.  Reason: Runtime Error in model stg_cbs_household_income (models\staging\cbs\stg_cbs_household_income.sql)
+  IO Error: Could not connect to server error for HTTP GET to 'http://localhost:9000/silver/?encoding-type=url&list-type=2&prefix=cbs%2Fhousehold_income%2F'
+  
+  LINE 6:     select * from read_parquet('s3://silver/cbs/household_income/**/*.parquet...
+                            ^.
+[0m22:01:22.850807 [debug] [Thread-7 (]: Marking all children of 'model.grontia.stg_cbs_housing_stock' to be skipped because of status 'error'.  Reason: Runtime Error in model stg_cbs_housing_stock (models\staging\cbs\stg_cbs_housing_stock.sql)
+  IO Error: Could not connect to server error for HTTP GET to 'http://localhost:9000/silver/?encoding-type=url&list-type=2&prefix=cbs%2Fhousing_stock%2F'
+  
+  LINE 6:     select * from read_parquet('s3://silver/cbs/housing_stock/**/*.parquet')
+                            ^.
+[0m22:01:22.851826 [debug] [Thread-7 (]: Marking all children of 'model.grontia.stg_cbs_average_woz_value' to be skipped because of status 'error'.  Reason: Runtime Error in model stg_cbs_average_woz_value (models\staging\cbs\stg_cbs_average_woz_value.sql)
+  IO Error: Could not connect to server error for HTTP GET to 'http://localhost:9000/silver/?encoding-type=url&list-type=2&prefix=cbs%2Faverage_woz_value%2F'
+  
+  LINE 6:     select * from read_parquet('s3://silver/cbs/average_woz_value/**/*.parquet...
+                            ^.
+[0m22:01:22.852831 [debug] [Thread-4 (]: Began running node model.grontia.mart_regional_dashboard
+[0m22:01:22.853836 [info ] [Thread-4 (]: 5 of 5 SKIP relation main_MARTS.mart_regional_dashboard ........................ [[33mSKIP[0m]
+[0m22:01:22.853836 [debug] [Thread-4 (]: Finished running node model.grontia.mart_regional_dashboard
+[0m22:01:22.854839 [debug] [MainThread]: Using duckdb connection "master"
+[0m22:01:22.855841 [debug] [MainThread]: On master: BEGIN
+[0m22:01:22.856847 [debug] [MainThread]: Opening a new connection, currently in state closed
+[0m22:01:22.857848 [debug] [MainThread]: SQL status: OK in 0.002 seconds
+[0m22:01:22.859057 [debug] [MainThread]: On master: COMMIT
+[0m22:01:22.859057 [debug] [MainThread]: Using duckdb connection "master"
+[0m22:01:22.860064 [debug] [MainThread]: On master: COMMIT
+[0m22:01:22.861069 [debug] [MainThread]: SQL status: OK in 0.000 seconds
+[0m22:01:22.861069 [debug] [MainThread]: On master: Close
+[0m22:01:22.862386 [debug] [MainThread]: Connection 'master' was properly closed.
+[0m22:01:22.862386 [debug] [MainThread]: Connection 'create_grontia_dev_main_STAGING' was properly closed.
+[0m22:01:22.863394 [debug] [MainThread]: Connection 'create_grontia_dev_main_MARTS' was properly closed.
+[0m22:01:22.863394 [debug] [MainThread]: Connection 'list_grontia_dev_main_STAGING' was properly closed.
+[0m22:01:22.864398 [debug] [MainThread]: Connection 'list_grontia_dev_main_MARTS' was properly closed.
+[0m22:01:22.864398 [debug] [MainThread]: Connection 'model.grontia.stg_cbs_average_woz_value' was properly closed.
+[0m22:01:22.865402 [debug] [MainThread]: Connection 'model.grontia.stg_cbs_household_income' was properly closed.
+[0m22:01:22.865402 [debug] [MainThread]: Connection 'model.grontia.stg_cbs_housing_stock' was properly closed.
+[0m22:01:22.865402 [debug] [MainThread]: Connection 'model.grontia.stg_cbs_neighbourhood_key_figures' was properly closed.
+[0m22:01:22.866427 [info ] [MainThread]: 
+[0m22:01:22.867427 [info ] [MainThread]: Finished running 1 table model, 4 view models in 0 hours 0 minutes and 10.89 seconds (10.89s).
+[0m22:01:22.867931 [debug] [MainThread]: Command end result
+[0m22:01:22.896711 [debug] [MainThread]: Wrote artifact WritableManifest to C:\Users\Luk\Documents\GitHub\grontia\analytics\dbt\target\manifest.json
+[0m22:01:22.899873 [debug] [MainThread]: Wrote artifact SemanticManifest to C:\Users\Luk\Documents\GitHub\grontia\analytics\dbt\target\semantic_manifest.json
+[0m22:01:22.905917 [debug] [MainThread]: Wrote artifact RunExecutionResult to C:\Users\Luk\Documents\GitHub\grontia\analytics\dbt\target\run_results.json
+[0m22:01:22.907421 [info ] [MainThread]: 
+[0m22:01:22.907421 [info ] [MainThread]: [31mCompleted with 4 errors, 0 partial successes, and 0 warnings:[0m
+[0m22:01:22.908435 [info ] [MainThread]: 
+[0m22:01:22.908435 [error] [MainThread]: [31mFailure in model stg_cbs_neighbourhood_key_figures (models\staging\cbs\stg_cbs_neighbourhood_key_figures.sql)[0m
+[0m22:01:22.909622 [error] [MainThread]:   Runtime Error in model stg_cbs_neighbourhood_key_figures (models\staging\cbs\stg_cbs_neighbourhood_key_figures.sql)
+  IO Error: Could not connect to server error for HTTP GET to 'http://localhost:9000/silver/?encoding-type=url&list-type=2&prefix=cbs%2Fneighbourhood_key_figures%2F'
+  
+  LINE 6:     select * from read_parquet('s3://silver/cbs/neighbourhood_key_figures...
+                            ^
+[0m22:01:22.909622 [info ] [MainThread]: 
+[0m22:01:22.910630 [info ] [MainThread]:   compiled code at target\compiled\grontia\models\staging\cbs\stg_cbs_neighbourhood_key_figures.sql
+[0m22:01:22.911652 [info ] [MainThread]: 
+[0m22:01:22.911652 [error] [MainThread]: [31mFailure in model stg_cbs_household_income (models\staging\cbs\stg_cbs_household_income.sql)[0m
+[0m22:01:22.912656 [error] [MainThread]:   Runtime Error in model stg_cbs_household_income (models\staging\cbs\stg_cbs_household_income.sql)
+  IO Error: Could not connect to server error for HTTP GET to 'http://localhost:9000/silver/?encoding-type=url&list-type=2&prefix=cbs%2Fhousehold_income%2F'
+  
+  LINE 6:     select * from read_parquet('s3://silver/cbs/household_income/**/*.parquet...
+                            ^
+[0m22:01:22.912656 [info ] [MainThread]: 
+[0m22:01:22.913659 [info ] [MainThread]:   compiled code at target\compiled\grontia\models\staging\cbs\stg_cbs_household_income.sql
+[0m22:01:22.913659 [info ] [MainThread]: 
+[0m22:01:22.914666 [error] [MainThread]: [31mFailure in model stg_cbs_housing_stock (models\staging\cbs\stg_cbs_housing_stock.sql)[0m
+[0m22:01:22.915669 [error] [MainThread]:   Runtime Error in model stg_cbs_housing_stock (models\staging\cbs\stg_cbs_housing_stock.sql)
+  IO Error: Could not connect to server error for HTTP GET to 'http://localhost:9000/silver/?encoding-type=url&list-type=2&prefix=cbs%2Fhousing_stock%2F'
+  
+  LINE 6:     select * from read_parquet('s3://silver/cbs/housing_stock/**/*.parquet')
+                            ^
+[0m22:01:22.915669 [info ] [MainThread]: 
+[0m22:01:22.916674 [info ] [MainThread]:   compiled code at target\compiled\grontia\models\staging\cbs\stg_cbs_housing_stock.sql
+[0m22:01:22.916674 [info ] [MainThread]: 
+[0m22:01:22.917676 [error] [MainThread]: [31mFailure in model stg_cbs_average_woz_value (models\staging\cbs\stg_cbs_average_woz_value.sql)[0m
+[0m22:01:22.917676 [error] [MainThread]:   Runtime Error in model stg_cbs_average_woz_value (models\staging\cbs\stg_cbs_average_woz_value.sql)
+  IO Error: Could not connect to server error for HTTP GET to 'http://localhost:9000/silver/?encoding-type=url&list-type=2&prefix=cbs%2Faverage_woz_value%2F'
+  
+  LINE 6:     select * from read_parquet('s3://silver/cbs/average_woz_value/**/*.parquet...
+                            ^
+[0m22:01:22.919062 [info ] [MainThread]: 
+[0m22:01:22.919062 [info ] [MainThread]:   compiled code at target\compiled\grontia\models\staging\cbs\stg_cbs_average_woz_value.sql
+[0m22:01:22.920109 [info ] [MainThread]: 
+[0m22:01:22.920109 [info ] [MainThread]: Done. PASS=0 WARN=0 ERROR=4 SKIP=1 NO-OP=0 TOTAL=5
+[0m22:01:22.921111 [debug] [MainThread]: Command `dbt run` failed at 22:01:22.921111 after 12.03 seconds
+[0m22:01:22.922113 [debug] [MainThread]: Sending event: {'category': 'dbt', 'action': 'invocation', 'label': 'end', 'context': [<snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x000001C1F5B1E910>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x000001C1EF8CF1D0>, <snowplow_tracker.self_describing_json.SelfDescribingJson object at 0x000001C1F598B1D0>]}
+[0m22:01:22.922113 [debug] [MainThread]: Flushing usage events
+[0m22:01:23.729539 [debug] [MainThread]: An error was encountered while trying to flush usage events

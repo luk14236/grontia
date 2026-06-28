@@ -1,0 +1,18 @@
+version: 2
+
+models:
+  - name: stg_pdok_bag_pand
+    description: "Edificações holandesas (BAG Pand) — PDOK WFS"
+    columns:
+      - name: id
+        tests: [not_null, unique]
+      - name: geometry
+        description: "GeoJSON polygon da edificação"
+
+  - name: stg_pdok_bag_verblijfsobject
+    description: "Objetos de residência/uso (BAG Verblijfsobject) — PDOK WFS"
+    columns:
+      - name: id
+        tests: [not_null, unique]
+      - name: oppervlakte_m2
+        description: "Área do imóvel em m²"

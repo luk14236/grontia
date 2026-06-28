@@ -1,0 +1,14 @@
+version: 2
+
+models:
+  - name: stg_knmi_daily_weather
+    description: "Observações meteorológicas diárias de todas as estações KNMI"
+    columns:
+      - name: station_code
+        tests: [not_null]
+      - name: date
+        tests: [not_null]
+      - name: temp_avg_c
+        description: "Temperatura média do dia em °C"
+      - name: precipitation_mm
+        description: "Precipitação total do dia em mm"

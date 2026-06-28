@@ -4,84 +4,66 @@ on:
   pull_request:
     branches: [ main ]
     paths:
-      - 'infrastructure/terraform/**'
       - 'orchestration/airflow/**'
       - 'analytics/dbt/**'
+      - 'processing/**'
 
 jobs:
-  terraform-check:
-    name: Terraform Check
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
-        with:
-          terraform_version: "1.6.0"
-
-      - name: Terraform Format
-        run: terraform fmt -check -recursive infrastructure/terraform/
-
-      - name: Terraform Validate
-        run: |
-          cd infrastructure/terraform/
-          terraform init -backend=false
-          terraform validate
-
   airflow-check:
     name: Airflow DAG Check
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Setup Python
-        uses: actions/setup-python@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
       - name: Install dependencies
-        run: pip install -r orchestration/airflow/requirements.txt
+        run: |
+          pip install pyyaml boto3 requests apache-airflow==3.0.0 apache-airflow-providers-standard
 
       - name: Validate DAGs
         run: |
           python -c "
-          import os
-          import glob
           from airflow.models import DagBag
-
-          dag_folder = 'orchestration/airflow/dags'
-          dagbag = DagBag(dag_folder=dag_folder, include_examples=False)
-
-          if dagbag.import_errors:
-              print('❌ DAG import errors:')
-              for file, errors in dagbag.import_errors.items():
-                  print(f'  {file}: {errors}')
+          bag = DagBag(dag_folder='orchestration/airflow/dags', include_examples=False)
+          if bag.import_errors:
+              for f, e in bag.import_errors.items():
+                  print(f'ERROR {f}: {e}')
               exit(1)
-
-          print(f'✅ Found {len(dagbag.dags)} valid DAGs')
-          for dag_id, dag in dagbag.dags.items():
+          print(f'OK — {len(bag.dags)} DAGs loaded')
+          for dag_id in bag.dags:
               print(f'  - {dag_id}')
+          "
+
+      - name: Validate datasets catalog
+        run: |
+          python -c "
+          import yaml
+          catalog = yaml.safe_load(open('orchestration/airflow/include/configs/datasets.yml'))
+          sources = list(catalog.keys())
+          print(f'Catalog sources: {sources}')
+          for src, cfg in catalog.items():
+              n = len(cfg.get('datasets', []))
+              print(f'  {src}: {n} dataset(s)')
           "
 
   dbt-check:
     name: dbt Check
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Setup Python
-        uses: actions/setup-python@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
-      - name: Install dbt
-        run: pip install dbt-databricks
+      - name: Install dbt-duckdb
+        run: pip install dbt-duckdb
 
-      - name: dbt Parse
-        run: |
-          cd analytics/dbt
-          dbt parse --target dev
+      - name: dbt parse
+        working-directory: analytics/dbt
+        env:
+          GRONTIA_DUCKDB_PATH: /tmp/grontia_ci.duckdb
+        run: dbt parse --target dev

@@ -1,0 +1,33 @@
+grontia:
+  target: motherduck
+  outputs:
+
+    # ---- MotherDuck (DuckDB na nuvem, free tier permanente) ----
+    motherduck:
+      type: duckdb
+      path: "md:grontia?motherduck_token={{ env_var('MOTHERDUCK_TOKEN') }}"
+      threads: 4
+      extensions:
+        - httpfs
+        - parquet
+      settings:
+        s3_endpoint: "{{ env_var('MINIO_ENDPOINT', 'localhost:9000') | replace('http://', '') }}"
+        s3_access_key_id: "{{ env_var('MINIO_ACCESS_KEY', 'minioadmin') }}"
+        s3_secret_access_key: "{{ env_var('MINIO_SECRET_KEY', 'minioadmin') }}"
+        s3_use_ssl: "false"
+        s3_url_style: "path"
+
+    # ---- DuckDB local (sem token, sem internet) ----
+    dev:
+      type: duckdb
+      path: "{{ env_var('GRONTIA_DUCKDB_PATH', '/tmp/grontia_dev.duckdb') }}"
+      threads: 4
+      extensions:
+        - httpfs
+        - parquet
+      settings:
+        s3_endpoint: "{{ env_var('MINIO_ENDPOINT', 'localhost:9000') | replace('http://', '') }}"
+        s3_access_key_id: "{{ env_var('MINIO_ACCESS_KEY', 'minioadmin') }}"
+        s3_secret_access_key: "{{ env_var('MINIO_SECRET_KEY', 'minioadmin') }}"
+        s3_use_ssl: "false"
+        s3_url_style: "path"

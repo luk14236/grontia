@@ -8,11 +8,9 @@ cbs:
       dataset_name: "neighbourhood_key_figures"
       silver_table: "silver_cbs_neighbourhood_key_figures"
       description_en: "Key figures by municipality, district and neighbourhood"
-
       grain:
         - region
         - period
-
       endpoints:
         bronze:
           - TableInfos
@@ -22,84 +20,22 @@ cbs:
           - Regions
           - Perioden
           - CategoryTables
-
       columns_en:
         RegioS: "region_code"
         RegioNaam: "region_name"
         SoortRegio_2: "region_type"
         Perioden: "period_code"
-
         Inwoners_5: "population"
         AantalHuishoudens_10: "households"
         GemiddeldInkomenPerInwoner_25: "avg_income_per_resident_eur"
-
-pdok:
-  source_name: "pdok"
-  description_en: "Public Services on the Map (PDOK) geospatial data"
-
-  datasets:
-    - dataset_name: "addresses"
-      description_en: "Dutch address data"
-      endpoints:
-        bronze:
-          - "BAG"
-      silver_table: "silver_pdok_addresses"
-
-    - dataset_name: "buildings"
-      description_en: "Dutch building data"
-      endpoints:
-        bronze:
-          - "BAG"
-      silver_table: "silver_pdok_buildings"
-
-knmi:
-  source_name: "knmi"
-  description_en: "Royal Netherlands Meteorological Institute (KNMI) weather data"
-
-  datasets:
-    - dataset_name: "weather_stations"
-      description_en: "Weather station measurements"
-      endpoints:
-        bronze:
-          - "measurements"
-      silver_table: "silver_knmi_weather_stations"
-
-    - dataset_name: "climate_data"
-      description_en: "Historical climate data"
-      endpoints:
-        bronze:
-          - "daily"
-          - "hourly"
-      silver_table: "silver_knmi_climate_data"
-
-ndw:
-  source_name: "ndw"
-  description_en: "National Data Warehouse for Traffic Information (NDW)"
-
-  datasets:
-    - dataset_name: "traffic_flow"
-      description_en: "Real-time traffic flow data"
-      endpoints:
-        bronze:
-          - "flow"
-      silver_table: "silver_ndw_traffic_flow"
-
-    - dataset_name: "traffic_incidents"
-      description_en: "Traffic incident data"
-      endpoints:
-        bronze:
-          - "incidents"
-      silver_table: "silver_ndw_traffic_incidents"
 
     - table_id: "83765NED"
       dataset_name: "average_woz_value"
       silver_table: "silver_cbs_average_woz_value"
       description_en: "Average WOZ property value by region"
-
       grain:
         - region
         - period
-
       endpoints:
         bronze:
           - TableInfos
@@ -108,14 +44,11 @@ ndw:
         silver_dimensions:
           - Regions
           - Perioden
-
       columns_en:
         RegioS: "region_code"
         RegioNaam: "region_name"
         Perioden: "period_code"
-
         GemiddeldeWOZWaarde_1: "avg_woz_value_eur"
-
       measures:
         - avg_woz_value_eur
 
@@ -123,12 +56,10 @@ ndw:
       dataset_name: "housing_stock"
       silver_table: "silver_cbs_housing_stock"
       description_en: "Housing stock by dwelling type and construction year"
-
       grain:
         - region
         - period
         - dwelling_type
-
       endpoints:
         bronze:
           - TableInfos
@@ -138,15 +69,12 @@ ndw:
           - Regions
           - Perioden
           - CategoryTables
-
       columns_en:
         RegioS: "region_code"
         RegioNaam: "region_name"
         Perioden: "period_code"
         TypeWoning_3: "dwelling_type"
-
         AantalWoningen_1: "number_of_dwellings"
-
       measures:
         - number_of_dwellings
 
@@ -154,11 +82,9 @@ ndw:
       dataset_name: "household_income"
       silver_table: "silver_cbs_household_income"
       description_en: "Household income indicators by region"
-
       grain:
         - region
         - period
-
       endpoints:
         bronze:
           - TableInfos
@@ -167,31 +93,41 @@ ndw:
         silver_dimensions:
           - Regions
           - Perioden
-
       columns_en:
         RegioS: "region_code"
         RegioNaam: "region_name"
         Perioden: "period_code"
-
         GemiddeldInkomenHuishouden_6: "avg_household_income_eur"
         MediaanInkomenHuishouden_7: "median_household_income_eur"
-
       measures:
         - avg_household_income_eur
         - median_household_income_eur
 
 pdok:
+  source_name: "pdok"
+  description_en: "Public Services on the Map (PDOK) geospatial data"
+
   datasets:
-    - dataset_name: bag_pand
+    - dataset_name: "bag_pand"
+      description_en: "Dutch building footprints (BAG Pand)"
       url: "https://service.pdok.nl/lv/bag/wfs/v2_0?service=WFS&version=2.0.0&request=GetFeature&typeName=bag:pand&outputFormat=application/json&count=1000"
-    - dataset_name: bag_verblijfsobject
+      silver_table: "silver_pdok_bag_pand"
+
+    - dataset_name: "bag_verblijfsobject"
+      description_en: "Dutch address objects (BAG Verblijfsobject)"
       url: "https://service.pdok.nl/lv/bag/wfs/v2_0?service=WFS&version=2.0.0&request=GetFeature&typeName=bag:verblijfsobject&outputFormat=application/json&count=1000"
+      silver_table: "silver_pdok_bag_verblijfsobject"
 
 knmi:
+  source_name: "knmi"
+  description_en: "Royal Netherlands Meteorological Institute (KNMI) weather data"
+
   datasets:
-    - dataset_name: daily_weather_all_stations
+    - dataset_name: "daily_weather_all_stations"
+      description_en: "Daily weather measurements for all stations (last 7 days)"
       endpoint: "https://www.daggegevens.knmi.nl/klimatologie/daggegevens"
       format: "csv"
+      silver_table: "silver_knmi_daily_weather"
       params:
         start_days_ago: 7
         end_days_ago: 1
@@ -199,10 +135,15 @@ knmi:
         stns: "ALL"
 
 ndw:
+  source_name: "ndw"
+  description_en: "National Data Warehouse for Traffic Information (NDW)"
+
   datasets:
-    - dataset_name: current_traffic_sample
-      url: "COLOQUE_AQUI_O_ENDPOINT_REAL_QUE_VOCE_VAI_USAR"
+    - dataset_name: "current_traffic_flow"
+      description_en: "Current traffic flow measurements"
+      url: "https://opendata.ndw.nu/NLIP_geolocatie_meetvakken.xml.gz"
       method: "GET"
       format: "xml"
+      silver_table: "silver_ndw_traffic_flow"
       headers:
         Accept: "application/xml"

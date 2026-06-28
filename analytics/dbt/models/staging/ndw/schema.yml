@@ -1,0 +1,12 @@
+version: 2
+
+models:
+  - name: stg_ndw_traffic_flow
+    description: "Fluxo de tráfego holandês — NDW DATEX II XML"
+    columns:
+      - name: id
+        tests: [not_null]
+      - name: vehicle_flow_rate
+        description: "Veículos por hora no ponto de medição"
+      - name: avg_vehicle_speed_kmh
+        description: "Velocidade média em km/h"

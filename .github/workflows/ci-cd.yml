@@ -5,68 +5,93 @@ on:
     branches: [ main ]
   pull_request:
     branches: [ main ]
-  workflow_dispatch:
-    inputs:
-      environment:
-        description: 'Environment'
-        required: true
-        default: 'dev'
-        type: choice
-        options:
-          - dev
-          - prod
 
 jobs:
   validate:
     name: Validate Code
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Setup Python
-        uses: actions/setup-python@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
-        with:
-          terraform_version: "1.6.0"
-
-      - name: Terraform Format Check
-        run: terraform fmt -check -recursive infrastructure/terraform/
-
-      - name: Install Python dependencies
+      - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -r orchestration/airflow/requirements.txt
+          pip install pyyaml boto3 requests apache-airflow==3.0.0 apache-airflow-providers-standard
 
-      - name: Lint DAGs
-        run: |
-          python -m py_compile orchestration/airflow/dags/*.py
+      - name: Lint DAGs (syntax check)
+        run: python -m py_compile orchestration/airflow/dags/*.py
 
-  terraform-validate:
-    name: Terraform Syntax Check (reference only)
+      - name: Validate datasets catalog
+        run: python -c "import yaml; yaml.safe_load(open('orchestration/airflow/include/configs/datasets.yml'))"
+
+  dbt-validate:
+    name: dbt Parse
     runs-on: ubuntu-latest
-    needs: validate
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
+      - uses: actions/setup-python@v5
         with:
-          terraform_version: "1.6.0"
+          python-version: '3.11'
 
-      - name: Terraform Init
-        run: |
-          cd infrastructure/terraform/envs/${{ github.event.inputs.environment || 'dev' }}
-          terraform init -backend=false
+      - name: Install dbt-duckdb
+        run: pip install dbt-duckdb
 
-      - name: Terraform Validate
+      - name: dbt parse (target=dev, DuckDB local)
+        working-directory: analytics/dbt
+        env:
+          GRONTIA_DUCKDB_PATH: /tmp/grontia_ci.duckdb
+          MINIO_ENDPOINT: http://localhost:9000
+          MINIO_ACCESS_KEY: minioadmin
+          MINIO_SECRET_KEY: minioadmin
+        run: dbt parse --target dev
+
+  dbt-deploy:
+    name: dbt Run (MotherDuck)
+    runs-on: ubuntu-latest
+    needs: [validate, dbt-validate]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dbt-duckdb
+        run: pip install dbt-duckdb
+
+      - name: dbt run + test (MotherDuck)
+        working-directory: analytics/dbt
+        env:
+          MOTHERDUCK_TOKEN: ${{ secrets.MOTHERDUCK_TOKEN }}
+          MINIO_ENDPOINT:   ${{ secrets.MINIO_ENDPOINT }}
+          MINIO_ACCESS_KEY: ${{ secrets.MINIO_ACCESS_KEY }}
+          MINIO_SECRET_KEY: ${{ secrets.MINIO_SECRET_KEY }}
         run: |
-          cd infrastructure/terraform/envs/${{ github.event.inputs.environment || 'dev' }}
-          terraform validate
-        # Apenas valida sintaxe e estrutura dos arquivos .tf.
-        # Não conecta no Azure, não cria recursos, sem custo.
+          dbt run --target motherduck
+          dbt test --target motherduck
+
+  security-scan:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install security tools
+        run: pip install bandit safety
+
+      - name: Bandit
+        run: bandit -r orchestration/airflow/dags/ processing/ analytics/dbt/ -ll --exit-zero
+
+      - name: Safety
+        run: safety check --file orchestration/airflow/requirements.txt
+        continue-on-error: true

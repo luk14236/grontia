@@ -1,0 +1,51 @@
+{
+    "path_count": 139,
+    "parsed_path_count": 139,
+    "static_analysis_path_count": 5,
+    "static_analysis_parsed_path_count": 5,
+    "is_partial_parse_enabled": true,
+    "is_static_analysis_enabled": true,
+    "read_files_elapsed": 0.0650595000188332,
+    "load_macros_elapsed": 0.6765665999846533,
+    "parse_project_elapsed": 0.29627689998596907,
+    "patch_sources_elapsed": 1.0199990356341004e-05,
+    "process_manifest_elapsed": 0.021810000005643815,
+    "load_all_elapsed": 1.1932789999991655,
+    "projects": [
+        {
+            "project_name": "grontia",
+            "elapsed": 0.289221599989105,
+            "parsers": [
+                {
+                    "parser": "model",
+                    "elapsed": 0.15828499998315237,
+                    "parsed_path_count": 5
+                },
+                {
+                    "parser": "test",
+                    "elapsed": 0.12771189998602495,
+                    "parsed_path_count": 2
+                }
+            ],
+            "parsed_path_count": 7
+        },
+        {
+            "project_name": "dbt_duckdb",
+            "elapsed": 0.0036257999890949577,
+            "parsers": [],
+            "parsed_path_count": 0
+        },
+        {
+            "project_name": "dbt",
+            "elapsed": 0.0032702999596949667,
+            "parsers": [
+                {
+                    "parser": "doc",
+                    "elapsed": 0.00028890001703985035,
+                    "parsed_path_count": 1
+                }
+            ],
+            "parsed_path_count": 1
+        }
+    ]
+}

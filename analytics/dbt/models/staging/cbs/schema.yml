@@ -1,0 +1,50 @@
+version: 2
+
+models:
+  - name: stg_cbs_neighbourhood_key_figures
+    description: "CBS key figures per neighbourhood/municipality (84583NED)"
+    columns:
+      - name: region_code
+        description: "CBS region identifier (RegioS)"
+        tests:
+          - not_null
+      - name: period_code
+        description: "Period code (e.g. 2023JJ00)"
+        tests:
+          - not_null
+      - name: population
+        tests:
+          - not_null
+
+  - name: stg_cbs_average_woz_value
+    description: "Average WOZ property value by region (83765NED)"
+    columns:
+      - name: region_code
+        tests:
+          - not_null
+      - name: period_code
+        tests:
+          - not_null
+      - name: avg_woz_value_eur
+        tests:
+          - not_null
+
+  - name: stg_cbs_housing_stock
+    description: "Housing stock by dwelling type (82900NED)"
+    columns:
+      - name: region_code
+        tests:
+          - not_null
+      - name: period_code
+        tests:
+          - not_null
+
+  - name: stg_cbs_household_income
+    description: "Household income indicators by region (86161NED)"
+    columns:
+      - name: region_code
+        tests:
+          - not_null
+      - name: period_code
+        tests:
+          - not_null
