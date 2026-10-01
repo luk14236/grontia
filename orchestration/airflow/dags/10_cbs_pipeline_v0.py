@@ -8,7 +8,7 @@ from pathlib import Path
 import yaml
 
 
-CATALOG_PATH = Path("/usr/local/airflow/include/configs/datasets.yml")
+CATALOG_PATH = Path("/opt/airflow/include/configs/datasets.yml")
 
 
 def load_catalog() -> dict:
