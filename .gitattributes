@@ -1,0 +1,7 @@
+# Normalize line endings: LF in the repo and in the working tree (WSL/Linux tooling)
+* text=auto eol=lf
+
+*.png binary
+*.jpg binary
+*.pdf binary
+*.ipynb text eol=lf
