@@ -18,5 +18,25 @@ models:
         description: "Total population in the region"
       - name: avg_woz_value_eur
         description: "Average WOZ (property) value in EUR"
-      - name: avg_household_income_eur
-        description: "Average gross household income in EUR"
+      - name: avg_disposable_income_eur
+        description: "Average disposable household income in EUR"
+
+  - name: mart_neighbourhood_reference
+    description: >
+      Reference price level per municipality, district and neighbourhood.
+      Municipality average sale price (83625NED) brought to the latest quarter
+      with the regional price index (85792NED), then scaled to districts and
+      neighbourhoods by their WOZ ratio to the municipality (85984NED).
+      One row per region_code.
+    columns:
+      - name: region_code
+        tests:
+          - not_null
+          - unique
+      - name: municipality_code
+        tests:
+          - not_null
+      - name: est_current_avg_sale_price_eur
+        description: "Estimated current average sale price of a home in this area (EUR)"
+      - name: woz_ratio_to_municipality
+        description: "Area average WOZ divided by municipality average WOZ"

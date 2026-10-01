@@ -1,5 +1,7 @@
 with source as (
-    select * from read_parquet('s3://silver/knmi/daily_weather_all_stations/**/*.parquet')
+    select * from read_parquet('s3://silver/knmi/daily_weather_all_stations/**/*.parquet', hive_partitioning = true)
+    -- each daily ingestion re-fetches the last 7 days: keep the latest value per station/day
+    qualify row_number() over (partition by STN, YYYYMMDD order by ingestion_date desc) = 1
 ),
 
 renamed as (

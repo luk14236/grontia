@@ -8,6 +8,7 @@ import os
 import xml.etree.ElementTree as ET
 from datetime import datetime, timedelta
 from typing import Any
+from urllib.parse import parse_qs, urlencode, urlparse, urlunparse
 
 import boto3
 import requests
@@ -25,7 +26,8 @@ MINIO_ACCESS    = os.getenv("MINIO_ACCESS_KEY", "minioadmin")
 MINIO_SECRET    = os.getenv("MINIO_SECRET_KEY", "minioadmin")
 BUCKET_BRONZE   = os.getenv("MINIO_BUCKET_BRONZE", "bronze")
 
-CBS_BASE = "https://opendata.cbs.nl/ODataApi/odata"
+CBS_BASE      = "https://opendata.cbs.nl/ODataApi/odata"
+CBS_FEED_BASE = "https://opendata.cbs.nl/ODataFeed/odata"
 
 
 def load_catalog() -> dict:
@@ -49,6 +51,18 @@ def minio_put(key: str, body: str) -> None:
         Body=body.encode("utf-8"),
         ContentType="application/json",
     )
+
+
+def clear_prefix(prefix: str) -> None:
+    """Delete everything under a bronze prefix so a re-run for the same date
+    replaces the partition instead of mixing old and new files."""
+    client = s3_client()
+    for page in client.get_paginator("list_objects_v2").paginate(
+        Bucket=BUCKET_BRONZE, Prefix=f"{prefix}/"
+    ):
+        keys = [{"Key": o["Key"]} for o in page.get("Contents", [])]
+        if keys:
+            client.delete_objects(Bucket=BUCKET_BRONZE, Delete={"Objects": keys})
 
 
 def http_get_json(url: str, timeout: int = 60) -> dict:
@@ -80,6 +94,27 @@ def ingestion_datetime() -> str:
 # CBS
 # ---------------------------------------------------------------------------
 
+def _cbs_fetch_typed_dataset(table_id: str, odata_filter: str | None) -> dict:
+    """
+    Fetch all rows of a CBS TypedDataSet.
+
+    The ODataApi endpoint rejects queries returning more than 10k rows and does
+    not support $skip, so we use the ODataFeed endpoint and follow
+    odata.nextLink until the last page.
+    """
+    params = {"$format": "json"}
+    if odata_filter:
+        params["$filter"] = odata_filter
+    url = f"{CBS_FEED_BASE}/{table_id}/TypedDataSet?{urlencode(params)}"
+
+    rows: list = []
+    while url:
+        page = http_get_json(url, timeout=180)
+        rows.extend(page.get("value", []))
+        url = page.get("odata.nextLink")
+    return {"value": rows}
+
+
 @task
 def ingest_cbs_dataset(table_id: str, dataset_name: str) -> dict:
     logger.info("CBS ingestion: %s (%s)", dataset_name, table_id)
@@ -94,6 +129,7 @@ def ingest_cbs_dataset(table_id: str, dataset_name: str) -> dict:
     ing_date = ingestion_date()
     ing_dt   = ingestion_datetime()
     base     = f"cbs/cbs_bronze/{dataset_name}/ingestion_date={ing_date}"
+    clear_prefix(base)
 
     summary: dict[str, Any] = {
         "source": "cbs", "table_id": table_id,
@@ -104,8 +140,10 @@ def ingest_cbs_dataset(table_id: str, dataset_name: str) -> dict:
 
     try:
         for endpoint in dataset_config.get("endpoints", {}).get("bronze", []):
-            url  = f"{CBS_BASE}/{table_id}/{endpoint}"
-            data = http_get_json(url)
+            if endpoint == "TypedDataSet":
+                data = _cbs_fetch_typed_dataset(table_id, dataset_config.get("odata_filter"))
+            else:
+                data = http_get_json(f"{CBS_BASE}/{table_id}/{endpoint}")
             key  = f"{base}/{endpoint.lower()}.json"
             minio_put(key, json.dumps(data, indent=2, ensure_ascii=False))
             summary["endpoints_ingested"].append(endpoint)
@@ -131,7 +169,6 @@ PDOK_PAGE_SIZE = 1000
 
 def _pdok_base_url(url: str) -> str:
     """Remove parâmetros de paginação da URL base para controle manual."""
-    from urllib.parse import urlparse, parse_qs, urlencode, urlunparse
     parsed = urlparse(url)
     params = parse_qs(parsed.query, keep_blank_values=True)
     for p in ("startIndex", "count"):
@@ -141,11 +178,12 @@ def _pdok_base_url(url: str) -> str:
 
 
 @task
-def ingest_pdok_dataset(dataset_name: str, url: str) -> dict:
+def ingest_pdok_dataset(dataset_name: str, url: str, bbox: str | None = None) -> dict:
     logger.info("PDOK ingestion (paginated): %s", dataset_name)
 
     ing_date = ingestion_date()
     base     = f"pdok/pdok_bronze/{dataset_name}/ingestion_date={ing_date}"
+    clear_prefix(base)
 
     summary: dict[str, Any] = {
         "source": "pdok", "dataset_name": dataset_name,
@@ -155,6 +193,8 @@ def ingest_pdok_dataset(dataset_name: str, url: str) -> dict:
 
     try:
         base_url    = _pdok_base_url(url)
+        if bbox:
+            base_url += "&" + urlencode({"bbox": bbox})
         start_index = 0
         page        = 0
         all_features: list = []
@@ -196,40 +236,38 @@ def ingest_pdok_dataset(dataset_name: str, url: str) -> dict:
 # KNMI — CSV com header de metadados (linhas iniciadas com #)
 # ---------------------------------------------------------------------------
 
-def _knmi_csv_to_json(raw_csv: str) -> list[dict]:
+def _knmi_clean_csv(raw_csv: str) -> str:
     """
-    Converte o CSV do KNMI em lista de dicts.
-    O formato real tem linhas de metadados prefixadas com '#' no início,
-    seguidas de uma linha de cabeçalho com colunas separadas por vírgula,
-    e depois os dados.
+    Turn the KNMI daggegevens response into a plain CSV.
+
+    The response starts with metadata lines prefixed with '#'. The column header
+    is also a comment line ("# STN,YYYYMMDD,..."), so it is recovered from the
+    last '#' line that contains STN. Values are padded with spaces.
     """
     lines = raw_csv.splitlines()
+    header_line = next(
+        (l for l in reversed(lines) if l.startswith("#") and "STN," in l), None
+    )
+    if header_line is None:
+        raise ValueError("KNMI response has no '# STN,...' header line")
 
-    # Separa metadados do header/dados
-    meta_lines  = [l for l in lines if l.startswith("#")]
-    data_lines  = [l for l in lines if l and not l.startswith("#")]
-
-    if not data_lines:
-        return []
-
-    # Primeira linha de dados é o cabeçalho real
-    header = [col.strip() for col in data_lines[0].split(",")]
-    records = []
-    for row in data_lines[1:]:
-        values = [v.strip() for v in row.split(",")]
-        if len(values) == len(header):
-            records.append(dict(zip(header, values)))
-
-    logger.info("KNMI parsed %d data rows, %d meta lines", len(records), len(meta_lines))
-    return records
+    header = ",".join(col.strip() for col in header_line.lstrip("#").split(","))
+    rows = [
+        ",".join(v.strip() for v in l.split(","))
+        for l in lines
+        if l.strip() and not l.startswith("#")
+    ]
+    logger.info("KNMI parsed %d data rows", len(rows))
+    return "\n".join([header, *rows]) + "\n"
 
 
 @task
-def ingest_knmi_dataset(dataset_name: str, endpoint: str, params: dict) -> dict:
+def ingest_knmi_dataset(dataset_name: str, endpoint: str, query_params: dict) -> dict:
     logger.info("KNMI ingestion: %s", dataset_name)
 
     ing_date = ingestion_date()
     base     = f"knmi/knmi_bronze/{dataset_name}/ingestion_date={ing_date}"
+    clear_prefix(base)
 
     summary: dict[str, Any] = {
         "source": "knmi", "dataset_name": dataset_name,
@@ -240,10 +278,10 @@ def ingest_knmi_dataset(dataset_name: str, endpoint: str, params: dict) -> dict:
         today = datetime.now()
         # A API KNMI daggegevens aceita POST com form data
         form_data = {
-            "start": (today - timedelta(days=params.get("start_days_ago", 7))).strftime("%Y%m%d"),
-            "end":   (today - timedelta(days=params.get("end_days_ago", 1))).strftime("%Y%m%d"),
-            "vars":  params.get("vars", "ALL"),
-            "stns":  params.get("stns", "ALL"),
+            "start": (today - timedelta(days=query_params.get("start_days_ago", 7))).strftime("%Y%m%d"),
+            "end":   (today - timedelta(days=query_params.get("end_days_ago", 1))).strftime("%Y%m%d"),
+            "vars":  query_params.get("vars", "ALL"),
+            "stns":  query_params.get("stns", "ALL"),
         }
         logger.info("KNMI POST %s params=%s", endpoint, form_data)
         r = requests.post(endpoint, data=form_data, timeout=180)
@@ -251,26 +289,25 @@ def ingest_knmi_dataset(dataset_name: str, endpoint: str, params: dict) -> dict:
 
         raw_csv = r.text
 
-        # Salva CSV raw no bronze
+        # Salva a resposta original e um CSV limpo (header real) no bronze
+        s3_client().put_object(
+            Bucket=BUCKET_BRONZE,
+            Key=f"{base}/raw.txt",
+            Body=raw_csv.encode("utf-8"),
+            ContentType="text/plain",
+        )
+        clean_csv = _knmi_clean_csv(raw_csv)
         s3_client().put_object(
             Bucket=BUCKET_BRONZE,
             Key=f"{base}/data.csv",
-            Body=raw_csv.encode("utf-8"),
+            Body=clean_csv.encode("utf-8"),
             ContentType="text/csv",
         )
 
-        # Converte para JSON e salva também (facilita leitura pelo PySpark)
-        records = _knmi_csv_to_json(raw_csv)
-        s3_client().put_object(
-            Bucket=BUCKET_BRONZE,
-            Key=f"{base}/data.json",
-            Body=json.dumps(records, ensure_ascii=False).encode("utf-8"),
-            ContentType="application/json",
-        )
-
-        summary["rows"] = len(records)
+        n_rows = clean_csv.count("\n") - 1
+        summary["rows"] = n_rows
         minio_put(f"{base}/_summary.json", json.dumps(summary, indent=2, ensure_ascii=False))
-        logger.info("KNMI %s done — %d rows", dataset_name, len(records))
+        logger.info("KNMI %s done — %d rows", dataset_name, n_rows)
         return summary
 
     except Exception as e:
@@ -286,41 +323,49 @@ def ingest_knmi_dataset(dataset_name: str, endpoint: str, params: dict) -> dict:
 
 def _ndw_xml_to_records(xml_bytes: bytes) -> list[dict]:
     """
-    Parseia o XML do NDW e retorna lista de dicts com os campos principais.
-    O schema NDW usa namespaces DATEX II / NTCIP.
-    Extraímos os campos essenciais de forma genérica.
-    """
-    root = ET.fromstring(xml_bytes)
+    Parse an NDW DATEX II MeasuredDataPublication (e.g. trafficspeed.xml.gz)
+    into one record per measurement site.
 
-    # Remove namespace prefix para facilitar o acesso
-    def strip_ns(tag: str) -> str:
-        return tag.split("}")[-1] if "}" in tag else tag
+    Each <siteMeasurements> holds several <measuredValue> entries per lane /
+    vehicle class: TrafficFlow values carry vehicleFlowRate (vehicles/hour) and
+    TrafficSpeed values carry averageVehicleSpeed/speed (km/h). Negative values
+    mean "no data". We sum the flows and average the valid speeds per site.
+    """
+    def local(tag: str) -> str:
+        return tag.rsplit("}", 1)[-1]
 
     records = []
-    for elem in root.iter():
-        tag = strip_ns(elem.tag)
-        # Captura elementos folha com texto relevante
-        if elem.text and elem.text.strip() and len(list(elem)) == 0:
-            record = {
-                "tag": tag,
-                "text": elem.text.strip(),
-                "attribs": {strip_ns(k): v for k, v in elem.attrib.items()},
-                "path": "/".join(strip_ns(a.tag) for a in root.iter() if elem in list(a))
-            }
-            records.append(record)
+    for _, elem in ET.iterparse(io.BytesIO(xml_bytes), events=("end",)):
+        if local(elem.tag) != "siteMeasurements":
+            continue
 
-    # Tenta extrair estrutura de measurementSiteRecord se existir (schema comum NDW)
-    site_records = []
-    for site in root.iter():
-        if strip_ns(site.tag) in ("measurementSiteRecord", "siteMeasurements", "trafficSpeed", "trafficFlow"):
-            site_dict: dict[str, Any] = {"element_type": strip_ns(site.tag)}
-            site_dict.update({strip_ns(k): v for k, v in site.attrib.items()})
-            for child in site:
-                child_tag = strip_ns(child.tag)
-                site_dict[child_tag] = child.text.strip() if child.text else None
-            site_records.append(site_dict)
+        site_id, measured_at = None, None
+        flows: list[float] = []
+        speeds: list[float] = []
+        for child in elem.iter():
+            name = local(child.tag)
+            if name == "measurementSiteReference":
+                site_id = child.get("id")
+            elif name == "measurementTimeDefault":
+                measured_at = child.text
+            elif name == "vehicleFlowRate" and child.text:
+                if float(child.text) >= 0:
+                    flows.append(float(child.text))
+            elif name == "speed" and child.text:
+                if float(child.text) > 0:
+                    speeds.append(float(child.text))
 
-    return site_records if site_records else records
+        records.append({
+            "id": site_id,
+            "element_type": "siteMeasurements",
+            "measurementSiteReference": site_id,
+            "period": measured_at,
+            "vehicleFlowRate": sum(flows) if flows else None,
+            "averageVehicleSpeed": round(sum(speeds) / len(speeds), 1) if speeds else None,
+        })
+        elem.clear()
+
+    return records
 
 
 @task
@@ -329,6 +374,7 @@ def ingest_ndw_dataset(dataset_name: str, url: str) -> dict:
 
     ing_date = ingestion_date()
     base     = f"ndw/ndw_bronze/{dataset_name}/ingestion_date={ing_date}"
+    clear_prefix(base)
 
     summary: dict[str, Any] = {
         "source": "ndw", "dataset_name": dataset_name,
@@ -433,7 +479,7 @@ with DAG(
 
     # PDOK
     for ds in catalog.get("pdok", {}).get("datasets", []):
-        ingest = ingest_pdok_dataset(ds["dataset_name"], ds["url"])
+        ingest = ingest_pdok_dataset(ds["dataset_name"], ds["url"], ds.get("bbox"))
         validate = validate_ingestion(ingest)
         ingest >> validate
         all_validate_tasks.append(validate)
@@ -441,7 +487,7 @@ with DAG(
     # KNMI
     for ds in catalog.get("knmi", {}).get("datasets", []):
         ingest = ingest_knmi_dataset(
-            ds["dataset_name"], ds["endpoint"], ds.get("params", {})
+            ds["dataset_name"], ds["endpoint"], ds.get("query_params", {})
         )
         validate = validate_ingestion(ingest)
         ingest >> validate

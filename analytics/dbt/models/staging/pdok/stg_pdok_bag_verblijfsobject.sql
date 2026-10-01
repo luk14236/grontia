@@ -1,5 +1,6 @@
 with source as (
-    select * from read_parquet('s3://silver/pdok/bag_verblijfsobject/**/*.parquet')
+    select * from read_parquet('s3://silver/pdok/bag_verblijfsobject/**/*.parquet', hive_partitioning = true)
+    qualify ingestion_date = max(ingestion_date) over ()
 ),
 
 renamed as (
