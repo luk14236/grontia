@@ -267,7 +267,8 @@ silver/                             ← dados limpos em Parquet
 
 ### Como acessar
 
-- **Console web**: http://localhost:9001 (minioadmin / minioadmin)
+- **Navegador de arquivos (SeaweedFS Filer)**: http://localhost:8888/buckets/
+- **Nota**: as imagens oficiais do MinIO deixaram de ser publicadas; o storage local agora é o SeaweedFS (S3-compatível, mesmas credenciais `minioadmin`/`minioadmin` e mesmas variáveis `MINIO_*`)
 - **API S3**: http://localhost:9000
 
 ---
@@ -366,7 +367,7 @@ cd analytics/dbt
 dbt parse --target dev
 
 # Rodar todos os models (local)
-dbt run --target dev
+dbt run --target dev --profiles-dir .
 
 # Rodar e testar (local)
 dbt run --target dev && dbt test --target dev
@@ -594,7 +595,7 @@ docker compose ps
 
 **Serviços disponíveis:**
 - Airflow UI: http://localhost:8080 (admin / admin)
-- MinIO Console: http://localhost:9001 (minioadmin / minioadmin)
+- Storage S3 (SeaweedFS): API em http://localhost:9000, navegador em http://localhost:8888/buckets/ (credenciais S3: minioadmin / minioadmin)
 
 ### Passo 3 — Instalar dependências Python locais
 
@@ -625,7 +626,7 @@ Ou via CLI:
 docker compose exec airflow-scheduler airflow dags trigger 30_multi_source_daily_ingestion
 ```
 
-Após rodar, verificar os arquivos no MinIO: http://localhost:9001 → bucket `bronze`
+Após rodar, verificar os arquivos em http://localhost:8888/buckets/bronze/
 
 ### Etapa 2 — Transformação bronze → silver (PySpark)
 
@@ -684,6 +685,8 @@ con.execute("SELECT * FROM MARTS.mart_regional_dashboard LIMIT 10").df()
 | dbt mart_regional_dashboard | ✅ Pronto | Join CBS região+período |
 | dbt mart_housing_market | ✅ Pronto | Join housing+WOZ |
 | dbt mart_weather_summary | ✅ Pronto | KNMI direto |
+| CBS preços de venda (83625NED, 85792NED), aluguel (70675ned), municípios→províncias (85755NED) | ✅ Pronto | Ingestão + staging |
+| dbt mart_neighbourhood_reference | ✅ Pronto | Preço médio estimado atual por município, wijk e buurt (base para avaliar endereços) |
 | profiles.yml (dev + motherduck) | ✅ Pronto | Dois targets configurados |
 | CI/CD GitHub Actions | ✅ Pronto | validate + dbt parse + deploy |
 | datasets.yml (catalog) | ✅ Pronto | Todas as fontes sem duplicatas |
@@ -695,7 +698,6 @@ con.execute("SELECT * FROM MARTS.mart_regional_dashboard LIMIT 10").df()
 
 | Item | Prioridade | O que é necessário |
 |---|---|---|
-| Rodar o pipeline end-to-end | 🔴 Alta | Subir Docker, trigger DAG, rodar PySpark, dbt run |
 | MOTHERDUCK_TOKEN | 🔴 Alta | Criar conta em app.motherduck.com |
 | MinIO público (para CI/CD) | 🟡 Média | ngrok ou VPS para o dbt-deploy acessar o silver |
 | Mart de tráfego (NDW) | 🟡 Média | Criar `mart_traffic_flow.sql` quando silver NDW estiver populado |
