@@ -461,7 +461,7 @@ with DAG(
     schedule="@daily",
     max_active_runs=1,
     catchup=False,
-    tags=["grontia", "multi-source", "bronze", "daily", "minio"],
+    tags=["grontia", "multi-source", "bronze", "daily", "s3"],
 ) as dag:
 
     start = EmptyOperator(task_id="start")

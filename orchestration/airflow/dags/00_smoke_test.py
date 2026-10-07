@@ -10,6 +10,6 @@ with DAG(
     start_date=datetime(2025, 1, 1),
     schedule=None,
     catchup=False,
-    tags=["grondia", "smoke"],
+    tags=["grontia", "smoke"],
 ) as dag:
     PythonOperator(task_id="hello", python_callable=hello)

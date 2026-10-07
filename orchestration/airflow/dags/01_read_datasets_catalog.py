@@ -18,7 +18,7 @@ with DAG(
     start_date=datetime(2025, 1, 1),
     schedule=None,
     catchup=False,
-    tags=["grondia", "catalog"],
+    tags=["grontia", "catalog"],
 ) as dag:
     PythonOperator(
         task_id="read_catalog",

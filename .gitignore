@@ -2,7 +2,6 @@ storage/delta/
 .local_storage/
 /orchestration/airflow/include/output
 .env
-**/.terraform/
 
 # dbt artifacts
 analytics/dbt/target/

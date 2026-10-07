@@ -1,167 +1,148 @@
-# Grondia
+# Grontia
 
-**Grondia** is an open, hands-on data engineering project designed to learn and apply modern data platforms, tools, and architectural patterns by building real batch and streaming pipelines using official open data from the Netherlands.
+**Grontia** is an open, hands-on data engineering project that builds real batch pipelines on official open data from the Netherlands, using only free and open-source tools.
 
 The project is public by design and evolves incrementally, documenting architecture decisions, trade-offs, and lessons learned along the way.
+
+> Full documentation (Portuguese): [`docs/PROJETO_COMPLETO.md`](docs/PROJETO_COMPLETO.md)
 
 ---
 
 ## 🎯 Project Goal
 
-The primary goal of Grondia is **learning through practice**.
+The primary goal of Grontia is **learning through practice**.
 
 This project exists to:
 - Learn modern data engineering tools in a hands-on way
-- Build realistic batch and streaming pipelines end to end
+- Build realistic pipelines end to end, on real data
 - Apply production-minded patterns such as data contracts, data quality, and observability
-- Understand architectural trade-offs by solving real problems with real data
+- Understand architectural trade-offs by solving real problems
 - Share the learning process openly
 
-Any analytical or product outcome is **secondary** to the learning experience.
+The analytical outcome is a reference of Dutch housing prices and neighbourhood context (per municipality, district and neighbourhood), which can later support evaluating a specific address.
 
 ---
 
-## 🧠 Learning Philosophy
+## 🧠 Principles
 
-Grondia follows a few core principles:
-
-- **Hands-on over theory**  
-  Everything is built, executed, and operated, not just designed.
-
-- **Problem-driven tooling**  
-  Tools are chosen based on the problem each pipeline solves.
-
-- **No artificial duplication**  
-  Different technologies are used on different data domains, not on the same dataset.
-
-- **Production mindset**  
-  Pipelines include reliability, reprocessing, data quality, and observability concerns.
+- **Zero cost** — no paid service is required; everything runs locally with Docker
+- **Open source across the stack**
+- **Real data, not simulated**
+- **Problem-driven tooling** — tools are chosen for the problem, not for the résumé
+- **Production mindset** — idempotent re-runs, deduplication, tests, CI
 
 ---
 
-## 🤖 About Using AI
+## 🧱 Architecture
 
-Yes, **ChatGPT is being used in this project**.
+The platform follows the **Medallion architecture** (Bronze → Silver → Gold):
 
-It helps accelerate:
-- Research and exploration of tools and patterns
-- Documentation and clarity of ideas
-- Architectural brainstorming and trade-off analysis
+```mermaid
+flowchart LR
+    SRC["Open data<br/>CBS · PDOK · KNMI · NDW"] -->|daily HTTP| AF["Airflow<br/>DAG 30"]
+    AF -->|raw JSON / CSV / XML| BR[("Bronze<br/>S3 · SeaweedFS")]
+    BR -->|PySpark| SV[("Silver<br/>Parquet")]
+    SV -->|dbt-duckdb · httpfs| STG["dbt staging<br/>(views)"]
+    STG --> MARTS["dbt marts<br/>(tables)"]
+    MARTS --> DW[("DuckDB local<br/>/ MotherDuck")]
+```
 
-AI is treated as a **productivity and learning accelerator**, not as a replacement for hands-on work.  
-All pipelines are designed, implemented, tested, and operated by me.
-
----
-
-## 📊 Data Domains
-
-Grondia integrates multiple official Dutch open data sources, each serving a specific purpose in the platform:
-
-- **Geospatial and address data**  
-  Foundation layer for locations, regions, and joins
-
-- **Near real-time traffic and mobility data**  
-  Minute-level signals related to accessibility and movement
-
-- **Housing market and socioeconomic statistics**  
-  Regional context for prices, population, and trends
-
-- **Environmental and climate data**  
-  Long-term and short-term risk and livability context
-
-These domains are intentionally diverse to reflect real-world data platforms.
-
----
-
-## 🧱 Project Architecture
-
-The platform follows a layered data architecture:
-
-- **Bronze** – raw, immutable data as ingested from the source  
-- **Silver** – cleaned, normalized, and enriched datasets  
-- **Gold** – analytical tables and aggregates for consumption  
-
-All pipelines converge to this shared model, regardless of tooling.
-
----
-
-## 🔄 Pipelines Overview
-
-Each pipeline focuses on a distinct domain and uses a specific set of technologies.
-
-### 1. Geospatial Foundation (Batch)
-- Purpose: addresses, buildings, regions
-- Pattern: scheduled batch ingestion
-- Output: core geographic dimensions
-
-### 2. Mobility and Traffic (Near Real-Time)
-- Purpose: accessibility and movement signals
-- Pattern: streaming from near real-time sources
-- Output: minute-level and aggregated traffic facts
-
-### 3. Housing and Socioeconomic Context (Batch)
-- Purpose: market trends and regional statistics
-- Pattern: incremental batch processing
-- Output: housing and demographic facts
-
-### 4. Climate and Environmental Context (Batch)
-- Purpose: risk and environmental indicators
-- Pattern: batch enrichment and aggregation
-- Output: climate-related features by region
-
-Each pipeline is implemented independently but integrates into a shared analytical model.
+| Layer | Content | Where |
+|---|---|---|
+| **Bronze** | Raw, as ingested from the source | `s3://bronze/{source}/{source}_bronze/{dataset}/ingestion_date=YYYY-MM-DD/` |
+| **Silver** | Cleaned, deduplicated Parquet | `s3://silver/{source}/{dataset}/` |
+| **Gold** | Analytical marts built by dbt | DuckDB (local) or MotherDuck (cloud) |
 
 ---
 
 ## 🛠️ Technology Stack
 
-The project explores a modern data stack, including:
-
-- Cloud infrastructure (Azure)
-- Orchestration (Airflow)
-- Streaming (Kafka)
-- Distributed processing (Spark)
-- Lakehouse storage (Delta Lake)
-- Managed analytics platforms (Databricks)
-- Analytical warehouses and engines (Snowflake, ClickHouse)
-- Transformations and modeling (dbt)
-- Data quality and validation frameworks
-- Observability and monitoring concepts
-
-Tools are introduced progressively and intentionally.
+| Layer | Technology |
+|---|---|
+| Orchestration | Apache Airflow 3 (Docker Compose) |
+| Object storage | SeaweedFS (S3-compatible; replaces MinIO, whose images are no longer published) |
+| Processing | PySpark (`processing/local/bronze_to_silver.py`) |
+| Transformations | dbt-duckdb |
+| Warehouse | DuckDB (local) / MotherDuck (free tier) |
+| CI | GitHub Actions |
 
 ---
 
-## 🧪 Phased Development
+## 📊 Data Sources
 
-Grondia evolves through clear phases:
+| Source | What | Format | Status |
+|---|---|---|---|
+| **CBS** (Statistics Netherlands) | Neighbourhood key figures, WOZ values, housing stock, household income, sale prices, price index, rent increase, municipality → province | OData (JSON) | ✅ |
+| **PDOK / BAG** | Buildings (`pand`) and address objects (`verblijfsobject`) | WFS (GeoJSON), limited to a bbox | ✅ (central Amsterdam only) |
+| **KNMI** | Daily weather, all stations | CSV | ✅ |
+| **NDW** | Traffic speed and flow per measurement site | DATEX II XML.gz | ✅ (daily snapshot) |
 
-1. Platform and infrastructure foundation  
-2. Batch ingestion and raw storage  
-3. Data modeling and transformations  
-4. Real-time streaming pipelines  
-5. Data quality and observability  
-6. Analytical serving and consumption  
-
-Each phase builds on the previous one and increases complexity.
+Datasets are declared in [`orchestration/airflow/include/configs/datasets.yml`](orchestration/airflow/include/configs/datasets.yml); adding a CBS table usually means editing only that file.
 
 ---
 
-## 🌍 Open by Design
+## 📦 dbt Models
 
-This project is fully public and includes:
-- Architecture diagrams
-- Design decisions and trade-offs
-- Pipeline documentation
-- Lessons learned and improvements
-
-The goal is transparency and continuous learning.
+- **Staging (12 views)** — one per dataset: rename Dutch columns to English, cast types, keep the latest snapshot per natural key.
+- **Marts (4 tables)**:
+  - `mart_regional_dashboard` — population, WOZ and income per region and period
+  - `mart_housing_market` — housing stock by dwelling type with WOZ value
+  - `mart_weather_summary` — daily weather per station
+  - `mart_neighbourhood_reference` — estimated current average sale price per municipality, district and neighbourhood
 
 ---
 
-## 🚀 Final Note
+## 🚀 Quick Start
 
-Grondia is not about shipping a finished product.
+```bash
+cp .env.example orchestration/airflow/.env
 
-It is about learning modern data engineering the right way:  
-by building real systems, with real data, under real constraints, and sharing the journey openly.
+# 1. Airflow + S3 storage
+cd orchestration/airflow && docker compose up -d
+#    Airflow UI:    http://localhost:8080  (admin / admin)
+#    S3 browser:    http://localhost:8888/buckets/
+#    Trigger DAG `30_multi_source_daily_ingestion`
+
+# 2. Bronze -> Silver (needs Java 11+ and pyspark)
+python processing/local/bronze_to_silver.py YYYY-MM-DD
+
+# 3. Silver -> marts
+cd analytics/dbt
+dbt run --target dev --profiles-dir . && dbt test --target dev --profiles-dir .
+```
+
+Step-by-step instructions are in [`docs/PROJETO_COMPLETO.md`](docs/PROJETO_COMPLETO.md#12-como-subir-o-ambiente-local).
+
+---
+
+## 📁 Repository Layout
+
+```
+orchestration/airflow/   Airflow DAGs, dataset catalog, Docker Compose
+processing/local/        PySpark bronze -> silver
+analytics/dbt/           dbt staging and marts
+docs/                    Documentation, architecture decisions, diagrams
+.github/workflows/       CI (validation, dbt parse/deploy, security scan)
+```
+
+---
+
+## 🧪 Roadmap
+
+| Phase | Status |
+|---|---|
+| 1. Local platform (Airflow, S3 storage, Docker) | ✅ Done |
+| 2. Batch ingestion into bronze | ✅ Done |
+| 3. Modeling and transformations (silver, dbt) | ✅ Done |
+| 4. Data quality and observability (broader dbt tests, freshness, alerts) | 🚧 Next |
+| 5. MotherDuck deployment from CI | ⏳ Pending |
+| 6. Near real-time traffic pipeline (NDW) | ⏳ Planned |
+| 7. Serving: address evaluation on top of `mart_neighbourhood_reference` | ⏳ Planned |
+
+Grontia only uses open data. It never scrapes listing portals (Funda, Pararius, etc.).
+
+---
+
+## 🤖 About Using AI
+
+AI assistants are used in this project to speed up research, documentation and architectural brainstorming. They are a productivity and learning accelerator, not a replacement for hands-on work. Pipelines are designed, run and operated by the author.

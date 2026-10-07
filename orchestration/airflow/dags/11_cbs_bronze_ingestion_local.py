@@ -183,7 +183,7 @@ with DAG(
     start_date=datetime(2025, 1, 1),
     schedule=None,
     catchup=False,
-    tags=["grondia", "cbs", "bronze", "mvp"],
+    tags=["grontia", "cbs", "bronze", "mvp"],
 ) as dag:
     start = EmptyOperator(task_id="start")
     end = EmptyOperator(task_id="end")

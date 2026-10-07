@@ -4,71 +4,53 @@ config:
 ---
 flowchart TB
  subgraph S["Open Data Sources"]
-        CBS["CBS API (Batch)"]
-        PDOK["PDOK / BAG (Batch)"]
-        NDW["NDW Traffic (Near Real-Time / Poll or Push)"]
-        OTHER["Other APIs / Webhooks"]
+        CBS["CBS OData<br>(statistics, prices, WOZ)"]
+        PDOK["PDOK / BAG WFS<br>(buildings, addresses)"]
+        KNMI["KNMI CSV<br>(daily weather)"]
+        NDW["NDW DATEX II<br>(traffic speed / flow)"]
   end
- subgraph I["Ingestion Layer"]
-        AF["Apache Airflow<br>(Scheduling + Orchestration)"]
-        FUNC["Azure Functions<br>(Webhook receiver / light validation)"]
-        KAFKA["Kafka or Event Hubs<br>(Streaming Bus)"]
-        GRID["Event Grid<br>(Storage events)"]
+ subgraph I["Orchestration (Docker Compose)"]
+        AF["Apache Airflow 3<br>DAG 30 · daily"]
+        CAT["datasets.yml<br>(catalog)"]
   end
- subgraph P["Processing Layer"]
-        DBX["Databricks Jobs<br>(Spark batch &amp; streaming)"]
-        CONSUMER["Streaming Consumer<br>(DBX Structured Streaming)"]
-        DBT["dbt<br>(Modeling + Tests + Docs)"]
+ subgraph L["Object Storage · SeaweedFS (S3)"]
+        BRONZE["Bronze<br>raw JSON / CSV / XML"]
+        SILVER["Silver<br>deduplicated Parquet"]
   end
- subgraph L["Lakehouse Storage (Delta)"]
-        BRONZE["Bronze<br>Raw, immutable"]
-        SILVER["Silver<br>Cleaned, normalized, enriched"]
+ subgraph P["Processing"]
+        SPARK["PySpark<br>bronze_to_silver.py"]
   end
- subgraph W["Serving & Consumption"]
-        SNOW["Snowflake<br>(Gold marts / BI / SQL consumption)"]
-        CH["ClickHouse (optional)<br>(Fast event/time-series analytics)"]
+ subgraph A["Analytics · dbt-duckdb"]
+        STG["Staging<br>12 views"]
+        MARTS["Marts<br>4 tables"]
+        TESTS["dbt tests"]
   end
- subgraph Q["Data Quality & Observability"]
-        DQ["Quality Checks<br>(schema, nulls, ranges)"]
-        MON["Monitoring<br>(latency, freshness, failures)"]
-        LOG["Logs &amp; Lineage<br>(runs, docs, lineage)"]
+ subgraph W["Warehouse"]
+        DUCK["DuckDB (local)"]
+        MD["MotherDuck (cloud, free tier)"]
   end
-    CBS --> AF
-    PDOK --> AF
-    AF --> DBX & DBT & MON & LOG
-    DBX --> BRONZE & SILVER & DQ & MON
-    BRONZE --> DBX & CONSUMER
-    SILVER --> SNOW
-    DBT --> SNOW & DQ & LOG
-    NDW -- "Webhook or poll->event" --> FUNC
-    OTHER -- Webhook --> FUNC
-    FUNC --> KAFKA
-    KAFKA --> CONSUMER
-    CONSUMER --> BRONZE & SILVER
-    SILVER -.-> CH
-    BRONZE -- File written --> GRID
-    GRID --> AF
-    SNOW --> MON
-    CH -.-> MON
+    CBS & PDOK & KNMI & NDW --> AF
+    CAT --> AF
+    AF --> BRONZE
+    BRONZE --> SPARK --> SILVER
+    SILVER -- "httpfs" --> STG --> MARTS
+    STG & MARTS --> TESTS
+    MARTS --> DUCK & MD
 
      CBS:::source
      PDOK:::source
+     KNMI:::source
      NDW:::source
-     OTHER:::source
      AF:::control
-     FUNC:::compute
-     KAFKA:::control
-     GRID:::control
-     DBX:::compute
-     CONSUMER:::compute
-     DBT:::compute
+     CAT:::control
      BRONZE:::storage
      SILVER:::storage
-     SNOW:::serve
-     CH:::serve
-     DQ:::obs
-     MON:::obs
-     LOG:::obs
+     SPARK:::compute
+     STG:::compute
+     MARTS:::compute
+     TESTS:::obs
+     DUCK:::serve
+     MD:::serve
     classDef source fill:#f6f6f6,stroke:#999,stroke-width:1px
     classDef control fill:#fff3cd,stroke:#b08a00,stroke-width:1px
     classDef compute fill:#e8f0ff,stroke:#3b82f6,stroke-width:1px
