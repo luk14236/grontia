@@ -62,6 +62,16 @@ models:
         tests:
           - not_null
 
+  - name: stg_cbs_sale_prices_by_home_type
+    description: "Price index, homes sold and average sale price by home type, national (85791NED)"
+    columns:
+      - name: home_type
+        tests:
+          - not_null
+      - name: period_code
+        tests:
+          - not_null
+
   - name: stg_cbs_sale_price_index
     description: "Sale price index 2020=100 by province / big city, quarterly and yearly (85792NED)"
     columns:

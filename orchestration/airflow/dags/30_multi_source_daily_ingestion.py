@@ -5,6 +5,8 @@ import io
 import json
 import logging
 import os
+import tempfile
+import zipfile
 import xml.etree.ElementTree as ET
 from datetime import datetime, timedelta
 from typing import Any
@@ -16,6 +18,8 @@ import yaml
 from airflow import DAG
 from airflow.decorators import task
 from airflow.providers.standard.operators.empty import EmptyOperator
+
+from grontia_assets import BRONZE_DAILY
 
 logger = logging.getLogger(__name__)
 
@@ -430,6 +434,79 @@ def ingest_ndw_dataset(dataset_name: str, url: str) -> dict:
 
 
 # ---------------------------------------------------------------------------
+# Leefbaarometer — biennial zip (~500 MB), downloaded only when it changes
+# ---------------------------------------------------------------------------
+
+def _bronze_get_json(key: str) -> dict | None:
+    try:
+        body = s3_client().get_object(Bucket=BUCKET_BRONZE, Key=key)["Body"].read()
+    except s3_client().exceptions.NoSuchKey:
+        return None
+    return json.loads(body)
+
+
+@task
+def ingest_leefbaarometer_dataset(dataset_name: str, url: str, files: dict) -> dict:
+    logger.info("Leefbaarometer ingestion: %s", dataset_name)
+
+    ing_date = ingestion_date()
+    base     = f"leefbaarometer/leefbaarometer_bronze/{dataset_name}/ingestion_date={ing_date}"
+    marker   = f"leefbaarometer/leefbaarometer_bronze/{dataset_name}/_latest_version.json"
+
+    summary: dict[str, Any] = {
+        "source": "leefbaarometer", "dataset_name": dataset_name,
+        "ingestion_date": ing_date, "status": "success",
+    }
+
+    head = requests.head(url, timeout=60, allow_redirects=True)
+    head.raise_for_status()
+    version = {
+        "url": url,
+        "etag": head.headers.get("ETag"),
+        "last_modified": head.headers.get("Last-Modified"),
+        "content_length": head.headers.get("Content-Length"),
+    }
+    if _bronze_get_json(marker) == version:
+        logger.info("Leefbaarometer unchanged since last ingestion, skipping download")
+        summary["changed"] = False
+        return summary
+
+    clear_prefix(base)
+    try:
+        with tempfile.TemporaryFile() as tmp:
+            with requests.get(url, timeout=600, stream=True) as r:
+                r.raise_for_status()
+                for chunk in r.iter_content(chunk_size=1 << 20):
+                    tmp.write(chunk)
+            tmp.seek(0)
+            with zipfile.ZipFile(tmp) as zf:
+                members = {
+                    m: target
+                    for m in zf.namelist() if "__MACOSX" not in m
+                    for suffix, target in files.items() if m.endswith(suffix)
+                }
+                if len(members) != len(files):
+                    raise ValueError(f"Expected {list(files)} in zip, found {list(members)}")
+                for member, target in members.items():
+                    s3_client().put_object(
+                        Bucket=BUCKET_BRONZE, Key=f"{base}/{target}",
+                        Body=zf.read(member), ContentType="text/csv",
+                    )
+
+        summary.update({"changed": True, "files": sorted(files.values()), **version})
+        minio_put(f"{base}/_summary.json", json.dumps(summary, indent=2, ensure_ascii=False))
+        minio_put(marker, json.dumps(version))
+        logger.info("Leefbaarometer %s done — %s", dataset_name, sorted(files.values()))
+        return summary
+
+    except Exception as e:
+        logger.exception("Leefbaarometer %s failed", dataset_name)
+        summary.update({"status": "failed", "error": str(e)})
+        minio_put(f"{base}/_summary.json", json.dumps(summary, indent=2, ensure_ascii=False))
+        raise
+
+
+# ---------------------------------------------------------------------------
 # Validation
 # ---------------------------------------------------------------------------
 
@@ -438,6 +515,15 @@ def validate_ingestion(summary: dict) -> None:
     if summary.get("status") != "success":
         raise ValueError(f"Ingestion failed: {summary.get('error', 'unknown error')}")
     logger.info("Validation OK — %s/%s", summary.get("source"), summary.get("dataset_name"))
+
+
+@task(outlets=[BRONZE_DAILY])
+def publish_bronze(*, outlet_events, dag_run) -> str:
+    """Signal that today's bronze is complete; triggers 40_silver_and_marts."""
+    ing_date = dag_run.start_date.strftime("%Y-%m-%d")
+    outlet_events[BRONZE_DAILY].extra = {"ingestion_date": ing_date}
+    logger.info("Bronze complete for ingestion_date=%s", ing_date)
+    return ing_date
 
 
 # ---------------------------------------------------------------------------
@@ -457,7 +543,7 @@ default_args = {
 with DAG(
     dag_id="30_multi_source_daily_ingestion",
     default_args=default_args,
-    description="Daily ingestion from all sources (CBS, PDOK, KNMI, NDW) to MinIO bronze layer",
+    description="Daily ingestion from all sources (CBS, PDOK, Leefbaarometer, KNMI, NDW) to the bronze bucket",
     schedule="@daily",
     max_active_runs=1,
     catchup=False,
@@ -465,7 +551,7 @@ with DAG(
 ) as dag:
 
     start = EmptyOperator(task_id="start")
-    end   = EmptyOperator(task_id="end")
+    end   = publish_bronze()
 
     catalog = load_catalog()
     all_validate_tasks = []
@@ -480,6 +566,13 @@ with DAG(
     # PDOK
     for ds in catalog.get("pdok", {}).get("datasets", []):
         ingest = ingest_pdok_dataset(ds["dataset_name"], ds["url"], ds.get("bbox"))
+        validate = validate_ingestion(ingest)
+        ingest >> validate
+        all_validate_tasks.append(validate)
+
+    # Leefbaarometer
+    for ds in catalog.get("leefbaarometer", {}).get("datasets", []):
+        ingest = ingest_leefbaarometer_dataset(ds["dataset_name"], ds["url"], ds["files"])
         validate = validate_ingestion(ingest)
         ingest >> validate
         all_validate_tasks.append(validate)

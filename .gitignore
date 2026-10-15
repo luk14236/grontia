@@ -17,3 +17,5 @@ analytics/dbt/.user.yml
 __pycache__/
 *.pyc
 .venv/
+.env.example
+.env.example

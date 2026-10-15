@@ -40,3 +40,14 @@ models:
         description: "Estimated current average sale price of a home in this area (EUR)"
       - name: woz_ratio_to_municipality
         description: "Area average WOZ divided by municipality average WOZ"
+
+  - name: mart_livability
+    description: >
+      Leefbaarometer score per region and year with its national percentile among
+      regions of the same level, and the change since the previous measurement and 2014.
+    columns:
+      - name: region_code
+        tests:
+          - not_null
+      - name: national_percentile
+        description: "0 = least livable region of its level that year, 100 = most livable"

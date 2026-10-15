@@ -128,6 +128,26 @@ cbs:
         VerkochteWoningen_4: "homes_sold"
         GemiddeldeVerkoopprijs_7: "avg_sale_price_eur"
 
+    - table_id: "85791NED"
+      dataset_name: "sale_prices_by_home_type"
+      silver_table: "silver_cbs_sale_prices_by_home_type"
+      description_en: "Price index, homes sold and average sale price of existing homes by home type (national), per quarter and year"
+      grain:
+        - home_type
+        - period
+      endpoints:
+        bronze:
+          - TableInfos
+          - DataProperties
+          - TypeWoning
+          - TypedDataSet
+      columns_en:
+        TypeWoning: "home_type_code"
+        Perioden: "period_code"
+        PrijsindexVerkoopprijzen_1: "price_index_2020"
+        VerkochteWoningen_4: "homes_sold"
+        GemiddeldeVerkoopprijs_7: "avg_sale_price_eur"
+
     - table_id: "70675ned"
       dataset_name: "rent_increase"
       silver_table: "silver_cbs_rent_increase"
@@ -178,6 +198,21 @@ pdok:
       url: "https://service.pdok.nl/lv/bag/wfs/v2_0?service=WFS&version=2.0.0&request=GetFeature&typeName=bag:verblijfsobject&outputFormat=application/json&count=1000"
       silver_table: "silver_pdok_bag_verblijfsobject"
       bbox: "120000,485000,122000,487000,urn:ogc:def:crs:EPSG::28992"
+
+leefbaarometer:
+  source_name: "leefbaarometer"
+  description_en: "Leefbaarometer 3.0 (Ministry BZK): livability score and its five dimensions, 2002 to the latest biennial measurement (CC0)"
+  # The zip is ~500 MB and changes once every two years: the DAG only downloads
+  # it when the ETag / Last-Modified header differs from the last ingested one.
+  datasets:
+    - dataset_name: "scores"
+      url: "https://www.leefbaarometer.nl/resources/open-data-leefbaarometer-meting-2024.zip"
+      silver_table: "silver_leefbaarometer_scores"
+      # zip member suffix -> bronze file name
+      files:
+        "Leefbaarometer-scores buurten 2002-2024.csv": "buurten.csv"
+        "Leefbaarometer-scores wijken 2002-2024.csv": "wijken.csv"
+        "Leefbaarometer-scores gemeenten 2002-2024.csv": "gemeenten.csv"
 
 knmi:
   source_name: "knmi"
