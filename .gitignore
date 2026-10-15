@@ -2,4 +2,21 @@ storage/delta/
 .local_storage/
 /orchestration/airflow/include/output
 .env
-**/.terraform/
+
+# dbt artifacts
+analytics/dbt/target/
+analytics/dbt/logs/
+analytics/dbt/dbt_packages/
+analytics/dbt/.user.yml
+
+# Local warehouses
+*.duckdb
+*.duckdb.wal
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+.env.example
+.env.example
+.env.example

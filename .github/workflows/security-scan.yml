@@ -34,10 +34,3 @@ jobs:
           safety check --file orchestration/airflow/requirements.txt
         continue-on-error: true
 
-      - name: Scan Terraform for security issues
-        uses: aquasecurity/trivy-action@master
-        continue-on-error: true
-        with:
-          scan-type: 'config'
-          scan-ref: 'infrastructure/terraform'
-          format: 'table'

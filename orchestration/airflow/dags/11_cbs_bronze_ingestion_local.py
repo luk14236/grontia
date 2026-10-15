@@ -18,12 +18,11 @@ logger = logging.getLogger(__name__)
 
 
 CBS_BASE = "https://opendata.cbs.nl/ODataApi/odata"
-CATALOG_PATH = Path("/usr/local/airflow/include/configs/datasets.yml")
+CATALOG_PATH = Path("/opt/airflow/include/configs/datasets.yml")
 
-# Inside the container, this is where your repo root is mounted in Astro.
-# Astro project lives at /usr/local/airflow, but your Windows repo isn't mounted fully.
-# We'll write to /usr/local/airflow/include/output for now (mounted), then you can copy out.
-OUTPUT_BASE = Path("/usr/local/airflow/include/output/cbs_bronze")
+# Legacy local-file variant of the CBS ingestion (superseded by DAG 30, which
+# writes to the S3 bronze bucket). include/ is mounted, so output lands in the repo.
+OUTPUT_BASE = Path("/opt/airflow/include/output/cbs_bronze")
 
 
 def load_catalog() -> dict:
@@ -184,7 +183,7 @@ with DAG(
     start_date=datetime(2025, 1, 1),
     schedule=None,
     catchup=False,
-    tags=["grondia", "cbs", "bronze", "mvp"],
+    tags=["grontia", "cbs", "bronze", "mvp"],
 ) as dag:
     start = EmptyOperator(task_id="start")
     end = EmptyOperator(task_id="end")

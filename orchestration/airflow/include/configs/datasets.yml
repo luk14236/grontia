@@ -1,38 +1,36 @@
 cbs:
   source_name: "cbs"
   description_en: "Statistics Netherlands (CBS) open data via OData API"
+  # TypedDataSet is fetched from the ODataFeed endpoint, which pages through
+  # results with odata.nextLink (the ODataApi endpoint caps queries at 10k rows).
+  # odata_filter keeps only the "total" member of extra dimensions.
 
   datasets:
 
-    - table_id: "84583NED"
+    - table_id: "85984NED"
       dataset_name: "neighbourhood_key_figures"
       silver_table: "silver_cbs_neighbourhood_key_figures"
-      description_en: "Key figures by municipality, district and neighbourhood"
+      description_en: "Key figures by municipality, district and neighbourhood (2024)"
       grain:
         - region
-        - period
       endpoints:
         bronze:
           - TableInfos
           - DataProperties
           - TypedDataSet
-        silver_dimensions:
-          - Regions
-          - Perioden
-          - CategoryTables
       columns_en:
-        RegioS: "region_code"
-        RegioNaam: "region_name"
+        WijkenEnBuurten: "region_code"
+        Gemeentenaam_1: "municipality_name"
         SoortRegio_2: "region_type"
-        Perioden: "period_code"
-        Inwoners_5: "population"
-        AantalHuishoudens_10: "households"
-        GemiddeldInkomenPerInwoner_25: "avg_income_per_resident_eur"
+        AantalInwoners_5: "population"
+        HuishoudensTotaal_29: "households"
+        GemiddeldInkomenPerInwoner_78: "avg_income_per_resident_keur"
 
-    - table_id: "83765NED"
+    - table_id: "85036NED"
       dataset_name: "average_woz_value"
       silver_table: "silver_cbs_average_woz_value"
-      description_en: "Average WOZ property value by region"
+      description_en: "Average WOZ property value by region (all ownership types)"
+      odata_filter: "Eigendom eq 'T001132'"
       grain:
         - region
         - period
@@ -41,47 +39,41 @@ cbs:
           - TableInfos
           - DataProperties
           - TypedDataSet
-        silver_dimensions:
-          - Regions
-          - Perioden
       columns_en:
         RegioS: "region_code"
-        RegioNaam: "region_name"
         Perioden: "period_code"
-        GemiddeldeWOZWaarde_1: "avg_woz_value_eur"
+        GemiddeldeWOZWaardeVanWoningen_1: "avg_woz_value_keur"
       measures:
-        - avg_woz_value_eur
+        - avg_woz_value_keur
 
     - table_id: "82900NED"
       dataset_name: "housing_stock"
       silver_table: "silver_cbs_housing_stock"
-      description_en: "Housing stock by dwelling type and construction year"
+      description_en: "Housing stock by ownership / landlord type (all occupancy statuses)"
+      odata_filter: "StatusVanBewoning eq 'T001235'"
       grain:
         - region
         - period
-        - dwelling_type
       endpoints:
         bronze:
           - TableInfos
           - DataProperties
           - TypedDataSet
-        silver_dimensions:
-          - Regions
-          - Perioden
-          - CategoryTables
       columns_en:
         RegioS: "region_code"
-        RegioNaam: "region_name"
         Perioden: "period_code"
-        TypeWoning_3: "dwelling_type"
-        AantalWoningen_1: "number_of_dwellings"
+        TotaleWoningvoorraad_1: "total_dwellings"
+        Koopwoningen_2: "owner_occupied_dwellings"
+        TotaalHuurwoningen_3: "rental_dwellings"
+        EigendomWoningcorporatie_4: "social_housing_dwellings"
       measures:
-        - number_of_dwellings
+        - total_dwellings
 
     - table_id: "86161NED"
       dataset_name: "household_income"
       silver_table: "silver_cbs_household_income"
-      description_en: "Household income indicators by region"
+      description_en: "Household income by region (all private households)"
+      odata_filter: "Populatie eq '1050010' and KenmerkenVanHuishoudens eq '1050010'"
       grain:
         - region
         - period
@@ -90,33 +82,137 @@ cbs:
           - TableInfos
           - DataProperties
           - TypedDataSet
-        silver_dimensions:
-          - Regions
-          - Perioden
       columns_en:
         RegioS: "region_code"
-        RegioNaam: "region_name"
         Perioden: "period_code"
-        GemiddeldInkomenHuishouden_6: "avg_household_income_eur"
-        MediaanInkomenHuishouden_7: "median_household_income_eur"
+        GemiddeldBesteedbaarInkomen_5: "avg_disposable_income_keur"
+        MediaanBesteedbaarInkomen_6: "median_disposable_income_keur"
       measures:
-        - avg_household_income_eur
-        - median_household_income_eur
+        - avg_disposable_income_keur
+        - median_disposable_income_keur
+
+    - table_id: "83625NED"
+      dataset_name: "sale_prices_annual"
+      silver_table: "silver_cbs_sale_prices_annual"
+      description_en: "Average sale price of existing owner-occupied homes by region, per year"
+      grain:
+        - region
+        - period
+      endpoints:
+        bronze:
+          - TableInfos
+          - DataProperties
+          - TypedDataSet
+      columns_en:
+        RegioS: "region_code"
+        Perioden: "period_code"
+        GemiddeldeVerkoopprijs_1: "avg_sale_price_eur"
+
+    - table_id: "85792NED"
+      dataset_name: "sale_price_index_quarterly"
+      silver_table: "silver_cbs_sale_price_index_quarterly"
+      description_en: "Sale price index (2020=100) of existing homes by province / big city, per quarter and year"
+      grain:
+        - region
+        - period
+      endpoints:
+        bronze:
+          - TableInfos
+          - DataProperties
+          - TypedDataSet
+      columns_en:
+        RegioS: "region_code"
+        Perioden: "period_code"
+        PrijsindexVerkoopprijzen_1: "price_index_2020"
+        OntwikkelingTOVEenJaarEerder_3: "price_index_yoy_pct"
+        VerkochteWoningen_4: "homes_sold"
+        GemiddeldeVerkoopprijs_7: "avg_sale_price_eur"
+
+    - table_id: "85791NED"
+      dataset_name: "sale_prices_by_home_type"
+      silver_table: "silver_cbs_sale_prices_by_home_type"
+      description_en: "Price index, homes sold and average sale price of existing homes by home type (national), per quarter and year"
+      grain:
+        - home_type
+        - period
+      endpoints:
+        bronze:
+          - TableInfos
+          - DataProperties
+          - TypeWoning
+          - TypedDataSet
+      columns_en:
+        TypeWoning: "home_type_code"
+        Perioden: "period_code"
+        PrijsindexVerkoopprijzen_1: "price_index_2020"
+        VerkochteWoningen_4: "homes_sold"
+        GemiddeldeVerkoopprijs_7: "avg_sale_price_eur"
+
+    - table_id: "70675ned"
+      dataset_name: "rent_increase"
+      silver_table: "silver_cbs_rent_increase"
+      description_en: "Average yearly rent increase of dwellings (national, %)"
+      grain:
+        - period
+      endpoints:
+        bronze:
+          - TableInfos
+          - DataProperties
+          - TypedDataSet
+      columns_en:
+        Perioden: "period_code"
+        Huurverhoging_1: "rent_increase_pct"
+
+    - table_id: "85755NED"
+      dataset_name: "municipality_regions"
+      silver_table: "silver_cbs_municipality_regions"
+      description_en: "Gebieden in Nederland 2024: municipality to province (and other region) mapping"
+      grain:
+        - region
+      endpoints:
+        bronze:
+          - TableInfos
+          - DataProperties
+          - TypedDataSet
+      columns_en:
+        Code_1: "municipality_code"
+        Naam_2: "municipality_name"
+        Code_28: "province_code"
+        Naam_29: "province_name"
 
 pdok:
   source_name: "pdok"
   description_en: "Public Services on the Map (PDOK) geospatial data"
 
+  # WFS refuses startIndex > 50000, so each dataset is limited to a bbox
+  # (RD New / EPSG:28992). The default covers 2x2 km of central Amsterdam.
   datasets:
     - dataset_name: "bag_pand"
       description_en: "Dutch building footprints (BAG Pand)"
       url: "https://service.pdok.nl/lv/bag/wfs/v2_0?service=WFS&version=2.0.0&request=GetFeature&typeName=bag:pand&outputFormat=application/json&count=1000"
       silver_table: "silver_pdok_bag_pand"
+      bbox: "120000,485000,122000,487000,urn:ogc:def:crs:EPSG::28992"
 
     - dataset_name: "bag_verblijfsobject"
       description_en: "Dutch address objects (BAG Verblijfsobject)"
       url: "https://service.pdok.nl/lv/bag/wfs/v2_0?service=WFS&version=2.0.0&request=GetFeature&typeName=bag:verblijfsobject&outputFormat=application/json&count=1000"
       silver_table: "silver_pdok_bag_verblijfsobject"
+      bbox: "120000,485000,122000,487000,urn:ogc:def:crs:EPSG::28992"
+
+leefbaarometer:
+  source_name: "leefbaarometer"
+  description_en: "Leefbaarometer 3.0 (Ministry BZK): livability score and its five dimensions, 2002 to the latest biennial measurement (CC0)"
+  # The zip is ~500 MB and changes once every two years: the DAG only downloads
+  # it when the ETag / Last-Modified header differs from the last ingested one.
+  datasets:
+    - dataset_name: "scores"
+      url: "https://www.leefbaarometer.nl/resources/open-data-leefbaarometer-meting-2024.zip"
+      silver_table: "silver_leefbaarometer_scores"
+      # zip member suffix -> bronze file name
+      files:
+        "Leefbaarometer-scores buurten 2002-2024.csv": "buurten.csv"
+        "Leefbaarometer-scores wijken 2002-2024.csv": "wijken.csv"
+        "Leefbaarometer-scores gemeenten 2002-2024.csv": "gemeenten.csv"
 
 knmi:
   source_name: "knmi"
@@ -128,7 +224,7 @@ knmi:
       endpoint: "https://www.daggegevens.knmi.nl/klimatologie/daggegevens"
       format: "csv"
       silver_table: "silver_knmi_daily_weather"
-      params:
+      query_params:
         start_days_ago: 7
         end_days_ago: 1
         vars: "ALL"
@@ -140,8 +236,8 @@ ndw:
 
   datasets:
     - dataset_name: "current_traffic_flow"
-      description_en: "Current traffic flow measurements"
-      url: "https://opendata.ndw.nu/NLIP_geolocatie_meetvakken.xml.gz"
+      description_en: "Current traffic flow and speed per measurement site (DATEX II, refreshed every minute)"
+      url: "https://opendata.ndw.nu/trafficspeed.xml.gz"
       method: "GET"
       format: "xml"
       silver_table: "silver_ndw_traffic_flow"

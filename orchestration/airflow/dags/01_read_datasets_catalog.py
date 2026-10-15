@@ -5,7 +5,7 @@ from pathlib import Path
 import yaml
 
 def read_catalog():
-    catalog_path = Path("/usr/local/airflow/include/configs/datasets.yml")
+    catalog_path = Path("/opt/airflow/include/configs/datasets.yml")
     data = yaml.safe_load(catalog_path.read_text(encoding="utf-8"))
 
     datasets = data["cbs"]["datasets"]
@@ -18,7 +18,7 @@ with DAG(
     start_date=datetime(2025, 1, 1),
     schedule=None,
     catchup=False,
-    tags=["grondia", "catalog"],
+    tags=["grontia", "catalog"],
 ) as dag:
     PythonOperator(
         task_id="read_catalog",

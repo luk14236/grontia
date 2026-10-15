@@ -31,20 +31,25 @@ BRONZE = "s3a://bronze"
 SILVER = "s3a://silver"
 
 HADOOP_PACKAGE = "org.apache.hadoop:hadoop-aws:3.3.4,com.amazonaws:aws-java-sdk-bundle:1.12.262"
+# The Airflow image ships these jars already and sets this to "" to skip the download
+SPARK_JARS_PACKAGES = os.getenv("SPARK_JARS_PACKAGES", HADOOP_PACKAGE)
 
 
 def build_spark() -> SparkSession:
-    return (
+    builder = (
         SparkSession.builder.appName("bronze_to_silver")
         .config("spark.hadoop.fs.s3a.endpoint", MINIO_ENDPOINT)
         .config("spark.hadoop.fs.s3a.access.key", MINIO_ACCESS)
         .config("spark.hadoop.fs.s3a.secret.key", MINIO_SECRET)
         .config("spark.hadoop.fs.s3a.path.style.access", "true")
         .config("spark.hadoop.fs.s3a.impl", "org.apache.hadoop.fs.s3a.S3AFileSystem")
-        .config("spark.jars.packages", HADOOP_PACKAGE)
         .config("spark.sql.adaptive.enabled", "true")
-        .getOrCreate()
+        # Re-running a date replaces only that ingestion_date partition
+        .config("spark.sql.sources.partitionOverwriteMode", "dynamic")
     )
+    if SPARK_JARS_PACKAGES:
+        builder = builder.config("spark.jars.packages", SPARK_JARS_PACKAGES)
+    return builder.getOrCreate()
 
 
 def _dedup(df, partition_cols: list[str]):
@@ -70,7 +75,7 @@ def _add_meta(df, source: str, dataset: str, ingestion_date: str):
 
 
 def _write_silver(df, path: str) -> None:
-    df.write.mode("append").option("mergeSchema", "true").parquet(path)
+    df.write.mode("overwrite").partitionBy("ingestion_date").parquet(path)
     logger.info("Written to %s — %d rows", path, df.count())
 
 
@@ -103,7 +108,7 @@ def transform_cbs(spark, ingestion_date: str, dataset_name: str, partition_cols:
 # ---------------------------------------------------------------------------
 
 def transform_pdok(spark, ingestion_date: str, dataset_name: str) -> None:
-    bronze_path = f"{BRONZE}/pdok/pdok_bronze/{dataset_name}/ingestion_date={ingestion_date}/data.json"
+    bronze_path = f"{BRONZE}/pdok/pdok_bronze/{dataset_name}/ingestion_date={ingestion_date}/page_*.json"
     silver_path = f"{SILVER}/pdok/{dataset_name}"
 
     logger.info("PDOK %s: %s → %s", dataset_name, bronze_path, silver_path)
@@ -126,6 +131,44 @@ def transform_pdok(spark, ingestion_date: str, dataset_name: str) -> None:
 
 
 # ---------------------------------------------------------------------------
+# Leefbaarometer
+# ---------------------------------------------------------------------------
+
+def transform_leefbaarometer(spark, ingestion_date: str) -> None:
+    # Only present on the dates the biennial zip changed; other days skip and
+    # silver keeps the last ingested measurement.
+    base = f"{BRONZE}/leefbaarometer/leefbaarometer_bronze/scores/ingestion_date={ingestion_date}"
+    silver_path = f"{SILVER}/leefbaarometer/scores"
+
+    frames = []
+    for level, file_name, code_col, name_col in [
+        ("buurt", "buurten.csv", "bu_code", "bu_naam"),
+        ("wijk", "wijken.csv", "wk_code", "wk_naam"),
+        ("gemeente", "gemeenten.csv", "gm_code", "gm_naam"),
+    ]:
+        path = f"{base}/{file_name}"
+        try:
+            df = spark.read.option("header", "true").option("nullValue", "NA").csv(path)
+        except Exception:
+            logger.info("Leefbaarometer %s — no new bronze file for this date, skipping.", level)
+            return
+        frames.append(
+            df.select(
+                F.lit(level).alias("region_level"),
+                F.col(code_col).alias("region_code"),
+                F.col(name_col).alias("region_name"),
+                "jaar", "lbm", "afw", "fys", "onv", "soc", "vrz", "won",
+            )
+        )
+
+    df = frames[0]
+    for other in frames[1:]:
+        df = df.unionByName(other)
+    df = _add_meta(df, "leefbaarometer", "scores", ingestion_date)
+    _write_silver(df, silver_path)
+
+
+# ---------------------------------------------------------------------------
 # KNMI
 # ---------------------------------------------------------------------------
 
@@ -136,7 +179,8 @@ def transform_knmi(spark, ingestion_date: str, dataset_name: str) -> None:
     logger.info("KNMI %s: %s → %s", dataset_name, bronze_path, silver_path)
 
     try:
-        df = spark.read.option("header", "true").option("inferSchema", "true").csv(bronze_path)
+        # Keep raw strings; dbt staging does the typing and unit conversion
+        df = spark.read.option("header", "true").csv(bronze_path)
     except Exception:
         logger.warning("KNMI %s — bronze file not found, skipping.", dataset_name)
         return
@@ -150,7 +194,21 @@ def transform_knmi(spark, ingestion_date: str, dataset_name: str) -> None:
 # ---------------------------------------------------------------------------
 
 def transform_ndw(spark, ingestion_date: str, dataset_name: str) -> None:
-    logger.info("NDW %s — XML parsing not yet implemented, skipping.", dataset_name)
+    # The ingestion DAG already flattens the DATEX II XML into data.json
+    bronze_path = f"{BRONZE}/ndw/ndw_bronze/{dataset_name}/ingestion_date={ingestion_date}/data.json"
+    silver_path = f"{SILVER}/ndw/{dataset_name}"
+
+    logger.info("NDW %s: %s → %s", dataset_name, bronze_path, silver_path)
+
+    try:
+        df = spark.read.option("multiline", "true").json(bronze_path)
+    except Exception:
+        logger.warning("NDW %s — bronze file not found, skipping.", dataset_name)
+        return
+
+    df = _add_meta(df, "ndw", dataset_name, ingestion_date)
+    df = _dedup(df, ["id", "period"])
+    _write_silver(df, silver_path)
 
 
 # ---------------------------------------------------------------------------
@@ -163,13 +221,20 @@ if __name__ == "__main__":
 
     spark = build_spark()
 
-    transform_cbs(spark, ing_date, "neighbourhood_key_figures", ["RegioS", "Perioden"])
+    transform_cbs(spark, ing_date, "neighbourhood_key_figures", ["WijkenEnBuurten"])
     transform_cbs(spark, ing_date, "average_woz_value",         ["RegioS", "Perioden"])
-    transform_cbs(spark, ing_date, "housing_stock",             ["RegioS", "Perioden", "TypeWoning_3"])
+    transform_cbs(spark, ing_date, "housing_stock",             ["RegioS", "Perioden"])
     transform_cbs(spark, ing_date, "household_income",          ["RegioS", "Perioden"])
+    transform_cbs(spark, ing_date, "sale_prices_annual",        ["RegioS", "Perioden"])
+    transform_cbs(spark, ing_date, "sale_price_index_quarterly", ["RegioS", "Perioden"])
+    transform_cbs(spark, ing_date, "sale_prices_by_home_type",  ["TypeWoning", "Perioden"])
+    transform_cbs(spark, ing_date, "rent_increase",             ["Perioden"])
+    transform_cbs(spark, ing_date, "municipality_regions",      ["Code_1"])
 
     transform_pdok(spark, ing_date, "bag_pand")
     transform_pdok(spark, ing_date, "bag_verblijfsobject")
+
+    transform_leefbaarometer(spark, ing_date)
 
     transform_knmi(spark, ing_date, "daily_weather_all_stations")
 

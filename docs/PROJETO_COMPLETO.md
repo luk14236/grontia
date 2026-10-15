@@ -1,6 +1,6 @@
 # Grontia — Documentação Completa do Projeto
 
-> Última atualização: 28/06/2026
+> Última atualização: 02/10/2026
 
 ---
 
@@ -11,7 +11,7 @@
 3. [Arquitetura geral](#3-arquitetura-geral)
 4. [Estrutura de pastas](#4-estrutura-de-pastas)
 5. [Camada de Orquestração — Airflow](#5-camada-de-orquestração--airflow)
-6. [Camada de Storage — MinIO](#6-camada-de-storage--minio)
+6. [Camada de Storage — SeaweedFS (S3)](#6-camada-de-storage--seaweedfs-s3)
 7. [Camada de Processamento — PySpark](#7-camada-de-processamento--pyspark)
 8. [Camada de Analytics — dbt](#8-camada-de-analytics--dbt)
 9. [Data Warehouse — DuckDB + MotherDuck](#9-data-warehouse--duckdb--motherduck)
@@ -35,6 +35,9 @@ O Grontia é um projeto de **engenharia de dados educacional** construído do ze
 - Open source em toda a stack
 - Dados reais, não simulados
 - Código limpo, documentado e versionado
+- Somente dados abertos — o Grontia nunca faz scraping de portais de anúncios (Funda, Pararius etc.)
+
+**Fora do escopo:** Azure, Databricks, Snowflake e qualquer serviço pago. Versões anteriores do projeto usavam Azure + Databricks; esse código foi removido e continua disponível apenas no histórico do git.
 
 ---
 
@@ -43,13 +46,12 @@ O Grontia é um projeto de **engenharia de dados educacional** construído do ze
 | Camada | Tecnologia | Versão | Por que foi escolhida |
 |---|---|---|---|
 | Orquestração | Apache Airflow | 3.0.0 | Padrão de mercado, gratuito, Docker-friendly |
-| Storage bronze/silver | MinIO | latest | S3-compatível, roda local no Docker |
+| Storage bronze/silver | SeaweedFS | latest | S3-compatível, roda local no Docker (substituiu o MinIO, cujas imagens deixaram de ser publicadas) |
 | Processamento | PySpark | 3.x | Transformações distribuídas, lê S3 nativamente |
 | Analytics SQL | dbt-duckdb | 1.10.x | SQL declarativo, lineage automático, gratuito |
 | Data Warehouse local | DuckDB | 1.5.x | Analítico, embutido, zero configuração |
 | Data Warehouse nuvem | MotherDuck | cloud | DuckDB na nuvem, free tier permanente |
 | CI/CD | GitHub Actions | — | Integrado ao repositório, gratuito |
-| Infra como código | Terraform | 1.6.0 | Mantido para referência futura |
 
 ---
 
@@ -72,7 +74,7 @@ O pipeline segue o padrão **Medallion Architecture** (Bronze → Silver → Gol
                    ║ boto3 / S3 API
                    ▼
 ╔══════════════════════════════════════════════════════════════════╗
-║           MinIO — BRONZE LAYER  (s3://bronze/)                  ║
+║        SeaweedFS (S3) — BRONZE LAYER  (s3://bronze/)            ║
 ║   Dados crus: JSON, CSV, XML                                    ║
 ║   Particionado por: source/dataset/ingestion_date=YYYY-MM-DD/   ║
 ╚══════════════════╦═══════════════════════════════════════════════╝
@@ -88,7 +90,7 @@ O pipeline segue o padrão **Medallion Architecture** (Bronze → Silver → Gol
                    ║ escreve Parquet via s3a://
                    ▼
 ╔══════════════════════════════════════════════════════════════════╗
-║           MinIO — SILVER LAYER  (s3://silver/)                  ║
+║        SeaweedFS (S3) — SILVER LAYER  (s3://silver/)            ║
 ║   Dados limpos e normalizados em Parquet                        ║
 ║   Estrutura: source/dataset_name/**/*.parquet                   ║
 ╚══════════════════╦═══════════════════════════════════════════════╝
@@ -119,8 +121,7 @@ grontia/
 │   ├── dags/                       # DAGs (pipelines agendados)
 │   │   ├── 00_smoke_test.py        # Teste de saúde do Airflow
 │   │   ├── 01_read_datasets_catalog.py  # Valida o catalog YAML
-│   │   ├── 10_cbs_pipeline_v0.py   # Stub inicial (histórico)
-│   │   ├── 11_cbs_bronze_ingestion_local.py  # Ingestão CBS local
+│   │   ├── 11_cbs_bronze_ingestion_local.py  # Ingestão CBS em disco (legado)
 │   │   └── 30_multi_source_daily_ingestion.py  ← DAG PRINCIPAL
 │   │
 │   ├── include/configs/
@@ -131,25 +132,22 @@ grontia/
 │   └── requirements.txt            # Dependências Python do Airflow
 │
 ├── processing/local/               # Scripts PySpark
-│   ├── bronze_to_silver.py         # Transforma bronze → silver (Parquet)
-│   └── silver_to_gold.py           # Agrega silver → gold (referência)
+│   └── bronze_to_silver.py         # Transforma bronze → silver (Parquet); o gold é feito no dbt
 │
 ├── analytics/dbt/                  # Projeto dbt
 │   ├── models/
 │   │   ├── staging/                # Views que limpam o silver
-│   │   │   ├── cbs/                # 4 modelos CBS
+│   │   │   ├── cbs/                # 8 modelos CBS
 │   │   │   ├── pdok/               # 2 modelos PDOK
 │   │   │   ├── knmi/               # 1 modelo KNMI
 │   │   │   └── ndw/                # 1 modelo NDW
 │   │   └── marts/                  # Tabelas analíticas finais
 │   │       ├── mart_regional_dashboard.sql
 │   │       ├── mart_housing_market.sql
-│   │       └── mart_weather_summary.sql
+│   │       ├── mart_weather_summary.sql
+│   │       └── mart_neighbourhood_reference.sql
 │   ├── dbt_project.yml             # Configuração do projeto dbt
 │   └── profiles.yml                # Conexões (motherduck + dev)
-│
-├── infrastructure/terraform/       # IaC (referência futura)
-│   └── modules/                    # networking, storage, airflow
 │
 ├── .github/workflows/              # CI/CD
 │   ├── ci-cd.yml                   # Pipeline principal
@@ -157,7 +155,8 @@ grontia/
 │   └── security-scan.yml           # Scan semanal de segurança
 │
 ├── docs/                           # Documentação
-│   └── PROJETO_COMPLETO.md         ← este arquivo
+│   ├── PROJETO_COMPLETO.md         ← este arquivo
+│   └── architecture/               # Decisões e diagramas (Mermaid, ERD)
 │
 └── .env.example                    # Template de variáveis de ambiente
 ```
@@ -172,7 +171,7 @@ O Airflow é o "maestro" do pipeline. Ele agenda e executa as tarefas de ingest�
 
 ### Como está configurado
 
-O Airflow roda em **Docker Compose** com 4 serviços:
+O Airflow roda em **Docker Compose** junto com o storage S3:
 
 | Serviço | Função |
 |---|---|
@@ -180,31 +179,30 @@ O Airflow roda em **Docker Compose** com 4 serviços:
 | `airflow-api-server` | Interface web (porta 8080) |
 | `airflow-scheduler` | Dispara as tarefas no horário |
 | `airflow-dag-processor` | Processa e valida os DAGs |
+| `s3` / `s3-init` | SeaweedFS (API S3 na porta 9000, filer na 8888) e criação dos buckets |
 
 ### O DAG principal: `30_multi_source_daily_ingestion`
 
-É o coração do pipeline de ingestão. Roda **uma vez por dia** e ingere dados de todas as 4 fontes em paralelo.
+É o coração do pipeline de ingestão. Roda **uma vez por dia** e ingere dados de todas as 4 fontes em paralelo. As tasks são criadas a partir do `datasets.yml`; o Airflow numera as repetidas (`ingest_cbs_dataset__1`, `__2`…).
 
 **Fluxo do DAG:**
 ```
 start
-  ├── ingest_cbs_neighbourhood_key_figures → validate
-  ├── ingest_cbs_average_woz_value         → validate
-  ├── ingest_cbs_housing_stock             → validate
-  ├── ingest_cbs_household_income          → validate
-  ├── ingest_pdok_bag_pand                 → validate
-  ├── ingest_pdok_bag_verblijfsobject      → validate
-  ├── ingest_knmi_daily_weather            → validate
-  └── ingest_ndw_current_traffic_flow      → validate
+  ├── ingest_cbs_dataset   ×8 (um por dataset CBS do catálogo) → validate_ingestion
+  ├── ingest_pdok_dataset  ×2 (bag_pand, bag_verblijfsobject)  → validate_ingestion
+  ├── ingest_knmi_dataset  ×1 (daily_weather_all_stations)     → validate_ingestion
+  └── ingest_ndw_dataset   ×1 (current_traffic_flow)           → validate_ingestion
 end
 ```
+
+O DAG `11_cbs_bronze_ingestion_local` é anterior: grava CBS em disco (`include/output/`) e foi substituído pelo DAG 30.
 
 Cada fonte tem sua própria lógica de ingestão (detalhada na seção 10).
 
 ### Como cada ingestão funciona
 
 1. Airflow faz request HTTP para a API da fonte
-2. Salva o arquivo cru (JSON, CSV ou XML) no MinIO
+2. Salva o arquivo cru (JSON, CSV ou XML) no bucket bronze
 3. Salva um `_summary.json` com metadados da ingestão (status, records, data)
 4. Task `validate_ingestion` checa se o status foi `success`
 
@@ -214,11 +212,11 @@ Arquivo YAML centralizado que define todas as fontes, endpoints, colunas e tabel
 
 ---
 
-## 6. Camada de Storage — MinIO
+## 6. Camada de Storage — SeaweedFS (S3)
 
 ### O que é
 
-MinIO é um servidor de objetos S3-compatível que roda em Docker. É o equivalente gratuito e local do AWS S3 ou Azure ADLS.
+SeaweedFS é um servidor de objetos S3-compatível que roda em Docker. Ele substituiu o MinIO (cujas imagens oficiais deixaram de ser publicadas); por isso as variáveis continuam se chamando `MINIO_*` e as credenciais continuam `minioadmin`/`minioadmin`. Qualquer código escrito para S3 funciona sem mudanças.
 
 ### Estrutura dos buckets
 
@@ -240,8 +238,7 @@ bronze/                             ← dados crus
 ├── knmi/knmi_bronze/
 │   └── daily_weather_all_stations/
 │       └── ingestion_date=2026-06-28/
-│           ├── data.csv            ← CSV original
-│           ├── data.json           ← convertido para JSON
+│           ├── data.csv            ← CSV original (header "# STN,..." recuperado)
 │           └── _summary.json
 └── ndw/ndw_bronze/
     └── current_traffic_flow/
@@ -267,7 +264,7 @@ silver/                             ← dados limpos em Parquet
 
 ### Como acessar
 
-- **Console web**: http://localhost:9001 (minioadmin / minioadmin)
+- **Navegador de arquivos (SeaweedFS Filer)**: http://localhost:8888/buckets/
 - **API S3**: http://localhost:9000
 
 ---
@@ -276,7 +273,7 @@ silver/                             ← dados limpos em Parquet
 
 ### O que faz
 
-O script `processing/local/bronze_to_silver.py` lê os arquivos crus do MinIO bronze, aplica transformações e salva Parquet no MinIO silver.
+O script `processing/local/bronze_to_silver.py` lê os arquivos crus do bucket bronze, aplica transformações e salva Parquet no bucket silver.
 
 ### Transformações aplicadas
 
@@ -286,18 +283,18 @@ Para cada dataset:
 2. **Desaninhamento**: expande arrays JSON (`explode("value")`)
 3. **Metadados**: adiciona colunas `ingestion_date`, `ingestion_timestamp`, `source`, `dataset_name`
 4. **Deduplicação**: remove linhas duplicadas usando `ROW_NUMBER()` particionado pela chave natural do dataset, mantendo sempre o registro mais recente
-5. **Escrita**: salva em Parquet com `mode("append")` e `mergeSchema=true`
+5. **Escrita**: salva em Parquet com overwrite dinâmico por partição (`ingestion_date`), então reprocessar uma data não duplica dados
 
-### Configuração MinIO no Spark
+### Configuração S3 no Spark
 
-O Spark precisa de configurações específicas para acessar o MinIO como se fosse S3:
+O Spark precisa de configurações específicas para acessar o SeaweedFS como S3:
 
 ```python
 spark = SparkSession.builder
     .config("spark.hadoop.fs.s3a.endpoint", "http://localhost:9000")
     .config("spark.hadoop.fs.s3a.access.key", "minioadmin")
     .config("spark.hadoop.fs.s3a.secret.key", "minioadmin")
-    .config("spark.hadoop.fs.s3a.path.style.access", "true")  # importante para MinIO
+    .config("spark.hadoop.fs.s3a.path.style.access", "true")  # obrigatório fora da AWS
     .config("spark.jars.packages", "org.apache.hadoop:hadoop-aws:3.3.4,...")
     .getOrCreate()
 ```
@@ -335,14 +332,18 @@ Views que ficam "em cima" do silver. Fazem apenas:
 - Castear tipos (`VARCHAR` → `INTEGER`, `DOUBLE`, `DATE`)
 - Filtrar linhas inválidas (`WHERE region_code IS NOT NULL`)
 
-São views, ou seja, **não copiam dados** — lêem direto do Parquet no MinIO.
+São views, ou seja, **não copiam dados** — leem direto do Parquet no bucket silver.
 
 | Model | Dataset | Campos principais |
 |---|---|---|
-| `stg_cbs_neighbourhood_key_figures` | CBS 84583NED | region_code, period_code, population, households |
-| `stg_cbs_average_woz_value` | CBS 83765NED | region_code, period_code, avg_woz_value_eur |
+| `stg_cbs_neighbourhood_key_figures` | CBS 85984NED | region_code, period_code, population, households |
+| `stg_cbs_average_woz_value` | CBS 85036NED | region_code, period_code, avg_woz_value_eur |
 | `stg_cbs_housing_stock` | CBS 82900NED | region_code, period_code, dwelling_type, number_of_dwellings |
 | `stg_cbs_household_income` | CBS 86161NED | region_code, period_code, avg/median_household_income_eur |
+| `stg_cbs_sale_prices_annual` | CBS 83625NED | region_code, period_code, preço médio de venda |
+| `stg_cbs_sale_price_index` | CBS 85792NED | period_code, índice de preço trimestral |
+| `stg_cbs_rent_increase` | CBS 70675ned | period_code, aumento de aluguel |
+| `stg_cbs_municipality_regions` | CBS 85755NED | município → província |
 | `stg_pdok_bag_pand` | PDOK BAG Pand | id, geometry, bouwjaar, status |
 | `stg_pdok_bag_verblijfsobject` | PDOK BAG Verblijfsobject | id, geometry, gebruiksdoel, oppervlakte_m2 |
 | `stg_knmi_daily_weather` | KNMI daggegevens | station_code, date, temp_avg_c, precipitation_mm |
@@ -356,6 +357,7 @@ Tabelas analíticas finais. São **físicas no DW** (materializadas), com joins 
 | `mart_regional_dashboard` | Dashboard unificado por região | CBS neighbourhood + WOZ + income via (region_code, period_code) |
 | `mart_housing_market` | Mercado imobiliário por tipo de imóvel | CBS housing_stock + WOZ via (region_code, period_code) |
 | `mart_weather_summary` | Resumo meteorológico diário | KNMI direto, sem join |
+| `mart_neighbourhood_reference` | Preço médio de venda estimado hoje por município, wijk e buurt | Preços de venda + índice de preço + WOZ + municípios |
 
 ### Comandos dbt
 
@@ -366,7 +368,7 @@ cd analytics/dbt
 dbt parse --target dev
 
 # Rodar todos os models (local)
-dbt run --target dev
+dbt run --target dev --profiles-dir .
 
 # Rodar e testar (local)
 dbt run --target dev && dbt test --target dev
@@ -389,7 +391,7 @@ dbt docs serve
 DuckDB é um banco de dados analítico embutido — funciona como uma biblioteca Python, sem servidor, sem instalação. Ideal para desenvolvimento.
 
 - Arquivo: `/tmp/grontia_dev.duckdb`
-- Lê Parquet direto do MinIO via extensão `httpfs`
+- Lê Parquet direto do bucket silver via extensão `httpfs`
 - Mesma sintaxe SQL do MotherDuck
 
 ### MotherDuck (nuvem)
@@ -409,7 +411,7 @@ MOTHERDUCK_TOKEN=seu_token_aqui
 ```bash
 # GitHub Secrets (para CI/CD)
 MOTHERDUCK_TOKEN = seu_token_aqui
-MINIO_ENDPOINT   = https://seu-minio-publico.com  # ou ngrok tunnel
+MINIO_ENDPOINT   = https://seu-s3-publico.com  # ou túnel (ngrok, cloudflared)
 MINIO_ACCESS_KEY = minioadmin
 MINIO_SECRET_KEY = minioadmin
 ```
@@ -418,8 +420,8 @@ MINIO_SECRET_KEY = minioadmin
 
 | Schema | Conteúdo |
 |---|---|
-| `STAGING` | 8 views (uma por dataset) |
-| `MARTS` | 3 tabelas analíticas finais |
+| `STAGING` | 12 views (uma por dataset) |
+| `MARTS` | 4 tabelas analíticas finais |
 
 ---
 
@@ -433,8 +435,10 @@ MINIO_SECRET_KEY = minioadmin
 
 **Como funciona a ingestão**:
 ```
-GET https://opendata.cbs.nl/ODataApi/odata/{TABLE_ID}/TypedDataSet
-→ JSON com array "value" contendo os registros
+GET https://opendata.cbs.nl/ODataFeed/odata/{TABLE_ID}/TypedDataSet
+→ JSON com array "value"; segue odata.nextLink até o fim
+  (a ODataApi recusa consultas com mais de 10k linhas)
+→ Filtro opcional por dataset (odata_filter) para reduzir dimensões aos totais
 → Salvo em bronze/cbs/cbs_bronze/{dataset}/ingestion_date={data}/typeddataset.json
 ```
 
@@ -442,10 +446,14 @@ GET https://opendata.cbs.nl/ODataApi/odata/{TABLE_ID}/TypedDataSet
 
 | Dataset | Table ID | O que contém |
 |---|---|---|
-| neighbourhood_key_figures | 84583NED | População, domicílios, renda por bairro/município |
-| average_woz_value | 83765NED | Valor médio de imóveis (WOZ) por região |
+| neighbourhood_key_figures | 85984NED | População, domicílios, renda por bairro/município (2024) |
+| average_woz_value | 85036NED | Valor médio de imóveis (WOZ) por região |
 | housing_stock | 82900NED | Estoque de imóveis por tipo e região |
 | household_income | 86161NED | Renda média e mediana por domicílio e região |
+| sale_prices_annual | 83625NED | Preço médio de venda anual por região |
+| sale_price_index_quarterly | 85792NED | Índice de preço de venda trimestral |
+| rent_increase | 70675ned | Aumento de aluguel |
+| municipality_regions | 85755NED | Município → província |
 
 ---
 
@@ -463,7 +471,7 @@ GET https://service.pdok.nl/lv/bag/wfs/v2_0?...&startIndex=0&count=1000
 → Cada página salva como page_0000.json, page_0001.json, ...
 ```
 
-**Limitação atual**: O BAG completo tem milhões de registros. A ingestão completa pode demorar horas. Para desenvolvimento, use `count=100` no catalog.
+**Limitação atual**: o WFS recusa `startIndex > 50000`, então cada dataset é limitado a uma `bbox` (RD New / EPSG:28992) no catálogo. O padrão cobre 2×2 km do centro de Amsterdam. Para o país inteiro será preciso outra estratégia (download do extrato BAG completo ou várias bboxes).
 
 **Datasets ingeridos**:
 
@@ -474,7 +482,7 @@ GET https://service.pdok.nl/lv/bag/wfs/v2_0?...&startIndex=0&count=1000
 
 ---
 
-### KNMI — Weather Data ⚠️ Funcional
+### KNMI — Weather Data ✅ Funcional
 
 **O que é**: Instituto meteorológico holandês. Dados climáticos diários de todas as estações.
 
@@ -485,8 +493,8 @@ GET https://service.pdok.nl/lv/bag/wfs/v2_0?...&startIndex=0&count=1000
 POST https://www.daggegevens.knmi.nl/klimatologie/daggegevens
   body: start=20260621&end=20260627&vars=ALL&stns=ALL
 → CSV com linhas de metadados iniciadas por "#"
-→ Parser custom remove as linhas "#", pega header e dados
-→ Salvo como data.csv (original) + data.json (convertido)
+→ Parser custom recupera o header "# STN,..." e descarta os demais comentários
+→ Salvo como data.csv; o silver lê todas as colunas como string e o dbt faz o cast
 ```
 
 **Colunas principais** (em décimos de unidade — padrão KNMI):
@@ -498,18 +506,17 @@ POST https://www.daggegevens.knmi.nl/klimatologie/daggegevens
 
 ---
 
-### NDW — Traffic Data ✅ Funcional
+### NDW — Traffic Data ✅ Funcional (snapshot diário)
 
-**O que é**: Data warehouse nacional de tráfego holandês. Dados de fluxo de veículos.
+**O que é**: Data warehouse nacional de tráfego holandês. Velocidade e fluxo por ponto de medição, atualizados a cada minuto na fonte — hoje o Grontia pega só um snapshot por dia.
 
 **Formato**: XML comprimido em `.gz` (schema DATEX II).
 
 **Como funciona a ingestão**:
 ```
-GET https://opendata.ndw.nu/NLIP_geolocatie_meetvakken.xml.gz
+GET https://opendata.ndw.nu/trafficspeed.xml.gz
 → Arquivo .gz baixado
-→ gzip.decompress() → XML puro
-→ xml.etree.ElementTree parse → lista de dicts
+→ Parser DATEX II em streaming (iterparse) → lista de dicts
 → Salvo como data.xml (descomprimido) + data.json (convertido)
 ```
 
@@ -549,7 +556,6 @@ Roda em PRs que tocam `orchestration/`, `analytics/dbt/` ou `processing/`.
 Toda segunda-feira às 2h UTC:
 - Bandit (code security)
 - Safety (dependency vulnerabilities)
-- Trivy (Terraform config — referência)
 
 ### Secrets necessários no GitHub
 
@@ -557,7 +563,7 @@ Para o `dbt-deploy` funcionar no CI, configure em **Settings → Secrets → Act
 
 ```
 MOTHERDUCK_TOKEN   = token do MotherDuck
-MINIO_ENDPOINT     = URL pública do MinIO (ou ngrok)
+MINIO_ENDPOINT     = URL pública do storage S3 (ou túnel)
 MINIO_ACCESS_KEY   = minioadmin
 MINIO_SECRET_KEY   = minioadmin
 ```
@@ -582,7 +588,7 @@ cp .env.example orchestration/airflow/.env
 # Editar com seu MOTHERDUCK_TOKEN se tiver
 ```
 
-### Passo 2 — Subir Airflow + MinIO
+### Passo 2 — Subir Airflow + storage S3
 
 ```bash
 cd orchestration/airflow
@@ -594,7 +600,7 @@ docker compose ps
 
 **Serviços disponíveis:**
 - Airflow UI: http://localhost:8080 (admin / admin)
-- MinIO Console: http://localhost:9001 (minioadmin / minioadmin)
+- Storage S3 (SeaweedFS): API em http://localhost:9000, navegador em http://localhost:8888/buckets/ (credenciais S3: minioadmin / minioadmin)
 
 ### Passo 3 — Instalar dependências Python locais
 
@@ -625,7 +631,7 @@ Ou via CLI:
 docker compose exec airflow-scheduler airflow dags trigger 30_multi_source_daily_ingestion
 ```
 
-Após rodar, verificar os arquivos no MinIO: http://localhost:9001 → bucket `bronze`
+Após rodar, verificar os arquivos em http://localhost:8888/buckets/bronze/
 
 ### Etapa 2 — Transformação bronze → silver (PySpark)
 
@@ -633,7 +639,7 @@ Após rodar, verificar os arquivos no MinIO: http://localhost:9001 → bucket `b
 # Com a data em que o DAG rodou
 python processing/local/bronze_to_silver.py 2026-06-28
 
-# Verificar no MinIO: bucket silver
+# Verificar em http://localhost:8888/buckets/silver/
 ```
 
 ### Etapa 3 — Analytics (dbt)
@@ -671,21 +677,22 @@ con.execute("SELECT * FROM MARTS.mart_regional_dashboard LIMIT 10").df()
 
 | Componente | Status | Observação |
 |---|---|---|
-| Docker Compose (Airflow + MinIO) | ✅ Pronto | `docker compose up -d` |
-| DAG 30 — CBS ingestão | ✅ Pronto | 4 datasets, API pública estável |
-| DAG 30 — PDOK ingestão com paginação | ✅ Pronto | Loop WFS com startIndex |
+| Docker Compose (Airflow 3 + SeaweedFS) | ✅ Pronto | `docker compose up -d` |
+| DAG 30 — CBS ingestão | ✅ Pronto | 8 datasets, ODataFeed com nextLink, re-execução idempotente |
+| DAG 30 — PDOK ingestão com paginação | ✅ Pronto | Loop WFS com startIndex, limitado a uma bbox |
 | DAG 30 — KNMI ingestão CSV | ✅ Pronto | POST + parser header # |
-| DAG 30 — NDW ingestão XML.gz | ✅ Pronto | gzip + ElementTree parse |
-| bronze_to_silver.py | ✅ Pronto | PySpark, dedup, Parquet |
-| dbt staging models (CBS) | ✅ Pronto | 4 models com testes |
+| DAG 30 — NDW ingestão XML.gz | ✅ Pronto | Parser DATEX II em streaming |
+| bronze_to_silver.py | ✅ Pronto | PySpark, dedup, Parquet, overwrite por partição |
+| dbt staging models (CBS) | ✅ Pronto | 8 models com testes |
 | dbt staging models (PDOK) | ✅ Pronto | 2 models |
 | dbt staging models (KNMI) | ✅ Pronto | 1 model com conversão de unidades |
 | dbt staging models (NDW) | ✅ Pronto | 1 model |
 | dbt mart_regional_dashboard | ✅ Pronto | Join CBS região+período |
 | dbt mart_housing_market | ✅ Pronto | Join housing+WOZ |
 | dbt mart_weather_summary | ✅ Pronto | KNMI direto |
+| dbt mart_neighbourhood_reference | ✅ Pronto | Preço médio estimado atual por município, wijk e buurt (base para avaliar endereços) |
 | profiles.yml (dev + motherduck) | ✅ Pronto | Dois targets configurados |
-| CI/CD GitHub Actions | ✅ Pronto | validate + dbt parse + deploy |
+| CI/CD GitHub Actions | ✅ Pronto | validate + dbt parse; o deploy depende do MotherDuck (seção 15) |
 | datasets.yml (catalog) | ✅ Pronto | Todas as fontes sem duplicatas |
 | .env.example | ✅ Pronto | Template completo |
 
@@ -695,14 +702,17 @@ con.execute("SELECT * FROM MARTS.mart_regional_dashboard LIMIT 10").df()
 
 | Item | Prioridade | O que é necessário |
 |---|---|---|
-| Rodar o pipeline end-to-end | 🔴 Alta | Subir Docker, trigger DAG, rodar PySpark, dbt run |
 | MOTHERDUCK_TOKEN | 🔴 Alta | Criar conta em app.motherduck.com |
-| MinIO público (para CI/CD) | 🟡 Média | ngrok ou VPS para o dbt-deploy acessar o silver |
+| Storage S3 público (para CI/CD) | 🟡 Média | Túnel ou VPS para o dbt-deploy acessar o silver |
 | Mart de tráfego (NDW) | 🟡 Média | Criar `mart_traffic_flow.sql` quando silver NDW estiver populado |
-| silver_to_gold.py | 🟡 Média | Mantido como referência, a lógica gold está no dbt |
+| Testes de qualidade de dados | 🟡 Média | Hoje são 24 testes genéricos; KNMI, NDW e PDOK têm só 1–2 cada. Faltam freshness e ranges |
+| PDOK além da bbox | 🟡 Média | Cobrir o país inteiro (extrato BAG ou várias bboxes) |
+| Teste de DAGs | 🟡 Média | `tests/dags/test_dag_example.py` ainda é o exemplo padrão |
+| Bandit bloqueante no CI | 🟢 Baixa | Hoje roda com `--exit-zero` e nunca reprova o build |
 | Graphviz instalado | 🟢 Baixa | Para gerar imagem do ERD via `generate_erd.py` |
 | dbt docs | 🟢 Baixa | `dbt docs generate && dbt docs serve` |
-| Testes de qualidade de dados | 🟢 Baixa | Ampliar os testes nos `schema.yml` |
+| Streaming NDW | ⏳ Futuro | Pipeline near real-time do tráfego |
+| Avaliação de endereço | ⏳ Futuro | Usar `mart_neighbourhood_reference` para avaliar endereço + preço informados pelo usuário |
 
 ---
 
@@ -745,6 +755,12 @@ SILVER.PDOK_BAG_PAND ───────────────────�
 SILVER.PDOK_BAG_VERBLIJFSOBJECT ───────────────────────→ STAGING.STG_PDOK_BAG_VERBLIJFSOBJECT
 
 SILVER.NDW_TRAFFIC_FLOW ───────────────────────────────→ STAGING.STG_NDW_TRAFFIC_FLOW
+
+STAGING.STG_CBS_SALE_PRICES_ANNUAL ────────────────────┐
+STAGING.STG_CBS_SALE_PRICE_INDEX ──────────────────────┤
+STAGING.STG_CBS_AVERAGE_WOZ_VALUE ─────────────────────├→ MARTS.MART_NEIGHBOURHOOD_REFERENCE
+STAGING.STG_CBS_NEIGHBOURHOOD_KEY_FIGURES ─────────────┤
+STAGING.STG_CBS_MUNICIPALITY_REGIONS ──────────────────┘
 ```
 
 ---
@@ -760,10 +776,10 @@ SILVER.NDW_TRAFFIC_FLOW ──────────────────�
 | **dbt model** | Arquivo `.sql` que define uma view ou tabela no DW |
 | **Staging** | Primeira camada dbt — apenas renomeia e casteia, sem lógica de negócio |
 | **Mart** | Tabela final dbt — junta staging models para responder perguntas analíticas |
-| **MinIO** | Storage S3-compatível rodando localmente no Docker |
+| **SeaweedFS** | Storage S3-compatível rodando localmente no Docker (substituiu o MinIO) |
 | **MotherDuck** | DuckDB hospedado na nuvem (free tier permanente) |
 | **httpfs** | Extensão do DuckDB que permite ler arquivos direto de URLs HTTP/S3 |
-| **s3a://** | Protocolo Hadoop para acessar S3/MinIO a partir do PySpark |
+| **s3a://** | Protocolo Hadoop para acessar S3 a partir do PySpark |
 | **WFS** | Web Feature Service — protocolo para dados geoespaciais (PDOK) |
 | **BAG** | Basisregistraties Adressen en Gebouwen — cadastro de endereços/edificações da Holanda |
 | **CBS** | Centraal Bureau voor de Statistiek — instituto de estatísticas holandês |

@@ -1,45 +1,54 @@
-Overview
-========
+# Grontia — Airflow
 
-Welcome to Astronomer! This project was generated after you ran 'astro dev init' using the Astronomer CLI. This readme describes the contents of the project, as well as how to run Apache Airflow on your local machine.
+Local Airflow 3 stack with S3-compatible storage (SeaweedFS), run with Docker Compose.
 
-Project Contents
-================
+## Run
 
-Your Astro project contains the following files and folders:
+```bash
+cp ../../.env.example .env
+docker compose up -d
+docker compose ps
+```
 
-- dags: This folder contains the Python files for your Airflow DAGs. By default, this directory includes one example DAG:
-    - `example_astronauts`: This DAG shows a simple ETL pipeline example that queries the list of astronauts currently in space from the Open Notify API and prints a statement for each astronaut. The DAG uses the TaskFlow API to define tasks in Python, and dynamic task mapping to dynamically print a statement for each astronaut. For more on how this DAG works, see our [Getting started tutorial](https://www.astronomer.io/docs/learn/get-started-with-airflow).
-- Dockerfile: This file contains a versioned Astro Runtime Docker image that provides a differentiated Airflow experience. If you want to execute other commands or overrides at runtime, specify them here.
-- include: This folder contains any additional files that you want to include as part of your project. It is empty by default.
-- packages.txt: Install OS-level packages needed for your project by adding them to this file. It is empty by default.
-- requirements.txt: Install Python packages needed for your project by adding them to this file. It is empty by default.
-- plugins: Add custom or community plugins for your project to this file. It is empty by default.
-- airflow_settings.yaml: Use this local-only file to specify Airflow Connections, Variables, and Pools instead of entering them in the Airflow UI as you develop DAGs in this project.
+- Airflow UI: http://localhost:8080 (admin / admin)
+- S3 API: http://localhost:9000, file browser: http://localhost:8888/buckets/
 
-Deploy Your Project Locally
-===========================
+## Contents
 
-Start Airflow on your local machine by running 'astro dev start'.
+| Path | What |
+|---|---|
+| `dags/00_smoke_test.py` | Airflow health check |
+| `dags/01_read_datasets_catalog.py` | Validates the dataset catalog |
+| `dags/11_cbs_bronze_ingestion_local.py` | Legacy: CBS ingestion to local disk (`include/output/`) |
+| `dags/30_multi_source_daily_ingestion.py` | **Main DAG**: CBS, PDOK, KNMI and NDW into the `bronze` bucket, daily |
+| `dags/40_silver_and_marts.py` | Bronze → silver (PySpark) → `dbt build`, triggered by DAG 30 |
+| `dags/grontia_assets.py` | Asset that links DAG 30 to DAG 40 |
+| `include/configs/datasets.yml` | Dataset catalog read by the DAGs |
+| `docker-compose.yml` | Postgres, Airflow services, SeaweedFS and bucket creation |
+| `Dockerfile`, `requirements.txt` | Airflow image with project dependencies |
+| `requirements-pipeline.txt` | PySpark + dbt, installed in a separate venv inside the image |
 
-This command will spin up five Docker containers on your machine, each for a different Airflow component:
+Trigger the main DAG from the UI or with:
 
-- Postgres: Airflow's Metadata Database
-- Scheduler: The Airflow component responsible for monitoring and triggering tasks
-- DAG Processor: The Airflow component responsible for parsing DAGs
-- API Server: The Airflow component responsible for serving the Airflow UI and API
-- Triggerer: The Airflow component responsible for triggering deferred tasks
+```bash
+docker compose exec airflow-scheduler airflow dags trigger 30_multi_source_daily_ingestion
+```
 
-When all five containers are ready the command will open the browser to the Airflow UI at http://localhost:8080/. You should also be able to access your Postgres Database at 'localhost:5432/postgres' with username 'postgres' and password 'postgres'.
+When DAG 30 finishes it publishes the `s3://bronze/daily` asset, which starts
+DAG 40 (silver + dbt). The marts land in `/opt/grontia/warehouse/grontia.duckdb`
+(volume `warehouse`). To reprocess a date, trigger DAG 40 with
+`{"ingestion_date": "YYYY-MM-DD"}`.
 
-Note: If you already have either of the above ports allocated, you can either [stop your existing Docker containers or change the port](https://www.astronomer.io/docs/astro/cli/troubleshoot-locally#ports-are-not-available-for-my-local-airflow-webserver).
+## Running unattended
 
-Deploy Your Project to Astronomer
-=================================
+- Every long-running service has `restart: unless-stopped`, so the stack comes
+  back with Docker. `docker compose stop` keeps it stopped.
+- After a reboot Docker starts all containers at once; `autoheal` restarts any
+  Airflow container that stays unhealthy (e.g. it started before Postgres).
+- With `catchup=False`, a run missed while the machine was off runs once as soon
+  as the scheduler is back.
+- On Windows + WSL, Docker only runs while WSL does. Register a logon task that
+  starts WSL: `scripts/local/register-wsl-autostart.ps1` (run in PowerShell).
+  Also disable sleep while plugged in, or the 00:00 UTC run waits for wake-up.
 
-If you have an Astronomer account, pushing code to a Deployment on Astronomer is simple. For deploying instructions, refer to Astronomer documentation: https://www.astronomer.io/docs/astro/deploy-code/
-
-Contact
-=======
-
-The Astronomer CLI is maintained with love by the Astronomer team. To report a bug or suggest a change, reach out to our support.
+Manual steps outside Airflow are in [`docs/PROJETO_COMPLETO.md`](../../docs/PROJETO_COMPLETO.md#13-como-rodar-o-pipeline-completo).

@@ -1,0 +1,61 @@
+# Woningwaarderingsstelsel (WWS) for self-contained dwellings, valid from 1 January 2026.
+# Source: Huurcommissie, "Beleidsboek waarderingsstelsel zelfstandige woonruimte",
+# version January 2026. Review every year (amounts are indexed each 1 January).
+valid_from: "2026-01-01"
+source: "https://www.huurcommissie.nl/support/beleidsboeken/waarderingsstelsel-zelfstandige-woonruimte"
+
+segments:            # by total points (Wet betaalbare huur, since 1 July 2024)
+  social_max: 143
+  middle_max: 186    # 144-186 regulated middle segment; 187+ free sector
+
+rooms_points_per_m2: 1.0          # rubriek 1 (vertrekken)
+other_spaces_points_per_m2: 0.75  # rubriek 2 (overige ruimten)
+
+heating:                          # rubriek 3
+  per_heated_room: 2
+  per_heated_other_space: 1
+  other_spaces_max: 4
+
+energy_label:                     # rubriek 4, labels issued from 2021 (NTA 8800)
+  single_family: {"A++++": 62, "A+++": 57, "A++": 52, "A+": 47, "A": 41, "B": 34, "C": 22, "D": 14, "E": -4, "F": -9, "G": -15}
+  multi_family:  {"A++++": 58, "A+++": 53, "A++": 48, "A+": 43, "A": 37, "B": 30, "C": 15, "D": 11, "E": -4, "F": -9, "G": -15}
+
+energy_by_build_year:             # rubriek 4 without a valid label: [from_year, single, multi]
+  - [2002, 41, 37]
+  - [2000, 34, 30]
+  - [1992, 22, 15]
+  - [1984, 14, 11]
+  - [1979, -4, -4]
+  - [1977, -9, -9]
+  - [0, -15, -15]
+
+kitchen:                          # rubriek 5: worktop length -> base points; extras capped at base
+  under_1m: 0
+  from_1_to_2m: 4
+  over_2m: 7
+
+sanitary:                         # rubriek 6
+  toilet_in_toilet_room: 3
+  toilet_in_bathroom: 2
+  washbasin: 1
+  shower: 4
+  bath: 6
+  bath_with_shower: 7
+
+outdoor:                          # rubriek 8
+  private_presence: 2
+  private_per_m2: 0.35
+  shared_per_m2: 0.75             # divided by the number of addresses with access
+  none: -5
+  max: 15
+
+woz:                              # rubriek 11
+  value_date: "2025-01-01"        # WOZ decision used from 1 Jan 2026 has this peildatum
+  euro_per_point: 16954
+  euro_per_m2_per_point: 268
+  minimum_woz: 85806
+  cap_share: 0.33                 # applies only when the total without cap is >= 187
+  cap_floor_total: 186
+  new_build_2015_2019_min_points: 40   # if rubrieken 1-10 and 12 reach 110 points
+
+deposit_max_months: 2             # Wet goed verhuurderschap (1 July 2023)

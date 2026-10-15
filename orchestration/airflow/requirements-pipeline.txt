@@ -1,0 +1,5 @@
+# Installed in a separate venv (/home/airflow/pipeline-venv) so dbt and
+# PySpark pins never conflict with Airflow's own dependencies.
+# Spark 3.5 is built on Hadoop 3.3.4, matching the hadoop-aws jar in the Dockerfile.
+pyspark==3.5.3
+dbt-duckdb~=1.9.0

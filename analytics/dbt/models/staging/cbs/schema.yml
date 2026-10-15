@@ -2,10 +2,10 @@ version: 2
 
 models:
   - name: stg_cbs_neighbourhood_key_figures
-    description: "CBS key figures per neighbourhood/municipality (84583NED)"
+    description: "CBS key figures per municipality, district and neighbourhood, 2024 (85984NED)"
     columns:
       - name: region_code
-        description: "CBS region identifier (RegioS)"
+        description: "CBS region code (NL00, GMxxxx, WKxxxxxx, BUxxxxxxxx)"
         tests:
           - not_null
       - name: period_code
@@ -17,7 +17,7 @@ models:
           - not_null
 
   - name: stg_cbs_average_woz_value
-    description: "Average WOZ property value by region (83765NED)"
+    description: "Average WOZ property value by region, all ownership types (85036NED)"
     columns:
       - name: region_code
         tests:
@@ -26,11 +26,14 @@ models:
         tests:
           - not_null
       - name: avg_woz_value_eur
+        description: "CBS leaves the value empty for some municipalities (e.g. after mergers)"
         tests:
-          - not_null
+          - not_null:
+              config:
+                severity: warn
 
   - name: stg_cbs_housing_stock
-    description: "Housing stock by dwelling type (82900NED)"
+    description: "Housing stock by ownership / landlord type (82900NED)"
     columns:
       - name: region_code
         tests:
@@ -40,11 +43,62 @@ models:
           - not_null
 
   - name: stg_cbs_household_income
-    description: "Household income indicators by region (86161NED)"
+    description: "Disposable household income by region, all private households (86161NED)"
     columns:
       - name: region_code
         tests:
           - not_null
       - name: period_code
+        tests:
+          - not_null
+
+  - name: stg_cbs_sale_prices_annual
+    description: "Average sale price of existing owner-occupied homes by region and year (83625NED)"
+    columns:
+      - name: region_code
+        tests:
+          - not_null
+      - name: year
+        tests:
+          - not_null
+
+  - name: stg_cbs_sale_prices_by_home_type
+    description: "Price index, homes sold and average sale price by home type, national (85791NED)"
+    columns:
+      - name: home_type
+        tests:
+          - not_null
+      - name: period_code
+        tests:
+          - not_null
+
+  - name: stg_cbs_sale_price_index
+    description: "Sale price index 2020=100 by province / big city, quarterly and yearly (85792NED)"
+    columns:
+      - name: region_code
+        tests:
+          - not_null
+      - name: period_type
+        tests:
+          - accepted_values:
+              arguments:
+                values: ['quarter', 'year']
+
+  - name: stg_cbs_rent_increase
+    description: "Average yearly rent increase of dwellings, national (70675ned)"
+    columns:
+      - name: year
+        tests:
+          - not_null
+          - unique
+
+  - name: stg_cbs_municipality_regions
+    description: "Municipality to province mapping, 2024 borders (85755NED)"
+    columns:
+      - name: municipality_code
+        tests:
+          - not_null
+          - unique
+      - name: province_code
         tests:
           - not_null

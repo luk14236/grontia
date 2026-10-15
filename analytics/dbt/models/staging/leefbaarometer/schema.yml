@@ -1,0 +1,17 @@
+version: 2
+
+models:
+  - name: stg_leefbaarometer_scores
+    description: >
+      Leefbaarometer 3.0 livability scores (Ministry BZK, CC0) per buurt, wijk and
+      gemeente for every measurement year. One row per (region_code, year).
+    columns:
+      - name: region_code
+        tests:
+          - not_null
+      - name: year
+        tests:
+          - not_null
+      - name: livability_score
+        tests:
+          - not_null
