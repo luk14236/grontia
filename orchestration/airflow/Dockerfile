@@ -1,4 +1,4 @@
-FROM apache/airflow:3.0.0-python3.11
+FROM apache/airflow:3.0.6-python3.11
 
 USER root
 # Java runs Spark for the bronze -> silver step

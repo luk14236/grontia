@@ -21,7 +21,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install pyyaml boto3 requests apache-airflow==3.0.0 apache-airflow-providers-standard
+          pip install pyyaml boto3 requests apache-airflow==3.0.6 apache-airflow-providers-standard
 
       - name: Validate DAGs
         run: |
