@@ -200,6 +200,7 @@ def assess(facts: DwellingFacts, asked_rent: float | None = None,
         }
         if deposit is not None:
             check["deposit_ok"] = deposit <= rules["deposit_max_months"] * asked_rent
+            check["deposit_max_months"] = rules["deposit_max_months"]
 
     return {
         "rules_valid_from": rules["valid_from"],

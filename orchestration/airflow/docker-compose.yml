@@ -35,6 +35,7 @@ x-airflow-common: &airflow-common
     - airflow_logs:/opt/airflow/logs
     - ../../processing:/opt/grontia/processing:ro
     - ../../evaluation:/opt/grontia/evaluation:ro
+    - ../../web:/opt/grontia/web:ro
     - ../../analytics/dbt:/opt/grontia/dbt
     - warehouse:/opt/grontia/warehouse
   depends_on:
@@ -120,6 +121,22 @@ services:
     depends_on:
       airflow-init:
         condition: service_completed_successfully
+
+  # Web app: evaluate an address or a listing PDF (http://localhost:8000).
+  # Bound to localhost only: it has no login.
+  grontia-web:
+    <<: *airflow-common
+    entrypoint: ["/bin/bash", "-c"]
+    command: ["cd /opt/grontia && exec $$PIPELINE_VENV/bin/uvicorn web.app:app --host 0.0.0.0 --port 8000"]
+    ports:
+      - "127.0.0.1:8000:8000"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://localhost:8000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
 
   # S3-compatible object storage (bronze/silver/gold).
   # SeaweedFS replaces MinIO: the official MinIO images are no longer published.

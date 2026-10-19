@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Grontia</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@500;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="map" aria-label="Map"></div>
+
+  <main class="panel" id="panel">
+    <header class="brand">
+      <div>
+        <h1>Grontia</h1>
+        <p data-i18n="tagline"></p>
+      </div>
+      <div class="lang" role="group" aria-label="Language">
+        <button type="button" data-lang="en">EN</button>
+        <button type="button" data-lang="pt">PT</button>
+      </div>
+    </header>
+
+    <div class="tabs" role="tablist">
+      <button type="button" role="tab" id="tab-address" aria-controls="pane-address" aria-selected="true" data-i18n="tabAddress"></button>
+      <button type="button" role="tab" id="tab-pdf" aria-controls="pane-pdf" aria-selected="false" data-i18n="tabPdf"></button>
+    </div>
+
+    <section id="pane-pdf" role="tabpanel" aria-labelledby="tab-pdf" hidden>
+      <label class="drop" id="drop" for="pdf-input">
+        <input type="file" id="pdf-input" accept="application/pdf">
+        <strong data-i18n="dropTitle"></strong>
+        <span data-i18n="dropHint"></span>
+      </label>
+      <p class="note" data-i18n="pdfPrivacy"></p>
+      <p class="status" id="pdf-status" role="status"></p>
+    </section>
+
+    <form id="form" novalidate>
+      <section id="pane-address" role="tabpanel" aria-labelledby="tab-address">
+        <div class="field search">
+          <label for="search" data-i18n="searchLabel"></label>
+          <input id="search" type="search" autocomplete="off" role="combobox" aria-expanded="false" aria-controls="suggestions" data-i18n-placeholder="searchPlaceholder">
+          <ul id="suggestions" role="listbox" hidden></ul>
+        </div>
+      </section>
+
+      <div class="banner" id="pdf-banner" hidden data-i18n="pdfBanner"></div>
+
+      <div class="row">
+        <div class="field"><label for="postcode" data-i18n="postcode"></label><input id="postcode" name="postcode" required placeholder="1234AB" maxlength="7"></div>
+        <div class="field small"><label for="number" data-i18n="number"></label><input id="number" name="number" required inputmode="numeric" placeholder="9"></div>
+        <div class="field small"><label for="suffix" data-i18n="suffix"></label><input id="suffix" name="suffix" maxlength="6" placeholder="A"></div>
+      </div>
+
+      <div class="mode" role="radiogroup" aria-label="Mode">
+        <label><input type="radio" name="mode" value="sale" checked> <span data-i18n="modeSale"></span></label>
+        <label><input type="radio" name="mode" value="rent"> <span data-i18n="modeRent"></span></label>
+      </div>
+
+      <div class="row" data-mode="sale">
+        <div class="field"><label for="asking_price" data-i18n="askingPrice"></label><input id="asking_price" name="asking_price" inputmode="decimal" placeholder="€ 400000"></div>
+      </div>
+      <div class="row" data-mode="rent" hidden>
+        <div class="field"><label for="rent" data-i18n="rent"></label><input id="rent" name="rent" inputmode="decimal" placeholder="€ 1500"></div>
+        <div class="field"><label for="deposit" data-i18n="deposit"></label><input id="deposit" name="deposit" inputmode="decimal" placeholder="€ 3000"></div>
+      </div>
+
+      <details class="more">
+        <summary data-i18n="moreDetails"></summary>
+        <div class="row">
+          <div class="field"><label for="energy_label" data-i18n="energyLabel"></label><input id="energy_label" name="energy_label" maxlength="5" placeholder="A"></div>
+          <div class="field"><label for="woz" data-i18n="woz"></label><input id="woz" name="woz" inputmode="decimal"></div>
+          <div class="field small"><label for="woz_year" data-i18n="wozYear"></label><input id="woz_year" name="woz_year" inputmode="numeric" placeholder="2026"></div>
+        </div>
+        <p class="note" data-i18n="comparableHint"></p>
+        <div class="row">
+          <div class="field"><label for="comparable_price" data-i18n="comparablePrice"></label><input id="comparable_price" name="comparable_price" inputmode="decimal"></div>
+          <div class="field small"><label for="comparable_date" data-i18n="comparableDate"></label><input id="comparable_date" name="comparable_date" placeholder="2026-06"></div>
+          <div class="field small"><label for="comparable_m2" data-i18n="comparableM2"></label><input id="comparable_m2" name="comparable_m2" inputmode="decimal"></div>
+        </div>
+      </details>
+
+      <button type="submit" class="primary" id="submit" data-i18n="evaluate"></button>
+      <p class="status" id="form-status" role="status"></p>
+    </form>
+
+    <section id="result" class="result" hidden aria-live="polite"></section>
+
+    <footer class="disclaimer" data-i18n="disclaimer"></footer>
+  </main>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+  <script src="i18n.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

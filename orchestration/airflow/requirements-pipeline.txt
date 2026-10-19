@@ -3,3 +3,8 @@
 # Spark 3.5 is built on Hadoop 3.3.4, matching the hadoop-aws jar in the Dockerfile.
 pyspark==3.5.3
 dbt-duckdb~=1.9.0
+# Web app (web/): API + listing PDF parsing
+fastapi~=0.115.0
+uvicorn~=0.32.0
+python-multipart~=0.0.12
+pypdf~=5.1.0

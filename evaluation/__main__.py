@@ -113,7 +113,7 @@ def run(args: argparse.Namespace) -> dict:
         "generated_on": date.today().isoformat(),
         "address": address,
         "dwelling": dwelling,
-        "user_inputs": {k: v for k, v in vars(args).items() if k not in ("out",) and v is not None},
+        "user_inputs": {k: v for k, v in vars(args).items() if k not in ("out", "with_geometry") and v is not None},
         "purchase": {**value, "appreciation": valuation.appreciation(con, address)},
         "rent": rent,
         "neighbourhood": {
@@ -132,6 +132,9 @@ def run(args: argparse.Namespace) -> dict:
             "headlines": _optional("headlines", sources.news_headlines, address["place"]),
         },
     }
+    # The web app draws the neighbourhood on its map; the CLI JSON stays lean
+    if getattr(args, "with_geometry", False):
+        result["neighbourhood"]["buurt_geometry"] = area["geometry"]
     return result
 
 
