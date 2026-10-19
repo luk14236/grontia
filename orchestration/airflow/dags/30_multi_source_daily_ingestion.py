@@ -1,13 +1,11 @@
 from __future__ import annotations
 
 import gzip
-import io
 import json
 import logging
 import os
 import tempfile
 import zipfile
-import xml.etree.ElementTree as ET
 from datetime import datetime, timedelta
 from typing import Any
 from urllib.parse import parse_qs, urlencode, urlparse, urlunparse
@@ -21,6 +19,7 @@ from airflow.providers.standard.operators.empty import EmptyOperator
 
 from grontia_alerts import task_failure_alert
 from grontia_assets import BRONZE_DAILY
+from grontia_ndw import ndw_xml_to_records
 
 logger = logging.getLogger(__name__)
 
@@ -326,53 +325,6 @@ def ingest_knmi_dataset(dataset_name: str, endpoint: str, query_params: dict) ->
 # NDW — download XML.gz, descomprime e converte para JSON
 # ---------------------------------------------------------------------------
 
-def _ndw_xml_to_records(xml_bytes: bytes) -> list[dict]:
-    """
-    Parse an NDW DATEX II MeasuredDataPublication (e.g. trafficspeed.xml.gz)
-    into one record per measurement site.
-
-    Each <siteMeasurements> holds several <measuredValue> entries per lane /
-    vehicle class: TrafficFlow values carry vehicleFlowRate (vehicles/hour) and
-    TrafficSpeed values carry averageVehicleSpeed/speed (km/h). Negative values
-    mean "no data". We sum the flows and average the valid speeds per site.
-    """
-    def local(tag: str) -> str:
-        return tag.rsplit("}", 1)[-1]
-
-    records = []
-    for _, elem in ET.iterparse(io.BytesIO(xml_bytes), events=("end",)):
-        if local(elem.tag) != "siteMeasurements":
-            continue
-
-        site_id, measured_at = None, None
-        flows: list[float] = []
-        speeds: list[float] = []
-        for child in elem.iter():
-            name = local(child.tag)
-            if name == "measurementSiteReference":
-                site_id = child.get("id")
-            elif name == "measurementTimeDefault":
-                measured_at = child.text
-            elif name == "vehicleFlowRate" and child.text:
-                if float(child.text) >= 0:
-                    flows.append(float(child.text))
-            elif name == "speed" and child.text:
-                if float(child.text) > 0:
-                    speeds.append(float(child.text))
-
-        records.append({
-            "id": site_id,
-            "element_type": "siteMeasurements",
-            "measurementSiteReference": site_id,
-            "period": measured_at,
-            "vehicleFlowRate": sum(flows) if flows else None,
-            "averageVehicleSpeed": round(sum(speeds) / len(speeds), 1) if speeds else None,
-        })
-        elem.clear()
-
-    return records
-
-
 @task
 def ingest_ndw_dataset(dataset_name: str, url: str) -> dict:
     logger.info("NDW ingestion: %s", dataset_name)
@@ -409,7 +361,7 @@ def ingest_ndw_dataset(dataset_name: str, url: str) -> dict:
         )
 
         # Converte para JSON e salva também
-        records = _ndw_xml_to_records(xml_bytes)
+        records = ndw_xml_to_records(xml_bytes)
         s3_client().put_object(
             Bucket=BUCKET_BRONZE,
             Key=f"{base}/data.json",

@@ -124,3 +124,50 @@ models:
               arguments:
                 min_value: 0
                 max_value: 100
+
+  - name: mart_traffic_site_profile
+    description: >
+      Typical traffic per NDW measurement site by day type and local hour
+      (Europe/Amsterdam), from the hourly rollups DAG 60 writes every 5 minutes.
+      One row per (site_id, day_type, hour_of_day).
+    data_tests:
+      - unique_combination:
+          arguments:
+            combination_of_columns: [site_id, day_type, hour_of_day]
+      - expect_min_row_count:
+          arguments:
+            min_rows: 1000
+    columns:
+      - name: site_id
+        tests:
+          - not_null
+      - name: day_type
+        tests:
+          - accepted_values:
+              arguments:
+                values: ['weekday', 'weekend']
+      - name: hour_of_day
+        tests:
+          - expect_between:
+              arguments:
+                min_value: 0
+                max_value: 23
+      - name: avg_speed_kmh
+        tests:
+          - expect_between:
+              arguments:
+                min_value: 0
+                max_value: 250
+      - name: avg_flow_per_hour
+        tests:
+          - expect_between:
+              arguments:
+                min_value: 0
+      - name: last_hour
+        description: "Older than a day means DAG 60 stopped rolling up hours"
+        tests:
+          - expect_recent:
+              arguments:
+                max_age_days: 1
+              config:
+                severity: warn

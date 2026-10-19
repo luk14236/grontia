@@ -75,7 +75,7 @@ flowchart LR
 | **CBS** (Statistics Netherlands) | Neighbourhood key figures, WOZ values, housing stock, household income, sale prices, price index, rent increase, municipality → province | OData (JSON) | ✅ |
 | **PDOK / BAG** | Buildings (`pand`) and address objects (`verblijfsobject`) | WFS (GeoJSON), limited to a bbox | ✅ (central Amsterdam only) |
 | **KNMI** | Daily weather, all stations | CSV | ✅ |
-| **NDW** | Traffic speed and flow per measurement site | DATEX II XML.gz | ✅ (daily snapshot) |
+| **NDW** | Traffic speed and flow per measurement site (~20k sites) | DATEX II XML.gz | ✅ (every 5 minutes + daily raw snapshot) |
 
 Datasets are declared in [`orchestration/airflow/include/configs/datasets.yml`](orchestration/airflow/include/configs/datasets.yml); adding a CBS table usually means editing only that file.
 
@@ -90,6 +90,7 @@ Datasets are declared in [`orchestration/airflow/include/configs/datasets.yml`](
   - `mart_weather_summary` — daily weather per station
   - `mart_neighbourhood_reference` — estimated current average sale price per municipality, district and neighbourhood
   - `mart_livability` — Leefbaarometer score per region and year with national percentile and trend
+  - `mart_traffic_site_profile` — typical speed and flow per NDW site by weekday/weekend and local hour (last 4 weeks)
 - **Data quality (~115 tests)** — grain uniqueness, value ranges, minimum row counts, referential integrity and freshness on every staging model and mart. Data errors stop the build; staleness only warns. Every run is logged to `OBSERVABILITY.dbt_run_results`, and DAG 40 alerts on failures and warnings (set `GRONTIA_ALERT_WEBHOOK_URL` for a Slack-compatible webhook).
 
 ---
@@ -111,11 +112,26 @@ python processing/local/bronze_to_silver.py YYYY-MM-DD
 # 3. Silver -> marts
 cd analytics/dbt
 dbt run --target dev --profiles-dir . && dbt test --target dev --profiles-dir .
+
+# 4. Web app
+#    http://localhost:8000  (service grontia-web, localhost only)
 ```
 
 DAG 40 runs steps 2 and 3 automatically after each ingestion. To publish the marts to MotherDuck instead of the local DuckDB file, set `MOTHERDUCK_TOKEN` and `GRONTIA_DBT_TARGET=motherduck` in `orchestration/airflow/.env` and recreate the containers.
 
 Step-by-step instructions are in [`docs/PROJETO_COMPLETO.md`](docs/PROJETO_COMPLETO.md#12-como-subir-o-ambiente-local).
+
+---
+
+## 🗺️ Web App
+
+`http://localhost:8000` (Docker service `grontia-web`, bound to localhost because it has no login). In English or Portuguese:
+
+- **Address:** type a street or postcode; the PDOK address search suggests matches and the map zooms to the home as soon as you pick one.
+- **Listing PDF:** drop a Funda/Pararius PDF. Address, asking price or rent, deposit, floor area and energy label are pulled out and filled into the form for you to check. The PDF is read in memory and never stored.
+- **Verdict:** asking price vs. the expected value range, or asked rent vs. the legal maximum (WWS points) and the deposit limit, plus livability, crime and WOZ for the neighbourhood, whose outline is drawn on the map.
+
+The API lives at `/api/evaluate` and `/api/listing` (docs at `/api/docs`) and reads the warehouse wherever DAG 40 publishes it.
 
 ---
 
@@ -125,8 +141,10 @@ Step-by-step instructions are in [`docs/PROJETO_COMPLETO.md`](docs/PROJETO_COMPL
 orchestration/airflow/   Airflow DAGs, dataset catalog, Docker Compose
 processing/local/        PySpark bronze -> silver
 analytics/dbt/           dbt staging and marts
+evaluation/              Address evaluation engine (value, legal rent, neighbourhood)
+web/                     Web app: address or listing PDF -> verdict on a map (EN/PT)
 docs/                    Documentation, architecture decisions, diagrams
-.github/workflows/       CI (validation, dbt parse/deploy, security scan)
+.github/workflows/       CI (validation, dbt parse, security scan)
 ```
 
 ---
@@ -140,8 +158,8 @@ docs/                    Documentation, architecture decisions, diagrams
 | 3. Modeling and transformations (silver, dbt) | ✅ Done |
 | 4. Data quality and observability (broader dbt tests, freshness, alerts) | ✅ Done |
 | 5. MotherDuck deployment (DAG 40 builds into MotherDuck; CI only validates) | ✅ Done |
-| 6. Near real-time traffic pipeline (NDW) | 🚧 Next |
-| 7. Serving: address evaluation on top of `mart_neighbourhood_reference` | ⏳ Planned |
+| 6. Near real-time traffic pipeline (NDW, DAG 60 every 5 minutes) | ✅ Done |
+| 7. Serving: address evaluation on top of `mart_neighbourhood_reference` (DAG 50, reads wherever DAG 40 publishes) | ✅ Done |
 
 Grontia only uses open data. It never scrapes listing portals (Funda, Pararius, etc.).
 

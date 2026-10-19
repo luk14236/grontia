@@ -45,7 +45,7 @@ O Grontia é um projeto de **engenharia de dados educacional** construído do ze
 
 | Camada | Tecnologia | Versão | Por que foi escolhida |
 |---|---|---|---|
-| Orquestração | Apache Airflow | 3.0.0 | Padrão de mercado, gratuito, Docker-friendly |
+| Orquestração | Apache Airflow | 3.0.6 | Padrão de mercado, gratuito, Docker-friendly |
 | Storage bronze/silver | SeaweedFS | latest | S3-compatível, roda local no Docker (substituiu o MinIO, cujas imagens deixaram de ser publicadas) |
 | Processamento | PySpark | 3.x | Transformações distribuídas, lê S3 nativamente |
 | Analytics SQL | dbt-duckdb | 1.10.x | SQL declarativo, lineage automático, gratuito |
@@ -196,6 +196,14 @@ end
 ```
 
 O DAG `11_cbs_bronze_ingestion_local` é anterior: grava CBS em disco (`include/output/`) e foi substituído pelo DAG 30.
+
+### Os outros DAGs
+
+| DAG | Quando roda | O que faz |
+|---|---|---|
+| `40_silver_and_marts` | Depois de cada DAG 30 (asset `s3://bronze/daily`) | bronze → silver (PySpark) → `ensure_warehouse` → `dbt build` → `check_data_quality` |
+| `50_evaluate_address` | Manual (formulário na UI) | Avaliação de compra e aluguel de um endereço; lê de onde o DAG 40 publica (DuckDB local ou MotherDuck) |
+| `60_ndw_traffic_live` | A cada 5 minutos | Tráfego NDW quase em tempo real (seção 10, NDW) |
 
 Cada fonte tem sua própria lógica de ingestão (detalhada na seção 10).
 
@@ -531,7 +539,21 @@ POST https://www.daggegevens.knmi.nl/klimatologie/daggegevens
 
 ### NDW — Traffic Data ✅ Funcional (snapshot diário)
 
-**O que é**: Data warehouse nacional de tráfego holandês. Velocidade e fluxo por ponto de medição, atualizados a cada minuto na fonte — hoje o Grontia pega só um snapshot por dia.
+**O que é**: Data warehouse nacional de tráfego holandês. Velocidade e fluxo por ponto de medição (~20 mil), atualizados a cada minuto na fonte.
+
+**Quase em tempo real (DAG 60, a cada 5 minutos):**
+```
+GET trafficspeed.xml.gz (~1 MB)
+→ parser compartilhado (dags/grontia_ndw.py)
+→ silver/ndw/traffic_live/date=D/HHMMSS.parquet      (~190 KB por snapshot, guardado 2 dias)
+→ a cada hora fechada (+10 min de margem): média por sensor
+→ silver/ndw/traffic_hourly/date=D/hour=H/data.parquet (guardado 35 dias)
+```
+Os snapshots pulam o bronze de propósito: ~1 MB a cada 5 minutos faria do bronze a maior parte do storage, e o DAG 30 já guarda uma cópia crua por dia. Se o Airflow ficar parado, a consolidação recupera as horas que faltam (até 2 dias). O DAG 60 não alerta por task, porque uma queda do NDW geraria um alerta a cada 5 minutos. Quem avisa é o teste de freshness do mart, uma vez por dia.
+
+O DAG 40 transforma as horas consolidadas em `mart_traffic_site_profile`: velocidade e fluxo típicos por sensor × dia útil/fim de semana × hora local, nas últimas 4 semanas (~1 milhão de linhas, tamanho estável). O staging horário é `ephemeral`, para não copiar ~500 mil linhas por dia para o MotherDuck.
+
+**Snapshot diário (DAG 30):**
 
 **Formato**: XML comprimido em `.gz` (schema DATEX II).
 
@@ -684,6 +706,18 @@ con = duckdb.connect("md:grontia?motherduck_token=SEU_TOKEN")
 con.execute("SELECT * FROM main_MARTS.mart_regional_dashboard LIMIT 10").df()
 ```
 
+### Etapa 5 — App web
+
+Abra `http://localhost:8000` (serviço `grontia-web` do compose, só em localhost porque não tem login). A app está em inglês e português.
+
+| Parte | Arquivo | O que faz |
+|---|---|---|
+| API | `web/app.py` (FastAPI) | `POST /api/evaluate` chama o mesmo `evaluation.run()` da CLI e devolve o JSON + o polígono do bairro. `POST /api/listing` lê um PDF. Documentação em `/api/docs` |
+| Leitura do PDF | `web/listing.py` (pypdf) | Extrai endereço, preço pedido ou aluguel, caução, m² e selo energético (holandês e inglês). O arquivo é lido **em memória** e descartado; só esses campos voltam ao navegador, onde o usuário confere |
+| Front-end | `web/static/` (HTML + Leaflet) | Mapa PDOK em tela cheia; busca de endereço pelo Locatieserver com zoom imediato; veredito de compra (faixa esperada) ou de aluguel (máximo legal WWS e caução); fatos do bairro; tema claro e escuro |
+
+Nada do que o usuário envia é gravado: nem o PDF, nem o texto dele, nem o resultado. Isso segue a política de dados de anúncios (nunca guardar o arquivo original, fotos ou descrição).
+
 ---
 
 ## 14. O que está funcional
@@ -695,6 +729,9 @@ con.execute("SELECT * FROM main_MARTS.mart_regional_dashboard LIMIT 10").df()
 | DAG 30 — PDOK ingestão com paginação | ✅ Pronto | Loop WFS com startIndex, limitado a uma bbox |
 | DAG 30 — KNMI ingestão CSV | ✅ Pronto | POST + parser header # |
 | DAG 30 — NDW ingestão XML.gz | ✅ Pronto | Parser DATEX II em streaming |
+| DAG 60 — NDW a cada 5 minutos | ✅ Pronto | Snapshot → consolidação horária → limpeza; `mart_traffic_site_profile` |
+| App web (`grontia-web`) | ✅ Pronto | Endereço ou PDF de anúncio → veredito no mapa, EN/PT, nada é gravado |
+| DAG 50 — Avaliação de endereço | ✅ Pronto | Lê do DuckDB local ou do MotherDuck, conforme `GRONTIA_DBT_TARGET` |
 | bronze_to_silver.py | ✅ Pronto | PySpark, dedup, Parquet, overwrite por partição |
 | dbt staging models (CBS) | ✅ Pronto | 8 models com testes |
 | dbt staging models (PDOK) | ✅ Pronto | 2 models |
@@ -720,14 +757,12 @@ con.execute("SELECT * FROM main_MARTS.mart_regional_dashboard LIMIT 10").df()
 | Item | Prioridade | O que é necessário |
 |---|---|---|
 | Cota de compute do MotherDuck | 🟡 Média | O primeiro build completo (19 tabelas + 114 testes) já gerou o aviso de limite diário do plano free. Acompanhar; se virar gargalo, rodar os testes de staging só no `dev` ou materializar o staging de forma incremental |
-| Mart de tráfego (NDW) | 🟡 Média | Criar `mart_traffic_flow.sql` quando silver NDW estiver populado |
 | PDOK além da bbox | 🟡 Média | Cobrir o país inteiro (extrato BAG ou várias bboxes) |
 | Teste de DAGs | 🟡 Média | `tests/dags/test_dag_example.py` ainda é o exemplo padrão |
 | Bandit bloqueante no CI | 🟢 Baixa | Hoje roda com `--exit-zero` e nunca reprova o build |
 | Graphviz instalado | 🟢 Baixa | Para gerar imagem do ERD via `generate_erd.py` |
 | dbt docs | 🟢 Baixa | `dbt docs generate && dbt docs serve` |
-| Streaming NDW | ⏳ Futuro | Pipeline near real-time do tráfego |
-| Avaliação de endereço | ⏳ Futuro | Usar `mart_neighbourhood_reference` para avaliar endereço + preço informados pelo usuário |
+| Localização dos sensores NDW | 🟡 Média | Ingerir `measurement_current.xml.gz` (coordenadas) para ligar o tráfego a um endereço na avaliação |
 
 ---
 
