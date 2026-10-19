@@ -709,7 +709,7 @@ con.execute("SELECT * FROM main_MARTS.mart_regional_dashboard LIMIT 10").df()
 | dbt mart_neighbourhood_reference | ✅ Pronto | Preço médio estimado atual por município, wijk e buurt (base para avaliar endereços) |
 | profiles.yml (dev + motherduck) | ✅ Pronto | Dois targets configurados |
 | CI/CD GitHub Actions | ✅ Pronto | validate + dbt parse + security scan; o deploy é feito pelo DAG 40 |
-| Deploy no MotherDuck | 🟡 Pronto, falta o token | `read_silver()` com `MD_RUN = LOCAL`, staging como tabela, `ensure_warehouse` no DAG 40 |
+| Deploy no MotherDuck | ✅ Pronto | DAG 40 com `GRONTIA_DBT_TARGET=motherduck`: 19 tabelas + histórico de testes no banco `grontia` |
 | datasets.yml (catalog) | ✅ Pronto | Todas as fontes sem duplicatas |
 | .env.example | ✅ Pronto | Template completo |
 
@@ -719,7 +719,7 @@ con.execute("SELECT * FROM main_MARTS.mart_regional_dashboard LIMIT 10").df()
 
 | Item | Prioridade | O que é necessário |
 |---|---|---|
-| MOTHERDUCK_TOKEN | 🔴 Alta | Criar conta em app.motherduck.com, pôr o token e `GRONTIA_DBT_TARGET=motherduck` no `.env` |
+| Cota de compute do MotherDuck | 🟡 Média | O primeiro build completo (19 tabelas + 114 testes) já gerou o aviso de limite diário do plano free. Acompanhar; se virar gargalo, rodar os testes de staging só no `dev` ou materializar o staging de forma incremental |
 | Mart de tráfego (NDW) | 🟡 Média | Criar `mart_traffic_flow.sql` quando silver NDW estiver populado |
 | PDOK além da bbox | 🟡 Média | Cobrir o país inteiro (extrato BAG ou várias bboxes) |
 | Teste de DAGs | 🟡 Média | `tests/dags/test_dag_example.py` ainda é o exemplo padrão |

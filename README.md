@@ -139,8 +139,8 @@ docs/                    Documentation, architecture decisions, diagrams
 | 2. Batch ingestion into bronze | ✅ Done |
 | 3. Modeling and transformations (silver, dbt) | ✅ Done |
 | 4. Data quality and observability (broader dbt tests, freshness, alerts) | ✅ Done |
-| 5. MotherDuck deployment (DAG 40 builds into MotherDuck; CI only validates) | 🟡 Ready, needs `MOTHERDUCK_TOKEN` |
-| 6. Near real-time traffic pipeline (NDW) | ⏳ Planned |
+| 5. MotherDuck deployment (DAG 40 builds into MotherDuck; CI only validates) | ✅ Done |
+| 6. Near real-time traffic pipeline (NDW) | 🚧 Next |
 | 7. Serving: address evaluation on top of `mart_neighbourhood_reference` | ⏳ Planned |
 
 Grontia only uses open data. It never scrapes listing portals (Funda, Pararius, etc.).
