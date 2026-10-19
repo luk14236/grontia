@@ -14,6 +14,7 @@ from airflow.decorators import task
 from airflow.providers.standard.operators.bash import BashOperator
 from airflow.sdk import DAG, Param
 
+from grontia_alerts import dbt_failure_alert, dbt_problems, send_alert, task_failure_alert
 from grontia_assets import BRONZE_DAILY
 
 logger = logging.getLogger(__name__)
@@ -34,10 +35,24 @@ def resolve_ingestion_date(*, params, triggering_asset_events) -> str:
     return datetime.utcnow().strftime("%Y-%m-%d")
 
 
+@task
+def check_data_quality(*, ti, dag_run) -> dict:
+    """dbt_build passed, but warn-severity tests (freshness, soft gaps) may have
+    fired: count them and alert so stale sources don't go unnoticed."""
+    problems = dbt_problems(not_before=dag_run.start_date) or []
+    if problems:
+        send_alert(
+            f"{ti.dag_id}: {len(problems)} data-quality warning(s) (run {ti.run_id})",
+            [f"- {p['status'].upper()} {p['node']} ({p['failures']} rows)" for p in problems],
+        )
+    return {"warnings": len(problems)}
+
+
 default_args = {
     "owner": "grontia",
     "retries": 1,
     "retry_delay": timedelta(minutes=5),
+    "on_failure_callback": task_failure_alert,
 }
 
 with DAG(
@@ -78,6 +93,7 @@ with DAG(
             "--target-path /tmp/dbt/target --log-path /tmp/dbt/logs"
         ),
         execution_timeout=timedelta(hours=1),
+        on_failure_callback=dbt_failure_alert,
     )
 
-    ing_date >> bronze_to_silver >> dbt_build
+    ing_date >> bronze_to_silver >> dbt_build >> check_data_quality()

@@ -5,6 +5,13 @@ models:
     description: >
       Consolidated regional dashboard combining CBS neighbourhood figures,
       property values and household income. One row per (region, period).
+    data_tests:
+      - unique_combination:
+          arguments:
+            combination_of_columns: [region_code, period_code]
+      - expect_min_row_count:
+          arguments:
+            min_rows: 15000
     columns:
       - name: region_code
         description: "CBS region identifier"
@@ -21,6 +28,37 @@ models:
       - name: avg_disposable_income_eur
         description: "Average disposable household income in EUR"
 
+  - name: mart_housing_market
+    description: "Housing stock by ownership joined with the average WOZ value. One row per (region, period)."
+    data_tests:
+      - unique_combination:
+          arguments:
+            combination_of_columns: [region_code, period_code]
+      - expect_min_row_count:
+          arguments:
+            min_rows: 6000
+    columns:
+      - name: region_code
+        tests:
+          - not_null
+      - name: owner_occupied_share
+        tests:
+          - expect_between:
+              arguments:
+                min_value: 0
+                max_value: 1
+
+  - name: mart_weather_summary
+    description: "Daily KNMI weather per station. One row per (station, date)."
+    data_tests:
+      - unique_combination:
+          arguments:
+            combination_of_columns: [station_code, date]
+    columns:
+      - name: station_code
+        tests:
+          - not_null
+
   - name: mart_neighbourhood_reference
     description: >
       Reference price level per municipality, district and neighbourhood.
@@ -28,26 +66,61 @@ models:
       with the regional price index (85792NED), then scaled to districts and
       neighbourhoods by their WOZ ratio to the municipality (85984NED).
       One row per region_code.
+    data_tests:
+      - expect_min_row_count:
+          arguments:
+            min_rows: 15000
     columns:
       - name: region_code
         tests:
           - not_null
           - unique
+      - name: region_type
+        tests:
+          - accepted_values:
+              arguments:
+                values: ['Gemeente', 'Wijk', 'Buurt']
       - name: municipality_code
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_cbs_municipality_regions')
+                field: municipality_code
+      - name: province_code
         tests:
           - not_null
       - name: est_current_avg_sale_price_eur
         description: "Estimated current average sale price of a home in this area (EUR)"
+        tests:
+          - expect_between:
+              arguments:
+                min_value: 10000
+                max_value: 10000000
       - name: woz_ratio_to_municipality
         description: "Area average WOZ divided by municipality average WOZ"
+        tests:
+          - expect_between:
+              arguments:
+                min_value: 0
+                max_value: 20
 
   - name: mart_livability
     description: >
       Leefbaarometer score per region and year with its national percentile among
       regions of the same level, and the change since the previous measurement and 2014.
+    data_tests:
+      - unique_combination:
+          arguments:
+            combination_of_columns: [region_code, year]
     columns:
       - name: region_code
         tests:
           - not_null
       - name: national_percentile
         description: "0 = least livable region of its level that year, 100 = most livable"
+        tests:
+          - expect_between:
+              arguments:
+                min_value: 0
+                max_value: 100

@@ -19,6 +19,7 @@ from airflow import DAG
 from airflow.decorators import task
 from airflow.providers.standard.operators.empty import EmptyOperator
 
+from grontia_alerts import task_failure_alert
 from grontia_assets import BRONZE_DAILY
 
 logger = logging.getLogger(__name__)
@@ -538,6 +539,7 @@ default_args = {
     "email_on_retry": False,
     "retries": 2,
     "retry_delay": timedelta(minutes=5),
+    "on_failure_callback": task_failure_alert,
 }
 
 with DAG(

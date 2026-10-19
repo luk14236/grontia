@@ -27,3 +27,6 @@ models:
     marts:
       +materialized: table
       +schema: MARTS
+
+on-run-end:
+  - "{{ log_run_results(results) }}"

@@ -1,10 +1,20 @@
 version: 2
 
+# No freshness test: DAG 30 only downloads a new file when the published
+# version changes, so ingestion_date legitimately stays put for months.
+
 models:
   - name: stg_leefbaarometer_scores
     description: >
       Leefbaarometer 3.0 livability scores (Ministry BZK, CC0) per buurt, wijk and
       gemeente for every measurement year. One row per (region_code, year).
+    data_tests:
+      - unique_combination:
+          arguments:
+            combination_of_columns: [region_code, year]
+      - expect_min_row_count:
+          arguments:
+            min_rows: 150000
     columns:
       - name: region_code
         tests:
@@ -15,3 +25,7 @@ models:
       - name: livability_score
         tests:
           - not_null
+          - expect_between:
+              arguments:
+                min_value: 0
+                max_value: 10

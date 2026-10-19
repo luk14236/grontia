@@ -25,6 +25,8 @@ x-airflow-common: &airflow-common
     GRONTIA_DBT_TARGET: ${GRONTIA_DBT_TARGET:-dev}
     GRONTIA_DUCKDB_PATH: /opt/grontia/warehouse/grontia.duckdb
     MOTHERDUCK_TOKEN: ${MOTHERDUCK_TOKEN:-}
+    # Optional Slack-compatible webhook for pipeline / data-quality alerts
+    GRONTIA_ALERT_WEBHOOK_URL: ${GRONTIA_ALERT_WEBHOOK_URL:-}
   labels:
     autoheal: 'true'
   volumes:

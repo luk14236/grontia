@@ -3,16 +3,50 @@ version: 2
 models:
   - name: stg_pdok_bag_pand
     description: "Edificações holandesas (BAG Pand) — PDOK WFS"
+    data_tests:
+      - expect_min_row_count:
+          arguments:
+            min_rows: 10000
     columns:
       - name: id
         tests: [not_null, unique]
       - name: geometry
         description: "GeoJSON polygon da edificação"
+      - name: bouwjaar
+        description: "BAG allows planned buildings a few years ahead"
+        tests:
+          - expect_between:
+              arguments:
+                min_value: 1000
+                max_value: "extract(year from current_date) + 5"
+      - name: ingestion_date
+        tests:
+          - expect_recent:
+              arguments:
+                max_age_days: 2
+              config:
+                severity: warn
 
   - name: stg_pdok_bag_verblijfsobject
     description: "Objetos de residência/uso (BAG Verblijfsobject) — PDOK WFS"
+    data_tests:
+      - expect_min_row_count:
+          arguments:
+            min_rows: 35000
     columns:
       - name: id
         tests: [not_null, unique]
       - name: oppervlakte_m2
         description: "Área do imóvel em m²"
+        tests:
+          - expect_between:
+              arguments:
+                min_value: 1
+                max_value: 1000000
+      - name: ingestion_date
+        tests:
+          - expect_recent:
+              arguments:
+                max_age_days: 2
+              config:
+                severity: warn

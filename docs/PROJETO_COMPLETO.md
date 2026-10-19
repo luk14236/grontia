@@ -358,6 +358,27 @@ Tabelas analíticas finais. São **físicas no DW** (materializadas), com joins 
 | `mart_housing_market` | Mercado imobiliário por tipo de imóvel | CBS housing_stock + WOZ via (region_code, period_code) |
 | `mart_weather_summary` | Resumo meteorológico diário | KNMI direto, sem join |
 | `mart_neighbourhood_reference` | Preço médio de venda estimado hoje por município, wijk e buurt | Preços de venda + índice de preço + WOZ + municípios |
+| `mart_livability` | Leefbaarometer por região e ano, com percentil nacional e tendência | Leefbaarometer direto |
+
+### Qualidade de dados e observabilidade
+
+Cada model de staging e cada mart tem testes em `schema.yml` (~115 no total). Além dos `not_null` / `unique` / `accepted_values` / `relationships` nativos do dbt, há quatro testes genéricos próprios em `macros/tests/` (sem depender do `dbt_utils`, então o `dbt parse` do CI continua rodando sem `dbt deps`):
+
+| Teste | O que pega | Severidade |
+|---|---|---|
+| `unique_combination` | Grão duplicado, ex. `(region_code, period_code)` | error |
+| `expect_between` | Valor fora de faixa larga: erro de unidade (keur × eur), parse quebrado | error |
+| `expect_min_row_count` | Carga vazia ou truncada que passaria em todos os testes de coluna | error |
+| `expect_recent` | Freshness: `ingestion_date` > 2 dias (pipeline parou) ou data da medição velha (fonte parou) | warn |
+
+Regra geral: **erro de dado para o build** (os marts a jusante são pulados e o mart de ontem continua valendo); **dado atrasado só avisa**, porque dado de ontem é melhor que nenhum. A Leefbaarometer não tem freshness: o DAG 30 só baixa uma versão nova quando o arquivo publicado muda.
+
+**Histórico:** o hook `on-run-end` (`macros/observability/log_run_results.sql`) grava uma linha por model/teste executado em `<schema>_OBSERVABILITY.dbt_run_results` (status, linhas com falha, tempo, mensagem). Funciona igual no DuckDB local e no MotherDuck.
+
+**Alertas:** `dags/grontia_alerts.py` é usado pelos DAGs 30 e 40.
+- Qualquer task que falhe depois dos retries gera um alerta. Se for o `dbt_build`, o alerta lista os testes que quebraram (lidos do `run_results.json`).
+- Se o `dbt_build` passar com warnings (freshness, por exemplo), a task `check_data_quality` também alerta.
+- Os alertas sempre vão para o log da task. Com `GRONTIA_ALERT_WEBHOOK_URL` definido, também são enviados por POST como `{"text": ...}` (Slack, Mattermost, Google Chat).
 
 ### Comandos dbt
 
@@ -690,6 +711,9 @@ con.execute("SELECT * FROM MARTS.mart_regional_dashboard LIMIT 10").df()
 | dbt mart_regional_dashboard | ✅ Pronto | Join CBS região+período |
 | dbt mart_housing_market | ✅ Pronto | Join housing+WOZ |
 | dbt mart_weather_summary | ✅ Pronto | KNMI direto |
+| dbt mart_livability | ✅ Pronto | Leefbaarometer com percentil nacional |
+| Testes de qualidade de dados | ✅ Pronto | ~115 testes: grão, faixas, contagem mínima, relacionamentos, freshness |
+| Observabilidade + alertas | ✅ Pronto | `OBSERVABILITY.dbt_run_results` + alertas via webhook nos DAGs 30 e 40 |
 | dbt mart_neighbourhood_reference | ✅ Pronto | Preço médio estimado atual por município, wijk e buurt (base para avaliar endereços) |
 | profiles.yml (dev + motherduck) | ✅ Pronto | Dois targets configurados |
 | CI/CD GitHub Actions | ✅ Pronto | validate + dbt parse; o deploy depende do MotherDuck (seção 15) |
@@ -705,7 +729,6 @@ con.execute("SELECT * FROM MARTS.mart_regional_dashboard LIMIT 10").df()
 | MOTHERDUCK_TOKEN | 🔴 Alta | Criar conta em app.motherduck.com |
 | Storage S3 público (para CI/CD) | 🟡 Média | Túnel ou VPS para o dbt-deploy acessar o silver |
 | Mart de tráfego (NDW) | 🟡 Média | Criar `mart_traffic_flow.sql` quando silver NDW estiver populado |
-| Testes de qualidade de dados | 🟡 Média | Hoje são 24 testes genéricos; KNMI, NDW e PDOK têm só 1–2 cada. Faltam freshness e ranges |
 | PDOK além da bbox | 🟡 Média | Cobrir o país inteiro (extrato BAG ou várias bboxes) |
 | Teste de DAGs | 🟡 Média | `tests/dags/test_dag_example.py` ainda é o exemplo padrão |
 | Bandit bloqueante no CI | 🟢 Baixa | Hoje roda com `--exit-zero` e nunca reprova o build |

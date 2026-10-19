@@ -3,10 +3,33 @@ version: 2
 models:
   - name: stg_ndw_traffic_flow
     description: "Fluxo de tráfego holandês — NDW DATEX II XML"
+    data_tests:
+      - unique_combination:
+          arguments:
+            combination_of_columns: [id, measured_at]
+      - expect_min_row_count:
+          arguments:
+            min_rows: 1000
     columns:
       - name: id
         tests: [not_null]
-      - name: vehicle_flow_rate
+      - name: measured_at
+        tests:
+          - expect_recent:
+              arguments:
+                max_age_days: 2
+              config:
+                severity: warn
+      - name: vehicle_flow_rate_per_hour
         description: "Veículos por hora no ponto de medição"
+        tests:
+          - expect_between:
+              arguments:
+                min_value: 0
       - name: avg_vehicle_speed_kmh
         description: "Velocidade média em km/h"
+        tests:
+          - expect_between:
+              arguments:
+                min_value: 0
+                max_value: 250

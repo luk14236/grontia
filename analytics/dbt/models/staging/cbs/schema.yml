@@ -1,13 +1,23 @@
 version: 2
 
+# Every CBS dataset is re-ingested daily by DAG 30, so ingestion_date older than
+# 2 days means the pipeline stopped (a warning, the previous load is still valid).
+# Range bounds are deliberately wide: they catch unit mistakes (keur vs eur) and
+# broken parsing, not genuine outliers.
+
 models:
   - name: stg_cbs_neighbourhood_key_figures
     description: "CBS key figures per municipality, district and neighbourhood, 2024 (85984NED)"
+    data_tests:
+      - expect_min_row_count:
+          arguments:
+            min_rows: 15000
     columns:
       - name: region_code
         description: "CBS region code (NL00, GMxxxx, WKxxxxxx, BUxxxxxxxx)"
         tests:
           - not_null
+          - unique
       - name: period_code
         description: "Period code (e.g. 2023JJ00)"
         tests:
@@ -15,9 +25,38 @@ models:
       - name: population
         tests:
           - not_null
+          - expect_between:
+              arguments:
+                min_value: 0
+      - name: pct_owner_occupied
+        tests:
+          - expect_between:
+              arguments:
+                min_value: 0
+                max_value: 100
+      - name: pct_rental
+        tests:
+          - expect_between:
+              arguments:
+                min_value: 0
+                max_value: 100
+      - name: ingestion_date
+        tests:
+          - expect_recent:
+              arguments:
+                max_age_days: 2
+              config:
+                severity: warn
 
   - name: stg_cbs_average_woz_value
     description: "Average WOZ property value by region, all ownership types (85036NED)"
+    data_tests:
+      - expect_min_row_count:
+          arguments:
+            min_rows: 3000
+      - unique_combination:
+          arguments:
+            combination_of_columns: [region_code, period_code]
     columns:
       - name: region_code
         tests:
@@ -26,14 +65,35 @@ models:
         tests:
           - not_null
       - name: avg_woz_value_eur
-        description: "CBS leaves the value empty for some municipalities (e.g. after mergers)"
+        description: >
+          CBS leaves the value empty for some municipalities (e.g. after mergers):
+          113 rows in Oct 2026, so only warn when that gap grows.
         tests:
           - not_null:
+              config:
+                severity: warn
+                warn_if: ">150"
+          - expect_between:
+              arguments:
+                min_value: 20000
+                max_value: 5000000
+      - name: ingestion_date
+        tests:
+          - expect_recent:
+              arguments:
+                max_age_days: 2
               config:
                 severity: warn
 
   - name: stg_cbs_housing_stock
     description: "Housing stock by ownership / landlord type (82900NED)"
+    data_tests:
+      - expect_min_row_count:
+          arguments:
+            min_rows: 6000
+      - unique_combination:
+          arguments:
+            combination_of_columns: [region_code, period_code]
     columns:
       - name: region_code
         tests:
@@ -41,9 +101,28 @@ models:
       - name: period_code
         tests:
           - not_null
+      - name: total_dwellings
+        tests:
+          - expect_between:
+              arguments:
+                min_value: 0
+      - name: ingestion_date
+        tests:
+          - expect_recent:
+              arguments:
+                max_age_days: 2
+              config:
+                severity: warn
 
   - name: stg_cbs_household_income
     description: "Disposable household income by region, all private households (86161NED)"
+    data_tests:
+      - expect_min_row_count:
+          arguments:
+            min_rows: 5000
+      - unique_combination:
+          arguments:
+            combination_of_columns: [region_code, period_code]
     columns:
       - name: region_code
         tests:
@@ -51,9 +130,35 @@ models:
       - name: period_code
         tests:
           - not_null
+      - name: avg_disposable_income_eur
+        tests:
+          - expect_between:
+              arguments:
+                min_value: 5000
+                max_value: 1000000
+      - name: median_disposable_income_eur
+        tests:
+          - expect_between:
+              arguments:
+                min_value: 5000
+                max_value: 1000000
+      - name: ingestion_date
+        tests:
+          - expect_recent:
+              arguments:
+                max_age_days: 2
+              config:
+                severity: warn
 
   - name: stg_cbs_sale_prices_annual
     description: "Average sale price of existing owner-occupied homes by region and year (83625NED)"
+    data_tests:
+      - expect_min_row_count:
+          arguments:
+            min_rows: 20000
+      - unique_combination:
+          arguments:
+            combination_of_columns: [region_code, year]
     columns:
       - name: region_code
         tests:
@@ -61,9 +166,29 @@ models:
       - name: year
         tests:
           - not_null
+      - name: avg_sale_price_eur
+        tests:
+          - expect_between:
+              arguments:
+                min_value: 10000
+                max_value: 5000000
+      - name: ingestion_date
+        tests:
+          - expect_recent:
+              arguments:
+                max_age_days: 2
+              config:
+                severity: warn
 
   - name: stg_cbs_sale_prices_by_home_type
     description: "Price index, homes sold and average sale price by home type, national (85791NED)"
+    data_tests:
+      - expect_min_row_count:
+          arguments:
+            min_rows: 1000
+      - unique_combination:
+          arguments:
+            combination_of_columns: [home_type_code, period_code]
     columns:
       - name: home_type
         tests:
@@ -71,9 +196,35 @@ models:
       - name: period_code
         tests:
           - not_null
+      - name: price_index_2020
+        tests:
+          - expect_between:
+              arguments:
+                min_value: 5
+                max_value: 500
+      - name: avg_sale_price_eur
+        tests:
+          - expect_between:
+              arguments:
+                min_value: 10000
+                max_value: 5000000
+      - name: ingestion_date
+        tests:
+          - expect_recent:
+              arguments:
+                max_age_days: 2
+              config:
+                severity: warn
 
   - name: stg_cbs_sale_price_index
     description: "Sale price index 2020=100 by province / big city, quarterly and yearly (85792NED)"
+    data_tests:
+      - expect_min_row_count:
+          arguments:
+            min_rows: 3000
+      - unique_combination:
+          arguments:
+            combination_of_columns: [region_code, period_code]
     columns:
       - name: region_code
         tests:
@@ -83,17 +234,51 @@ models:
           - accepted_values:
               arguments:
                 values: ['quarter', 'year']
+      - name: price_index_2020
+        tests:
+          - expect_between:
+              arguments:
+                min_value: 5
+                max_value: 500
+      - name: ingestion_date
+        tests:
+          - expect_recent:
+              arguments:
+                max_age_days: 2
+              config:
+                severity: warn
 
   - name: stg_cbs_rent_increase
     description: "Average yearly rent increase of dwellings, national (70675ned)"
+    data_tests:
+      - expect_min_row_count:
+          arguments:
+            min_rows: 60
     columns:
       - name: year
         tests:
           - not_null
           - unique
+      - name: rent_increase_pct
+        tests:
+          - expect_between:
+              arguments:
+                min_value: -20
+                max_value: 30
+      - name: ingestion_date
+        tests:
+          - expect_recent:
+              arguments:
+                max_age_days: 2
+              config:
+                severity: warn
 
   - name: stg_cbs_municipality_regions
     description: "Municipality to province mapping, 2024 borders (85755NED)"
+    data_tests:
+      - expect_min_row_count:
+          arguments:
+            min_rows: 300
     columns:
       - name: municipality_code
         tests:
@@ -102,3 +287,10 @@ models:
       - name: province_code
         tests:
           - not_null
+      - name: ingestion_date
+        tests:
+          - expect_recent:
+              arguments:
+                max_age_days: 2
+              config:
+                severity: warn

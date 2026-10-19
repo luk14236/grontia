@@ -89,6 +89,8 @@ Datasets are declared in [`orchestration/airflow/include/configs/datasets.yml`](
   - `mart_housing_market` — housing stock by dwelling type with WOZ value
   - `mart_weather_summary` — daily weather per station
   - `mart_neighbourhood_reference` — estimated current average sale price per municipality, district and neighbourhood
+  - `mart_livability` — Leefbaarometer score per region and year with national percentile and trend
+- **Data quality (~115 tests)** — grain uniqueness, value ranges, minimum row counts, referential integrity and freshness on every staging model and mart. Data errors stop the build; staleness only warns. Every run is logged to `OBSERVABILITY.dbt_run_results`, and DAG 40 alerts on failures and warnings (set `GRONTIA_ALERT_WEBHOOK_URL` for a Slack-compatible webhook).
 
 ---
 
@@ -134,8 +136,8 @@ docs/                    Documentation, architecture decisions, diagrams
 | 1. Local platform (Airflow, S3 storage, Docker) | ✅ Done |
 | 2. Batch ingestion into bronze | ✅ Done |
 | 3. Modeling and transformations (silver, dbt) | ✅ Done |
-| 4. Data quality and observability (broader dbt tests, freshness, alerts) | 🚧 Next |
-| 5. MotherDuck deployment from CI | ⏳ Pending |
+| 4. Data quality and observability (broader dbt tests, freshness, alerts) | ✅ Done |
+| 5. MotherDuck deployment from CI | 🚧 Next |
 | 6. Near real-time traffic pipeline (NDW) | ⏳ Planned |
 | 7. Serving: address evaluation on top of `mart_neighbourhood_reference` | ⏳ Planned |
 

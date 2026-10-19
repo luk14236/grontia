@@ -3,12 +3,61 @@ version: 2
 models:
   - name: stg_knmi_daily_weather
     description: "Observações meteorológicas diárias de todas as estações KNMI"
+    data_tests:
+      - unique_combination:
+          arguments:
+            combination_of_columns: [station_code, date]
+      - expect_min_row_count:
+          arguments:
+            min_rows: 30
     columns:
       - name: station_code
         tests: [not_null]
       - name: date
-        tests: [not_null]
+        description: "KNMI publishes with a 1-2 day lag; older than 5 days means the source stalled"
+        tests:
+          - not_null
+          - expect_recent:
+              arguments:
+                max_age_days: 5
+              config:
+                severity: warn
       - name: temp_avg_c
         description: "Temperatura média do dia em °C"
+        tests:
+          - expect_between:
+              arguments:
+                min_value: -40
+                max_value: 45
+      - name: temp_min_c
+        tests:
+          - expect_between:
+              arguments:
+                min_value: -40
+                max_value: 45
+      - name: temp_max_c
+        tests:
+          - expect_between:
+              arguments:
+                min_value: -40
+                max_value: 45
       - name: precipitation_mm
         description: "Precipitação total do dia em mm"
+        tests:
+          - expect_between:
+              arguments:
+                min_value: 0
+                max_value: 300
+      - name: sunshine_pct
+        tests:
+          - expect_between:
+              arguments:
+                min_value: 0
+                max_value: 100
+      - name: ingestion_date
+        tests:
+          - expect_recent:
+              arguments:
+                max_age_days: 2
+              config:
+                severity: warn
