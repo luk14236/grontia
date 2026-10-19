@@ -111,20 +111,23 @@ def run(args: argparse.Namespace) -> dict:
 
     since = (date.today() - timedelta(days=180)).isoformat()
     # The context sources are independent public APIs (the notices search alone
-    # takes ~10 s), so they run side by side
+    # takes ~10 s, far more in a big city), so they run side by side. The web
+    # app shows no news and must answer within Heroku's 30 s, so it skips them.
+    with_news = getattr(args, "with_news", True)
     with ThreadPoolExecutor(max_workers=3) as pool:
         crime = pool.submit(_optional, "crime", crime_context, address, profile)
-        notices = pool.submit(
-            _optional, "official notices", sources.official_notices,
-            address["municipality_name"], address["postcode"], address["street"], since)
-        headlines = pool.submit(_optional, "headlines", sources.news_headlines, address["place"])
+        if with_news:
+            notices = pool.submit(
+                _optional, "official notices", sources.official_notices,
+                address["municipality_name"], address["postcode"], address["street"], since)
+            headlines = pool.submit(_optional, "headlines", sources.news_headlines, address["place"])
         livability_by_region = livability(con, address)
 
     result = {
         "generated_on": date.today().isoformat(),
         "address": address,
         "dwelling": dwelling,
-        "user_inputs": {k: v for k, v in vars(args).items() if k not in ("out", "with_geometry") and v is not None},
+        "user_inputs": {k: v for k, v in vars(args).items() if k not in ("out", "with_geometry", "with_news") and v is not None},
         "purchase": {**value, "appreciation": valuation.appreciation(con, address)},
         "rent": rent,
         "neighbourhood": {
@@ -139,7 +142,7 @@ def run(args: argparse.Namespace) -> dict:
         "news": {
             "official_notices": notices.result(),
             "headlines": headlines.result(),
-        },
+        } if with_news else None,
     }
     # The web app draws the neighbourhood on its map; the CLI JSON stays lean
     if getattr(args, "with_geometry", False):

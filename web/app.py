@@ -103,7 +103,9 @@ def evaluate(req: EvaluateRequest) -> dict:
     fields["postcode"] = fields["postcode"].replace(" ", "").upper()
     fields["suffix"] = (fields["suffix"] or "").strip() or None
     try:
-        return run(Namespace(**fields, out=None, with_geometry=True))
+        # news (official notices, headlines) is not shown on the site, and in a
+        # big city the notices search alone outlasts Heroku's 30 s limit
+        return run(Namespace(**fields, out=None, with_geometry=True, with_news=False))
     except ValueError as e:
         raise HTTPException(404, str(e))
     except requests.RequestException as e:
