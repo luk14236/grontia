@@ -6,10 +6,17 @@ import os
 import duckdb
 
 DUCKDB_PATH = os.getenv("GRONTIA_DUCKDB_PATH", "/opt/grontia/warehouse/grontia.duckdb")
+# Must match the md: path of the motherduck output in analytics/dbt/profiles.yml
+MOTHERDUCK_DB = "grontia"
 STAGING, MARTS = '"main_STAGING"', '"main_MARTS"'
 
 
 def connect() -> duckdb.DuckDBPyConnection:
+    # Read wherever DAG 40 publishes: with the motherduck target the local file
+    # is no longer refreshed, and staging there is made of tables (no S3 needed)
+    if os.getenv("GRONTIA_DBT_TARGET") == "motherduck":
+        return duckdb.connect(f"md:{MOTHERDUCK_DB}?motherduck_token={os.environ['MOTHERDUCK_TOKEN']}")
+
     con = duckdb.connect(DUCKDB_PATH, read_only=True)
     # Staging models are views over the silver Parquet files in S3
     endpoint = os.getenv("MINIO_ENDPOINT", "http://localhost:9000")
