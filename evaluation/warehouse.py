@@ -19,10 +19,14 @@ def connect() -> duckdb.DuckDBPyConnection:
     # is no longer refreshed, and staging there is made of tables (no S3 needed)
     if os.getenv("GRONTIA_DBT_TARGET") == "motherduck":
         # Opening md: costs a few seconds, so the web app shares one connection
-        # and hands each request its own cursor (DuckDB's per-thread handle)
+        # and hands each request its own cursor (DuckDB's per-thread handle).
+        # READ_ONLY must go in config: as a URL parameter MotherDuck ignores it.
+        # The free plan has no read-only tokens, so this is what stops the
+        # public web app from ever writing.
         global _motherduck
         if _motherduck is None:
-            _motherduck = duckdb.connect(f"md:{MOTHERDUCK_DB}?motherduck_token={os.environ['MOTHERDUCK_TOKEN']}")
+            _motherduck = duckdb.connect(f"md:{MOTHERDUCK_DB}?motherduck_token={os.environ['MOTHERDUCK_TOKEN']}",
+                                         config={"access_mode": "READ_ONLY"})
         return _motherduck.cursor()
 
     con = duckdb.connect(DUCKDB_PATH, read_only=True)

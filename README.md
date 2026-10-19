@@ -133,7 +133,7 @@ Step-by-step instructions are in [`docs/PROJETO_COMPLETO.md`](docs/PROJETO_COMPL
 
 The API lives at `/api/evaluate` and `/api/listing` (docs at `/api/docs`) and reads the warehouse wherever DAG 40 publishes it. The page also has an **About** view that explains the project, the data and the privacy rules.
 
-**Public deployment:** the web app runs on Heroku and reads MotherDuck; the data pipeline stays on the author's machine and refreshes MotherDuck daily. See [`docs/deploy-heroku.md`](docs/deploy-heroku.md) (`Procfile`, root `requirements.txt`, rate limit, optional password).
+**Public deployment:** the web app runs on Heroku and reads MotherDuck; the data pipeline stays on the author's machine and refreshes MotherDuck daily. See [`docs/deploy-heroku.md`](docs/deploy-heroku.md) (`Procfile`, root `requirements.txt`, rate limit, optional password, read-only MotherDuck connection).
 
 ---
 
