@@ -64,6 +64,19 @@ O Heroku só recebe a app web. O `.slugignore` deixa o pipeline, o dbt e a docum
    ```
    Depois faça uma avaliação pelo site. A primeira de cada dyno demora alguns segundos a mais porque o DuckDB baixa a extensão do MotherDuck e abre a conexão.
 
+## Deploy automático (GitHub Actions)
+
+O workflow `.github/workflows/deploy-web.yml` publica no Heroku a cada push em `main` que mexa na app web (`web/`, `evaluation/`, `requirements.txt`, `Procfile`, `.python-version`, `.slugignore`). Commits só do pipeline não disparam deploy, para não reiniciar o dyno à toa. Também dá para rodar à mão em Actions → *Deploy web app (Heroku)* → *Run workflow*.
+
+1. **check:** instala o `requirements.txt`, importa a app, testa o leitor de PDF com um anúncio de exemplo e confere a sintaxe do JS.
+2. **deploy:** `git push` para `git.heroku.com/grontia.git` e espera o `/api/health` responder.
+
+Configuração única: em GitHub → Settings → Secrets and variables → Actions, crie o secret **`HEROKU_API_KEY`**. O valor é uma chave da API do Heroku só para esse fim:
+```bash
+heroku authorizations:create -d "GitHub Actions deploy (grontia)" --expires-in 31536000
+```
+A chave vale 1 ano; depois disso, gere outra e troque o secret. O `git push heroku main` manual continua funcionando.
+
 ## Como os dados chegam ao site
 
 O site lê sempre o que está no MotherDuck. O DAG 40 atualiza o banco depois de cada ingestão diária na sua máquina. Se a máquina ficar desligada, o site continua no ar com os dados da última carga, e os testes de freshness avisam quando o pipeline voltar.
