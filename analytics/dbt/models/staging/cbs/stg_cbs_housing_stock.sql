@@ -1,6 +1,6 @@
 -- CBS 82900NED, filtered to StatusVanBewoning = Totaal (occupied + vacant) at ingestion.
 with source as (
-    select * from read_parquet('s3://silver/cbs/housing_stock/**/*.parquet', hive_partitioning = true)
+    select * from {{ read_silver('cbs/housing_stock') }}
     qualify ingestion_date = max(ingestion_date) over ()
 ),
 

@@ -419,30 +419,32 @@ DuckDB é um banco de dados analítico embutido — funciona como uma biblioteca
 
 MotherDuck é DuckDB hospedado na nuvem com free tier permanente (10 GB). É o DW de produção do projeto.
 
-**Para usar:**
-1. Criar conta em https://app.motherduck.com
-2. Gerar token em Settings → Tokens
-3. Configurar:
+**Como o deploy funciona:** o próprio Airflow local roda o dbt com destino MotherDuck. O dbt lê o silver no SeaweedFS local e grava as tabelas na nuvem. Assim o S3 nunca precisa ficar exposto na internet, e o CI só valida o código (seção 11).
+
+Dois detalhes tornam isso possível:
+- **`MD_RUN = LOCAL`**: por padrão o MotherDuck executa leituras `s3://` na nuvem, que não alcança o `s3:9000` local. O macro `read_silver()` (`analytics/dbt/macros/read_silver.sql`) adiciona esse parâmetro só no target `motherduck`, então a leitura acontece no cliente e só o resultado sobe.
+- **Staging como tabela**: no MotherDuck o staging é materializado como tabela, não view. Uma view releria o S3 local a cada consulta, o que a nuvem e outros clientes não conseguem.
+
+**Para ativar:**
+1. Criar conta em https://app.motherduck.com e gerar um token (Settings → Tokens)
+2. Em `orchestration/airflow/.env`:
 
 ```bash
-# .env
 MOTHERDUCK_TOKEN=seu_token_aqui
+GRONTIA_DBT_TARGET=motherduck
 ```
 
-```bash
-# GitHub Secrets (para CI/CD)
-MOTHERDUCK_TOKEN = seu_token_aqui
-MINIO_ENDPOINT   = https://seu-s3-publico.com  # ou túnel (ngrok, cloudflared)
-MINIO_ACCESS_KEY = minioadmin
-MINIO_SECRET_KEY = minioadmin
-```
+3. `docker compose up -d` (recria os containers com o novo ambiente) e disparar o DAG 40.
 
-**Schemas criados pelo dbt:**
+A task `ensure_warehouse` cria o banco `grontia` no MotherDuck se ele ainda não existir (idempotente). Com `GRONTIA_DBT_TARGET=dev` ela não faz nada.
 
-| Schema | Conteúdo |
-|---|---|
-| `STAGING` | 12 views (uma por dataset) |
-| `MARTS` | 4 tabelas analíticas finais |
+**Schemas criados pelo dbt** (o prefixo `main_` vem do schema padrão do target):
+
+| Schema | Conteúdo no `dev` | Conteúdo no `motherduck` |
+|---|---|---|
+| `main_STAGING` | 14 views (uma por dataset) | 14 tabelas |
+| `main_MARTS` | 5 tabelas analíticas finais | 5 tabelas |
+| `main_OBSERVABILITY` | `dbt_run_results` (histórico de testes) | idem |
 
 ---
 
@@ -557,11 +559,7 @@ validate
           ↓
 dbt-validate
   └── dbt parse --target dev
-          ↓ (apenas em push para main)
-dbt-deploy
-  ├── dbt run --target motherduck
-  └── dbt test --target motherduck
-          ↓ (paralelo com dbt-deploy)
+          ↓ (em paralelo)
 security-scan
   ├── bandit (vulnerabilidades Python)
   └── safety (vulnerabilidades de dependências)
@@ -578,16 +576,9 @@ Toda segunda-feira às 2h UTC:
 - Bandit (code security)
 - Safety (dependency vulnerabilities)
 
-### Secrets necessários no GitHub
+### Por que o CI não faz deploy
 
-Para o `dbt-deploy` funcionar no CI, configure em **Settings → Secrets → Actions**:
-
-```
-MOTHERDUCK_TOKEN   = token do MotherDuck
-MINIO_ENDPOINT     = URL pública do storage S3 (ou túnel)
-MINIO_ACCESS_KEY   = minioadmin
-MINIO_SECRET_KEY   = minioadmin
-```
+O silver fica no S3 local, que os runners do GitHub não alcançam. O deploy no MotherDuck é feito pelo DAG 40 (seção 9). Por isso o CI não precisa de nenhum secret.
 
 ---
 
@@ -672,8 +663,9 @@ cd analytics/dbt
 dbt run --target dev
 dbt test --target dev
 
-# Nuvem (MotherDuck) — requer MOTHERDUCK_TOKEN no .env
-dbt run --target motherduck
+# Nuvem (MotherDuck): normalmente via DAG 40 com GRONTIA_DBT_TARGET=motherduck.
+# Rodando à mão, o MOTHERDUCK_TOKEN precisa estar no ambiente
+dbt build --target motherduck
 ```
 
 ### Etapa 4 — Consultar os dados
@@ -689,7 +681,7 @@ con.execute("SELECT * FROM main_MARTS.mart_regional_dashboard LIMIT 10").df()
 ```python
 import duckdb
 con = duckdb.connect("md:grontia?motherduck_token=SEU_TOKEN")
-con.execute("SELECT * FROM MARTS.mart_regional_dashboard LIMIT 10").df()
+con.execute("SELECT * FROM main_MARTS.mart_regional_dashboard LIMIT 10").df()
 ```
 
 ---
@@ -716,7 +708,8 @@ con.execute("SELECT * FROM MARTS.mart_regional_dashboard LIMIT 10").df()
 | Observabilidade + alertas | ✅ Pronto | `OBSERVABILITY.dbt_run_results` + alertas via webhook nos DAGs 30 e 40 |
 | dbt mart_neighbourhood_reference | ✅ Pronto | Preço médio estimado atual por município, wijk e buurt (base para avaliar endereços) |
 | profiles.yml (dev + motherduck) | ✅ Pronto | Dois targets configurados |
-| CI/CD GitHub Actions | ✅ Pronto | validate + dbt parse; o deploy depende do MotherDuck (seção 15) |
+| CI/CD GitHub Actions | ✅ Pronto | validate + dbt parse + security scan; o deploy é feito pelo DAG 40 |
+| Deploy no MotherDuck | 🟡 Pronto, falta o token | `read_silver()` com `MD_RUN = LOCAL`, staging como tabela, `ensure_warehouse` no DAG 40 |
 | datasets.yml (catalog) | ✅ Pronto | Todas as fontes sem duplicatas |
 | .env.example | ✅ Pronto | Template completo |
 
@@ -726,8 +719,7 @@ con.execute("SELECT * FROM MARTS.mart_regional_dashboard LIMIT 10").df()
 
 | Item | Prioridade | O que é necessário |
 |---|---|---|
-| MOTHERDUCK_TOKEN | 🔴 Alta | Criar conta em app.motherduck.com |
-| Storage S3 público (para CI/CD) | 🟡 Média | Túnel ou VPS para o dbt-deploy acessar o silver |
+| MOTHERDUCK_TOKEN | 🔴 Alta | Criar conta em app.motherduck.com, pôr o token e `GRONTIA_DBT_TARGET=motherduck` no `.env` |
 | Mart de tráfego (NDW) | 🟡 Média | Criar `mart_traffic_flow.sql` quando silver NDW estiver populado |
 | PDOK além da bbox | 🟡 Média | Cobrir o país inteiro (extrato BAG ou várias bboxes) |
 | Teste de DAGs | 🟡 Média | `tests/dags/test_dag_example.py` ainda é o exemplo padrão |

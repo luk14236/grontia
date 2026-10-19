@@ -2,7 +2,7 @@
 -- Regions: NL, landsdelen, provinces and the 4 largest municipalities.
 -- Periods are quarters (YYYYKWqq) plus yearly totals (YYYYJJ00).
 with source as (
-    select * from read_parquet('s3://silver/cbs/sale_price_index_quarterly/**/*.parquet', hive_partitioning = true)
+    select * from {{ read_silver('cbs/sale_price_index_quarterly') }}
     qualify ingestion_date = max(ingestion_date) over ()
 ),
 

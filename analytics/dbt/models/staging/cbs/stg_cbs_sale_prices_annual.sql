@@ -1,6 +1,6 @@
 -- CBS 83625NED: average sale price of existing owner-occupied homes, per year.
 with source as (
-    select * from read_parquet('s3://silver/cbs/sale_prices_annual/**/*.parquet', hive_partitioning = true)
+    select * from {{ read_silver('cbs/sale_prices_annual') }}
     qualify ingestion_date = max(ingestion_date) over ()
 ),
 

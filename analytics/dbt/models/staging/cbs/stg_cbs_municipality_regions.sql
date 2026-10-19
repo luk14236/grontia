@@ -1,7 +1,7 @@
 -- CBS 85755NED "Gebieden in Nederland 2024": one row per municipality with the
 -- higher-level regions it belongs to. Same municipal borders as 85984NED.
 with source as (
-    select * from read_parquet('s3://silver/cbs/municipality_regions/**/*.parquet', hive_partitioning = true)
+    select * from {{ read_silver('cbs/municipality_regions') }}
     qualify ingestion_date = max(ingestion_date) over ()
 ),
 

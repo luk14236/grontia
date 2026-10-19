@@ -6,7 +6,7 @@
 --   (onveiligheid: higher = safer), social cohesion, amenities and housing stock.
 --   Dimensions are only published for 2014 and from 2018 on.
 with source as (
-    select * from read_parquet('s3://silver/leefbaarometer/scores/**/*.parquet', hive_partitioning = true)
+    select * from {{ read_silver('leefbaarometer/scores') }}
     qualify ingestion_date = max(ingestion_date) over ()
 )
 

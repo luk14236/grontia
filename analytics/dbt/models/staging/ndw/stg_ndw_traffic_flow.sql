@@ -1,5 +1,5 @@
 with source as (
-    select * from read_parquet('s3://silver/ndw/current_traffic_flow/**/*.parquet', hive_partitioning = true)
+    select * from {{ read_silver('ndw/current_traffic_flow') }}
     qualify row_number() over (partition by id, period order by ingestion_date desc) = 1
 ),
 

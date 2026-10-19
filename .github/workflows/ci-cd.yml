@@ -50,31 +50,9 @@ jobs:
           MINIO_SECRET_KEY: minioadmin
         run: dbt parse --target dev
 
-  dbt-deploy:
-    name: dbt Run (MotherDuck)
-    runs-on: ubuntu-latest
-    needs: [validate, dbt-validate]
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-
-      - name: Install dbt-duckdb
-        run: pip install dbt-duckdb
-
-      - name: dbt run + test (MotherDuck)
-        working-directory: analytics/dbt
-        env:
-          MOTHERDUCK_TOKEN: ${{ secrets.MOTHERDUCK_TOKEN }}
-          MINIO_ENDPOINT:   ${{ secrets.MINIO_ENDPOINT }}
-          MINIO_ACCESS_KEY: ${{ secrets.MINIO_ACCESS_KEY }}
-          MINIO_SECRET_KEY: ${{ secrets.MINIO_SECRET_KEY }}
-        run: |
-          dbt run --target motherduck
-          dbt test --target motherduck
+  # No dbt deploy job: the silver layer lives in the local S3 store, which
+  # GitHub runners can't reach. DAG 40 builds the marts into MotherDuck
+  # instead (GRONTIA_DBT_TARGET=motherduck), so CI only validates.
 
   security-scan:
     name: Security Scan

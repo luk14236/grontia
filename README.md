@@ -113,6 +113,8 @@ cd analytics/dbt
 dbt run --target dev --profiles-dir . && dbt test --target dev --profiles-dir .
 ```
 
+DAG 40 runs steps 2 and 3 automatically after each ingestion. To publish the marts to MotherDuck instead of the local DuckDB file, set `MOTHERDUCK_TOKEN` and `GRONTIA_DBT_TARGET=motherduck` in `orchestration/airflow/.env` and recreate the containers.
+
 Step-by-step instructions are in [`docs/PROJETO_COMPLETO.md`](docs/PROJETO_COMPLETO.md#12-como-subir-o-ambiente-local).
 
 ---
@@ -137,7 +139,7 @@ docs/                    Documentation, architecture decisions, diagrams
 | 2. Batch ingestion into bronze | ✅ Done |
 | 3. Modeling and transformations (silver, dbt) | ✅ Done |
 | 4. Data quality and observability (broader dbt tests, freshness, alerts) | ✅ Done |
-| 5. MotherDuck deployment from CI | 🚧 Next |
+| 5. MotherDuck deployment (DAG 40 builds into MotherDuck; CI only validates) | 🟡 Ready, needs `MOTHERDUCK_TOKEN` |
 | 6. Near real-time traffic pipeline (NDW) | ⏳ Planned |
 | 7. Serving: address evaluation on top of `mart_neighbourhood_reference` | ⏳ Planned |
 

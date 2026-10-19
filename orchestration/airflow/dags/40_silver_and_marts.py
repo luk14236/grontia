@@ -21,6 +21,8 @@ logger = logging.getLogger(__name__)
 
 PROCESSING_DIR = "/opt/grontia/processing/local"
 DBT_DIR        = "/opt/grontia/dbt"
+# Must match the md: path of the motherduck output in analytics/dbt/profiles.yml
+MOTHERDUCK_DB  = "grontia"
 
 
 @task
@@ -85,6 +87,25 @@ with DAG(
         execution_timeout=timedelta(hours=1),
     )
 
+    # dbt connects to md:<db>, so the MotherDuck database has to exist first.
+    # The token is read from the environment and never rendered into the log.
+    ensure_warehouse = BashOperator(
+        task_id="ensure_warehouse",
+        bash_command=f"""
+if [ "$GRONTIA_DBT_TARGET" != "motherduck" ]; then
+  echo "target $GRONTIA_DBT_TARGET: local DuckDB file, nothing to create"; exit 0
+fi
+$PIPELINE_VENV/bin/python - <<'PY'
+import os, sys, duckdb
+token = os.environ.get("MOTHERDUCK_TOKEN")
+if not token:
+    sys.exit("GRONTIA_DBT_TARGET=motherduck but MOTHERDUCK_TOKEN is empty (orchestration/airflow/.env)")
+duckdb.connect("md:?motherduck_token=" + token).execute("create database if not exists {MOTHERDUCK_DB}")
+print("MotherDuck database ready: {MOTHERDUCK_DB}")
+PY
+""",
+    )
+
     dbt_build = BashOperator(
         task_id="dbt_build",
         bash_command=(
@@ -96,4 +117,4 @@ with DAG(
         on_failure_callback=dbt_failure_alert,
     )
 
-    ing_date >> bronze_to_silver >> dbt_build >> check_data_quality()
+    ing_date >> bronze_to_silver >> ensure_warehouse >> dbt_build >> check_data_quality()

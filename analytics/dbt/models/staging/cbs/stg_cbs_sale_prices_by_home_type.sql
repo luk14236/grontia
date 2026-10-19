@@ -1,7 +1,7 @@
 -- CBS 85791NED: price index (2020=100), homes sold and average sale price of
 -- existing homes per home type. National only; quarters (YYYYKWqq) and years (YYYYJJ00).
 with source as (
-    select * from read_parquet('s3://silver/cbs/sale_prices_by_home_type/**/*.parquet', hive_partitioning = true)
+    select * from {{ read_silver('cbs/sale_prices_by_home_type') }}
     qualify ingestion_date = max(ingestion_date) over ()
 ),
 

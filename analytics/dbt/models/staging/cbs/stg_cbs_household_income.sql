@@ -1,6 +1,6 @@
 -- CBS 86161NED, filtered to all private households at ingestion.
 with source as (
-    select * from read_parquet('s3://silver/cbs/household_income/**/*.parquet', hive_partitioning = true)
+    select * from {{ read_silver('cbs/household_income') }}
     qualify ingestion_date = max(ingestion_date) over ()
 ),
 

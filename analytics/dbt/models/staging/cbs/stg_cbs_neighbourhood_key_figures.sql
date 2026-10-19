@@ -2,7 +2,7 @@
 -- country / municipality (GM) / district (WK) / neighbourhood (BU).
 -- The table covers a single year, so period_code is constant.
 with source as (
-    select * from read_parquet('s3://silver/cbs/neighbourhood_key_figures/**/*.parquet', hive_partitioning = true)
+    select * from {{ read_silver('cbs/neighbourhood_key_figures') }}
     qualify ingestion_date = max(ingestion_date) over ()
 ),
 

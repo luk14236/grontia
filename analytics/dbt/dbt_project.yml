@@ -19,7 +19,9 @@ clean-targets:
 models:
   grontia:
     staging:
-      +materialized: view
+      # On MotherDuck, staging must be tables: a view would re-read the local
+      # S3 store on every query, which the cloud (and other clients) can't reach.
+      +materialized: "{{ 'table' if target.name == 'motherduck' else 'view' }}"
       +schema: STAGING
     intermediate:
       +materialized: view

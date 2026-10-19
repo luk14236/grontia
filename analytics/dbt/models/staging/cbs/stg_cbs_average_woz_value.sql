@@ -1,6 +1,6 @@
 -- CBS 85036NED, filtered to Eigendom = Totaal (all ownership types) at ingestion.
 with source as (
-    select * from read_parquet('s3://silver/cbs/average_woz_value/**/*.parquet', hive_partitioning = true)
+    select * from {{ read_silver('cbs/average_woz_value') }}
     qualify ingestion_date = max(ingestion_date) over ()
 ),
 

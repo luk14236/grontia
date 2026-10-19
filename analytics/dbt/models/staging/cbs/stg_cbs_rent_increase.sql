@@ -1,6 +1,6 @@
 -- CBS 70675ned: average yearly rent increase of dwellings, national.
 with source as (
-    select * from read_parquet('s3://silver/cbs/rent_increase/**/*.parquet', hive_partitioning = true)
+    select * from {{ read_silver('cbs/rent_increase') }}
     qualify ingestion_date = max(ingestion_date) over ()
 ),
 
