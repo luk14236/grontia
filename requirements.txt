@@ -1,0 +1,10 @@
+# Web app only (deployed to Heroku: see Procfile and docs/deploy-heroku.md).
+# The data pipeline has its own requirements in orchestration/airflow/.
+# duckdb is pinned to the version MotherDuck was tested with.
+duckdb==1.5.6
+fastapi==0.115.14
+uvicorn==0.32.1
+python-multipart==0.0.32
+pypdf==5.1.0
+requests==2.34.2
+PyYAML==6.0.3

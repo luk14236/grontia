@@ -15,6 +15,7 @@ import argparse
 import json
 import logging
 import os
+from concurrent.futures import ThreadPoolExecutor
 from datetime import date, timedelta
 from pathlib import Path
 
@@ -109,6 +110,16 @@ def run(args: argparse.Namespace) -> dict:
                   woz_range=None if args.woz else woz_range_from_valuation(con, address, value))
 
     since = (date.today() - timedelta(days=180)).isoformat()
+    # The context sources are independent public APIs (the notices search alone
+    # takes ~10 s), so they run side by side
+    with ThreadPoolExecutor(max_workers=3) as pool:
+        crime = pool.submit(_optional, "crime", crime_context, address, profile)
+        notices = pool.submit(
+            _optional, "official notices", sources.official_notices,
+            address["municipality_name"], address["postcode"], address["street"], since)
+        headlines = pool.submit(_optional, "headlines", sources.news_headlines, address["place"])
+        livability_by_region = livability(con, address)
+
     result = {
         "generated_on": date.today().isoformat(),
         "address": address,
@@ -122,14 +133,12 @@ def run(args: argparse.Namespace) -> dict:
                 "omgevingsadressendichtheid", "stedelijkheid_adressen_per_km2")},
             "dwelling_sizes": sizes,
             "key_figures": profile,
-            "livability": livability(con, address),
-            "crime": _optional("crime", crime_context, address, profile),
+            "livability": livability_by_region,
+            "crime": crime.result(),
         },
         "news": {
-            "official_notices": _optional(
-                "official notices", sources.official_notices,
-                address["municipality_name"], address["postcode"], address["street"], since),
-            "headlines": _optional("headlines", sources.news_headlines, address["place"]),
+            "official_notices": notices.result(),
+            "headlines": headlines.result(),
         },
     }
     # The web app draws the neighbourhood on its map; the CLI JSON stays lean

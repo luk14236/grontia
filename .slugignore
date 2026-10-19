@@ -1,0 +1,9 @@
+# Heroku only runs the web app (web/ + evaluation/); the pipeline stays local
+analytics/
+orchestration/
+processing/
+scripts/
+storage/
+docs/
+.github/
+.claude/

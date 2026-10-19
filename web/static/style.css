@@ -50,7 +50,21 @@ h2 { font-size: 1.15rem; }
 h3 { font-size: .78rem; text-transform: uppercase; letter-spacing: .1em; color: var(--muted); }
 p { margin: 0; }
 .brand { display: flex; justify-content: space-between; align-items: start; gap: 12px; }
-.brand p { color: var(--muted); font-size: .9rem; max-width: 30ch; }
+.mark { display: flex; gap: 10px; align-items: center; color: inherit; text-decoration: none; min-width: 0; }
+.mark img { flex: none; }
+.brand p { color: var(--muted); font-size: .86rem; max-width: 28ch; }
+.tools { display: grid; gap: 6px; justify-items: end; flex: none; }
+button.link { border: 0; background: none; padding: 2px 0; color: var(--accent); font: 600 .84rem var(--body); cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
+.tool { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; }
+
+.about { display: grid; grid-template-columns: minmax(0, 1fr); gap: 18px; }
+.about > p.intro { font-size: 1rem; }
+.about section { display: grid; gap: 8px; }
+.about h2 { font-size: 1.05rem; }
+.about ul { margin: 0; padding-left: 18px; display: grid; gap: 6px; font-size: .92rem; }
+.about p { font-size: .92rem; }
+.about .meta { color: var(--muted); font-size: .84rem; }
+.about a { color: var(--accent); }
 
 .lang { display: flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; flex: none; }
 .lang button { border: 0; background: none; color: var(--muted); font: 600 .8rem var(--body); padding: 6px 10px; cursor: pointer; }

@@ -11,11 +11,19 @@ MOTHERDUCK_DB = "grontia"
 STAGING, MARTS = '"main_STAGING"', '"main_MARTS"'
 
 
+_motherduck: duckdb.DuckDBPyConnection | None = None
+
+
 def connect() -> duckdb.DuckDBPyConnection:
     # Read wherever DAG 40 publishes: with the motherduck target the local file
     # is no longer refreshed, and staging there is made of tables (no S3 needed)
     if os.getenv("GRONTIA_DBT_TARGET") == "motherduck":
-        return duckdb.connect(f"md:{MOTHERDUCK_DB}?motherduck_token={os.environ['MOTHERDUCK_TOKEN']}")
+        # Opening md: costs a few seconds, so the web app shares one connection
+        # and hands each request its own cursor (DuckDB's per-thread handle)
+        global _motherduck
+        if _motherduck is None:
+            _motherduck = duckdb.connect(f"md:{MOTHERDUCK_DB}?motherduck_token={os.environ['MOTHERDUCK_TOKEN']}")
+        return _motherduck.cursor()
 
     con = duckdb.connect(DUCKDB_PATH, read_only=True)
     # Staging models are views over the silver Parquet files in S3

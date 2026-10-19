@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Grontia">
+  <!-- Map pin holding a narrow Dutch canal-house front with a step gable (trapgevel) -->
+  <path fill="#0b5cad" d="M32 3C18.2 3 7 13.9 7 27.4 7 44.6 32 61 32 61s25-16.4 25-33.6C57 13.9 45.8 3 32 3Z"/>
+  <path fill="#ffffff" d="M21.5 43V30h2.5v-4.5h2.5V21H29v-4.5h6V21h2.5v4.5H40V30h2.5v13Z"/>
+  <path fill="#0b5cad" d="M29.5 43v-5.5a2.5 2.5 0 0 1 5 0V43Z"/>
+  <rect fill="#0b5cad" x="30.5" y="22.5" width="3" height="4" rx=".5"/>
+  <rect fill="#f2a33a" x="25" y="31.5" width="3" height="4" rx=".5"/>
+  <rect fill="#f2a33a" x="36" y="31.5" width="3" height="4" rx=".5"/>
+</svg>

@@ -7,6 +7,7 @@ come from the user. News headlines are kept as title + link + date only.
 from __future__ import annotations
 
 import logging
+import os
 import re
 import statistics
 import xml.etree.ElementTree as ET
@@ -24,7 +25,8 @@ POLITIE        = "https://dataderden.cbs.nl/ODataApi/odata/47022NED"
 BEKENDMAKINGEN = "https://repository.overheid.nl/sru"
 NEWS_RSS       = "https://news.google.com/rss/search"
 
-TIMEOUT = 60
+# The web app on Heroku lowers this: its router drops requests after 30 s
+TIMEOUT = float(os.getenv("GRONTIA_HTTP_TIMEOUT", "60"))
 
 
 def _get(url: str, **params) -> requests.Response:

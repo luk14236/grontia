@@ -68,6 +68,36 @@ window.I18N = {
     buildYear: "Built",
     assumptions: "Assumptions behind the rent estimate",
     marker: "Selected address",
+    aboutBtn: "About",
+    backBtn: "Back to the check",
+    tooMany: "You've run many checks in a short time. Try again in a few minutes.",
+    about: {
+      title: "About Grontia",
+      intro: "Grontia checks whether the asking price or rent of a home in the Netherlands is in line with what open government data says about that address and its neighbourhood. It is an independent, open-source project.",
+      sections: [
+        { h: "How the check works", items: [
+          "Address: the PDOK address register and the BAG building register give the floor area, the build year and whether the home is an apartment.",
+          "Value: the municipality's average sale price (CBS) is brought to the latest quarter with the regional price index, then scaled to the neighbourhood by its average WOZ value. A recent comparable sale you enter weighs more than these averages.",
+          "Rent: the 2026 WWS points system gives the legal maximum base rent. From 187 points a home is in the free sector, with no maximum at the start of the contract. The deposit may be at most two months' base rent.",
+          "Neighbourhood: livability from the Leefbaarometer, registered crime from the police, and CBS key figures.",
+        ] },
+        { h: "Where the data comes from", p: "A data pipeline on the author's own machine (Apache Airflow, PySpark and dbt) collects data from CBS, PDOK, the Leefbaarometer, KNMI and NDW every day, runs more than 120 data-quality tests and publishes the result to a MotherDuck warehouse. This site reads from that warehouse." },
+        { h: "Your privacy", items: [
+          "Nothing you enter is stored: not the address, not the prices, not the result.",
+          "A listing PDF is read in memory to fill in the form and then discarded.",
+          "Grontia never visits listing sites such as Funda or Pararius. You bring the listing.",
+          "To check an address, the site asks public services (PDOK, CBS, Politie) about it, and your browser loads the map from PDOK.",
+        ] },
+        { h: "Limits", items: [
+          "These are estimates, not a valuation report (taxatierapport) or legal advice.",
+          "Neighbourhood averages miss what sets one home apart: renovation, view, garden, condition. New and energy-efficient homes are often underestimated.",
+          "The rent check assumes typical values for details the open data doesn't show, such as the kitchen, bathroom and outdoor space. Each result lists those assumptions.",
+          "In a rent dispute, the Huurcommissie decides.",
+        ] },
+      ],
+      source: "Source code on GitHub",
+      credits: "Open data from CBS, Kadaster / PDOK, the Leefbaarometer (BZK) and Politie.",
+    },
   },
   pt: {
     tagline: "Este preço ou aluguel está de acordo com os dados abertos?",
@@ -137,5 +167,35 @@ window.I18N = {
     buildYear: "Construído em",
     assumptions: "Suposições por trás do aluguel estimado",
     marker: "Endereço escolhido",
+    aboutBtn: "Sobre",
+    backBtn: "Voltar para a avaliação",
+    tooMany: "Você fez muitas avaliações em pouco tempo. Tente de novo daqui a alguns minutos.",
+    about: {
+      title: "Sobre o Grontia",
+      intro: "O Grontia verifica se o preço pedido ou o aluguel de um imóvel na Holanda está de acordo com o que os dados abertos do governo dizem sobre aquele endereço e o bairro. É um projeto independente e de código aberto.",
+      sections: [
+        { h: "Como a avaliação funciona", items: [
+          "Endereço: o cadastro de endereços do PDOK e o cadastro de imóveis BAG informam a área, o ano de construção e se o imóvel é um apartamento.",
+          "Valor: o preço médio de venda do município (CBS) é trazido até o último trimestre pelo índice regional de preços e depois ajustado ao bairro pelo valor WOZ médio. Uma venda comparável recente que você informar pesa mais que essas médias.",
+          "Aluguel: o sistema de pontos WWS de 2026 define o aluguel base máximo legal. A partir de 187 pontos o imóvel está no setor livre, sem máximo no início do contrato. A caução pode ser de no máximo dois aluguéis base.",
+          "Bairro: qualidade de vida pelo Leefbaarometer, crimes registrados pela polícia e indicadores da CBS.",
+        ] },
+        { h: "De onde vêm os dados", p: "Um pipeline de dados na máquina do autor (Apache Airflow, PySpark e dbt) coleta todo dia dados da CBS, do PDOK, do Leefbaarometer, do KNMI e do NDW, roda mais de 120 testes de qualidade e publica o resultado num warehouse no MotherDuck. Este site lê desse warehouse." },
+        { h: "Sua privacidade", items: [
+          "Nada do que você informa é guardado: nem o endereço, nem os preços, nem o resultado.",
+          "O PDF de um anúncio é lido em memória para preencher o formulário e depois descartado.",
+          "O Grontia nunca acessa sites de anúncios como Funda ou Pararius. Quem traz o anúncio é você.",
+          "Para avaliar um endereço, o site consulta serviços públicos (PDOK, CBS, Politie) sobre ele, e o seu navegador carrega o mapa do PDOK.",
+        ] },
+        { h: "Limites", items: [
+          "São estimativas, não um laudo de avaliação (taxatierapport) nem parecer jurídico.",
+          "As médias do bairro não captam o que diferencia um imóvel: reforma, vista, jardim, estado de conservação. Imóveis novos e eficientes costumam ser subestimados.",
+          "A avaliação do aluguel supõe valores típicos para detalhes que os dados abertos não mostram, como cozinha, banheiro e área externa. Cada resultado lista essas suposições.",
+          "Em disputa de aluguel, quem decide é a Huurcommissie.",
+        ] },
+      ],
+      source: "Código-fonte no GitHub",
+      credits: "Dados abertos da CBS, Kadaster / PDOK, Leefbaarometer (BZK) e Politie.",
+    },
   },
 };

@@ -27,6 +27,7 @@ function applyLang(next) {
   document.querySelectorAll("[data-lang]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.lang === lang)));
   if (marker) marker.bindTooltip(t("marker"));
   if (lastResult) renderResult(lastResult);
+  renderAbout();
 }
 
 const locale = () => (lang === "pt" ? "pt-BR" : "en-GB");
@@ -153,6 +154,31 @@ async function geocodeForm() {
 }
 ["#postcode", "#number"].forEach((sel) => $(sel).addEventListener("change", geocodeForm));
 
+// ---------------------------------------------------------------- about
+
+const GITHUB = "https://github.com/luk14236/grontia";
+
+function renderAbout() {
+  const a = t("about");
+  const sections = a.sections.map((sec) => `<section><h2>${esc(sec.h)}</h2>${
+    sec.items ? `<ul>${sec.items.map((i) => `<li>${esc(i)}</li>`).join("")}</ul>` : `<p>${esc(sec.p)}</p>`}</section>`).join("");
+  $("#about").innerHTML = `
+    <h2>${esc(a.title)}</h2>
+    <p class="intro">${esc(a.intro)}</p>
+    ${sections}
+    <p class="meta"><a href="${GITHUB}" target="_blank" rel="noopener">${esc(a.source)}</a> · ${esc(a.credits)}</p>
+    <button type="button" class="primary" id="about-back">${esc(t("backBtn"))}</button>`;
+  $("#about-back").addEventListener("click", () => toggleAbout(false));
+}
+
+function toggleAbout(open) {
+  $("#about").hidden = !open;
+  $("#tool").hidden = open;
+  $("#about-btn").setAttribute("aria-expanded", String(open));
+  $("#panel").scrollTop = 0;
+}
+$("#about-btn").addEventListener("click", () => toggleAbout($("#about").hidden));
+
 // ---------------------------------------------------------------- tabs, mode, language
 
 function selectTab(name) {
@@ -187,6 +213,7 @@ async function readPdf(file) {
   body.append("file", file);
   try {
     const res = await fetch("/api/listing", { method: "POST", body });
+    if (res.status === 429) throw new Error(t("tooMany"));
     const data = await res.json();
     if (!res.ok) throw new Error(data.detail || t("errorGeneric"));
     const f = data.fields;
@@ -254,6 +281,7 @@ $("#form").addEventListener("submit", async (e) => {
   status.textContent = t("loading");
   try {
     const res = await fetch("/api/evaluate", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+    if (res.status === 429) throw new Error(t("tooMany"));
     const data = await res.json();
     if (!res.ok) throw new Error(typeof data.detail === "string" ? data.detail : t("errorGeneric"));
     status.textContent = "";

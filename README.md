@@ -131,7 +131,9 @@ Step-by-step instructions are in [`docs/PROJETO_COMPLETO.md`](docs/PROJETO_COMPL
 - **Listing PDF:** drop a Funda/Pararius PDF. Address, asking price or rent, deposit, floor area and energy label are pulled out and filled into the form for you to check. The PDF is read in memory and never stored.
 - **Verdict:** asking price vs. the expected value range, or asked rent vs. the legal maximum (WWS points) and the deposit limit, plus livability, crime and WOZ for the neighbourhood, whose outline is drawn on the map.
 
-The API lives at `/api/evaluate` and `/api/listing` (docs at `/api/docs`) and reads the warehouse wherever DAG 40 publishes it.
+The API lives at `/api/evaluate` and `/api/listing` (docs at `/api/docs`) and reads the warehouse wherever DAG 40 publishes it. The page also has an **About** view that explains the project, the data and the privacy rules.
+
+**Public deployment:** the web app runs on Heroku and reads MotherDuck; the data pipeline stays on the author's machine and refreshes MotherDuck daily. See [`docs/deploy-heroku.md`](docs/deploy-heroku.md) (`Procfile`, root `requirements.txt`, rate limit, optional password).
 
 ---
 

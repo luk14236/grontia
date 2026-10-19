@@ -4,6 +4,8 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Grontia</title>
+  <meta name="description" content="Check whether the asking price or rent of a Dutch home is in line with open government data.">
+  <link rel="icon" href="logo.svg" type="image/svg+xml">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@500;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
@@ -14,15 +16,22 @@
 
   <main class="panel" id="panel">
     <header class="brand">
-      <div>
-        <h1>Grontia</h1>
-        <p data-i18n="tagline"></p>
-      </div>
-      <div class="lang" role="group" aria-label="Language">
-        <button type="button" data-lang="en">EN</button>
-        <button type="button" data-lang="pt">PT</button>
+      <a class="mark" href="./">
+        <img src="logo.svg" alt="" width="44" height="44">
+        <span><h1>Grontia</h1><p data-i18n="tagline"></p></span>
+      </a>
+      <div class="tools">
+        <div class="lang" role="group" aria-label="Language">
+          <button type="button" data-lang="en">EN</button>
+          <button type="button" data-lang="pt">PT</button>
+        </div>
+        <button type="button" class="link" id="about-btn" aria-expanded="false" aria-controls="about" data-i18n="aboutBtn"></button>
       </div>
     </header>
+
+    <section id="about" class="about" hidden></section>
+
+    <div id="tool" class="tool">
 
     <div class="tabs" role="tablist">
       <button type="button" role="tab" id="tab-address" aria-controls="pane-address" aria-selected="true" data-i18n="tabAddress"></button>
@@ -89,6 +98,7 @@
     </form>
 
     <section id="result" class="result" hidden aria-live="polite"></section>
+    </div>
 
     <footer class="disclaimer" data-i18n="disclaimer"></footer>
   </main>

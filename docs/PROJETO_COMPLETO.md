@@ -718,6 +718,10 @@ Abra `http://localhost:8000` (serviço `grontia-web` do compose, só em localhos
 
 Nada do que o usuário envia é gravado: nem o PDF, nem o texto dele, nem o resultado. Isso segue a política de dados de anúncios (nunca guardar o arquivo original, fotos ou descrição).
 
+A página tem o logo do projeto (`web/static/logo.svg`: pino de mapa com uma fachada de casa de canal com empena escalonada) e uma tela **Sobre** que explica o projeto, a origem dos dados, a privacidade e os limites, em inglês e português.
+
+**Deploy público:** a app web vai para o Heroku e lê do MotherDuck; o pipeline continua local. Passo a passo em [`deploy-heroku.md`](deploy-heroku.md). Na versão pública valem um limite de avaliações por visitante (`GRONTIA_RATE_LIMIT`), uma senha opcional (`GRONTIA_WEB_PASSWORD`) e timeout menor nas fontes (`GRONTIA_HTTP_TIMEOUT`), por causa do limite de 30 s do roteador do Heroku.
+
 ---
 
 ## 14. O que está funcional
