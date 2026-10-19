@@ -71,6 +71,7 @@ window.I18N = {
     aboutBtn: "About",
     backBtn: "Back to the check",
     tooMany: "You've run many checks in a short time. Try again in a few minutes.",
+    notAHome: (use) => `The BAG building register does not list this address as a home (use: ${use}). The estimates below assume a home and probably don't apply.`,
     about: {
       title: "About Grontia",
       intro: "Grontia checks whether the asking price or rent of a home in the Netherlands is in line with what open government data says about that address and its neighbourhood. It is an independent, open-source project.",
@@ -170,6 +171,7 @@ window.I18N = {
     aboutBtn: "Sobre",
     backBtn: "Voltar para a avaliação",
     tooMany: "Você fez muitas avaliações em pouco tempo. Tente de novo daqui a alguns minutos.",
+    notAHome: (use) => `O cadastro BAG não registra este endereço como moradia (uso: ${use}). As estimativas abaixo supõem uma moradia e provavelmente não se aplicam.`,
     about: {
       title: "Sobre o Grontia",
       intro: "O Grontia verifica se o preço pedido ou o aluguel de um imóvel na Holanda está de acordo com o que os dados abertos do governo dizem sobre aquele endereço e o bairro. É um projeto independente e de código aberto.",

@@ -99,6 +99,7 @@ input:focus-visible, button:focus-visible, summary:focus-visible, .drop:focus-wi
 .more[open] { display: grid; gap: 12px; }
 .note { font-size: .82rem; color: var(--muted); }
 .banner { background: var(--field); border-left: 3px solid var(--accent); padding: 8px 12px; font-size: .88rem; border-radius: 0 8px 8px 0; }
+.banner.warn { border-left-color: var(--warn); }
 .status { font-size: .88rem; color: var(--muted); min-height: 1.2em; }
 .status.error { color: var(--bad); }
 

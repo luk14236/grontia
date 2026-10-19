@@ -315,11 +315,17 @@ function rangeScale(range, asked) {
   const lo = Math.min(...values) * 0.96;
   const hi = Math.max(...values) * 1.04;
   const x = (v) => `${(100 * (v - lo)) / (hi - lo)}%`;
+  // keep the label inside the scale when its value sits near either end
+  const lbl = (v) => {
+    const p = (100 * (v - lo)) / (hi - lo);
+    const shift = p < 15 ? "0" : p > 85 ? "-100%" : "-50%";
+    return `<span class="lbl" style="left:${x(v)};transform:translateX(${shift})">${eur(v)}</span>`;
+  };
   return `<div class="scale" aria-hidden="true">
     <div class="track"></div>
     <div class="band" style="left:${x(range.low)};width:calc(${x(range.high)} - ${x(range.low)})"></div>
     <div class="tick central" style="left:${x(range.central)}"></div>
-    ${asked ? `<div class="tick asked" style="left:${x(asked)}"></div><span class="lbl" style="left:${x(asked)}">${eur(asked)}</span>` : `<span class="lbl" style="left:${x(range.central)}">${eur(range.central)}</span>`}
+    ${asked ? `<div class="tick asked" style="left:${x(asked)}"></div>${lbl(asked)}` : lbl(range.central)}
   </div>`;
 }
 
@@ -385,8 +391,13 @@ function renderResult({ data, mode }) {
   const primary = mode === "rent" ? rentCard(data.rent) : purchaseCard(data.purchase);
   const secondary = mode === "rent" ? purchaseCard({ ...data.purchase, asking_price_check: null }) : rentCard({ ...data.rent, rent_check: null });
   const assumptions = data.rent.assumptions || [];
+  // BAG "woonfunctie" = residential use; offices, shops etc. get a warning
+  const use = data.dwelling.use || "";
+  const notAHome = use && !use.split(",").includes("woonfunctie")
+    ? `<div class="banner warn" role="alert">${esc(t("notAHome")(use))}</div>` : "";
   $("#result").innerHTML = `
     <div class="where"><h2>${esc(a.display_name)}</h2><p>${esc([a.buurt_name, a.municipality_name, a.province_name].filter(Boolean).join(" · "))}</p></div>
+    ${notAHome}
     ${primary}
     ${facts(data)}
     ${secondary}
