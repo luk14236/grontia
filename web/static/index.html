@@ -12,9 +12,11 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
+  <div class="flagbar" aria-hidden="true"><span></span><span></span><span></span></div>
   <div id="map" aria-label="Map"></div>
 
   <main class="panel" id="panel">
+    <button type="button" class="sheet-handle" id="sheet-handle" data-i18n-aria="sheetToggle"><span></span></button>
     <header class="brand">
       <a class="mark" href="./">
         <img src="logo.svg" alt="" width="44" height="44">
@@ -33,6 +35,7 @@
 
     <div id="tool" class="tool">
 
+    <div id="search-area" class="search-area">
     <div class="tabs" role="tablist">
       <button type="button" role="tab" id="tab-address" aria-controls="pane-address" aria-selected="true" data-i18n="tabAddress"></button>
       <button type="button" role="tab" id="tab-pdf" aria-controls="pane-pdf" aria-selected="false" data-i18n="tabPdf"></button>
@@ -65,9 +68,9 @@
         <div class="field small"><label for="suffix" data-i18n="suffix"></label><input id="suffix" name="suffix" maxlength="6" placeholder="A"></div>
       </div>
 
-      <div class="mode" role="radiogroup" aria-label="Mode">
-        <label><input type="radio" name="mode" value="sale" checked> <span data-i18n="modeSale"></span></label>
-        <label><input type="radio" name="mode" value="rent"> <span data-i18n="modeRent"></span></label>
+      <div class="mode segmented" role="radiogroup" data-i18n-aria="modeLabel">
+        <label><input type="radio" name="mode" value="sale" checked><span data-i18n="modeSale"></span></label>
+        <label><input type="radio" name="mode" value="rent"><span data-i18n="modeRent"></span></label>
       </div>
 
       <div class="row" data-mode="sale">
@@ -93,9 +96,27 @@
         </div>
       </details>
 
-      <button type="submit" class="primary" id="submit" data-i18n="evaluate"></button>
+      <button type="submit" class="primary" id="submit"></button>
       <p class="status" id="form-status" role="status"></p>
     </form>
+
+    <section class="intro" id="intro">
+      <h2 data-i18n="introTitle"></h2>
+      <ul id="intro-list"></ul>
+      <p class="intro-try" data-i18n="tryExample"></p>
+      <div class="examples" id="examples"></div>
+    </section>
+    </div>
+
+    <div class="summary-bar" id="summary-bar" hidden>
+      <strong id="summary-address"></strong>
+      <button type="button" class="secondary" id="edit-search" data-i18n="editSearch"></button>
+    </div>
+
+    <div class="progress" id="progress" hidden role="status">
+      <div class="progress-bar"><span></span></div>
+      <p id="progress-step"></p>
+    </div>
 
     <section id="result" class="result" hidden aria-live="polite"></section>
     </div>

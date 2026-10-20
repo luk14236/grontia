@@ -24,6 +24,10 @@ function applyLang(next) {
   document.documentElement.lang = lang;
   document.querySelectorAll("[data-i18n]").forEach((el) => { el.textContent = t(el.dataset.i18n); });
   document.querySelectorAll("[data-i18n-placeholder]").forEach((el) => { el.placeholder = t(el.dataset.i18nPlaceholder); });
+  document.querySelectorAll("[data-i18n-aria]").forEach((el) => el.setAttribute("aria-label", t(el.dataset.i18nAria)));
+  renderIntro();
+  setMode(document.querySelector('input[name="mode"]:checked').value);
+  if (lastResult) renderSummary(lastResult);
   document.querySelectorAll("[data-lang]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.lang === lang)));
   if (marker) marker.bindTooltip(t("marker"));
   if (lastResult) renderResult(lastResult);
@@ -193,7 +197,65 @@ $("#tab-pdf").addEventListener("click", () => selectTab("pdf"));
 function setMode(mode) {
   document.querySelector(`input[name="mode"][value="${mode}"]`).checked = true;
   document.querySelectorAll("[data-mode]").forEach((el) => { el.hidden = el.dataset.mode !== mode; });
+  $("#submit").textContent = t(mode === "rent" ? "evaluateRent" : "evaluateSale");
 }
+
+// ---------------------------------------------------------------- intro, progress, summary, sheet
+
+function renderIntro() {
+  $("#intro-list").innerHTML = t("introItems").map((x) => `<li>${esc(x)}</li>`).join("");
+  $("#examples").innerHTML = t("examples").map((x, i) => `<button type="button" class="example" data-i="${i}">${esc(x.label)}</button>`).join("");
+  $("#examples").querySelectorAll("button").forEach((b) => b.addEventListener("click", () => {
+    const x = t("examples")[Number(b.dataset.i)];
+    $("#form").reset();
+    $("#postcode").value = x.pc; $("#number").value = x.nr; $("#suffix").value = x.suffix || "";
+    setMode(x.mode);
+    $(x.mode === "rent" ? "#rent" : "#asking_price").value = x.amount;
+    search.value = "";
+    $("#form").requestSubmit();
+  }));
+}
+
+let progressTimer = null;
+function showProgress(on) {
+  clearInterval(progressTimer);
+  $("#progress").hidden = !on;
+  if (!on) return;
+  let i = 0;
+  const step = () => { $("#progress-step").textContent = t("steps")[Math.min(i++, t("steps").length - 1)]; };
+  step();
+  progressTimer = setInterval(step, 2200);
+}
+
+// after a result the form folds into one line, so the result starts at the top
+function showSearch(open) {
+  $("#search-area").hidden = !open;
+  $("#summary-bar").hidden = open || !lastResult;
+  $("#panel").classList.toggle("wide", Boolean(lastResult));
+}
+
+function renderSummary({ data, mode }) {
+  const amt = mode === "rent" ? data.user_inputs.rent : data.user_inputs.asking_price;
+  $("#summary-address").textContent = t("summaryDetail")(mode, amt ? eur(amt) : "");
+}
+
+$("#edit-search").addEventListener("click", () => {
+  showSearch(true);
+  $("#intro").hidden = true;
+  $("#panel").scrollTop = 0;
+  $("#postcode").focus();
+});
+
+// phones: the panel is a bottom sheet with three heights; the handle cycles them
+const SHEET = ["sheet-half", "sheet-full", "sheet-peek"];
+function setSheet(state) {
+  SHEET.forEach((c) => $("#panel").classList.toggle(c, c === state));
+}
+$("#sheet-handle").addEventListener("click", () => {
+  const now = SHEET.find((c) => $("#panel").classList.contains(c)) || "sheet-half";
+  setSheet(SHEET[(SHEET.indexOf(now) + 1) % SHEET.length]);
+});
+setSheet("sheet-half");
 document.querySelectorAll('input[name="mode"]').forEach((r) => r.addEventListener("change", () => setMode(r.value)));
 document.querySelectorAll("[data-lang]").forEach((b) => b.addEventListener("click", () => applyLang(b.dataset.lang)));
 
@@ -278,7 +340,9 @@ $("#form").addEventListener("submit", async (e) => {
   };
   $("#submit").disabled = true;
   status.className = "status";
-  status.textContent = t("loading");
+  status.textContent = "";
+  $("#intro").hidden = true;
+  showProgress(true);
   try {
     const res = await fetch("/api/evaluate", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
     if (res.status === 429) throw new Error(t("tooMany"));
@@ -286,15 +350,20 @@ $("#form").addEventListener("submit", async (e) => {
     if (!res.ok) throw new Error(typeof data.detail === "string" ? data.detail : t("errorGeneric"));
     status.textContent = "";
     lastResult = { data, mode, news: null };
+    renderSummary(lastResult);
+    showSearch(false);
+    setSheet("sheet-full");
     renderResult(lastResult);
     lastResult.newsLoaded = loadNews(lastResult);
-    focusAddress(data.address.lat, data.address.lon);
-    setTimeout(() => showBuurt(data.neighbourhood.buurt_geometry, data.address.lat, data.address.lon), 1300);
-    $("#result").scrollIntoView({ behavior: "smooth", block: "start" });
+    $("#panel").scrollTop = 0;
+    // let the wider panel settle before zooming so the address clears it
+    setTimeout(() => focusAddress(data.address.lat, data.address.lon), 250);
+    setTimeout(() => showBuurt(data.neighbourhood.buurt_geometry, data.address.lat, data.address.lon), 1500);
   } catch (err) {
     status.className = "status error";
     status.textContent = err.message || t("errorGeneric");
   } finally {
+    showProgress(false);
     $("#submit").disabled = false;
   }
 });
@@ -553,6 +622,40 @@ async function loadNews(state) {
   }
 }
 
+// four headline numbers with a state colour, before any detail
+function glance(d) {
+  const G = t("glance"), a = d.address;
+  const tiles = [];
+  const check = d.purchase.asking_price_check;
+  tiles.push([G.value, eur(d.purchase.range.central),
+    check ? t("badge")[check.verdict] : `${eur(d.purchase.price_per_m2_central)}/m²`,
+    check ? (check.verdict === "above_range" ? "bad" : "ok") : "neutral"]);
+  const typ = d.rent.scenarios.typical, rc = d.rent.rent_check;
+  tiles.push([G.rent, typ.segment === "free" ? t("badge").free_sector : eur(typ.max_rent_eur),
+    rc ? t("badge")[rc.verdict] : `${G.perMonth} · ${t("segment")[typ.segment]}`,
+    rc ? ({ within_limit: "ok", above_limit: "bad", depends_on_details: "warn" }[rc.verdict] || "neutral") : "neutral"]);
+  const liv = ((d.neighbourhood.livability || {})[a.buurt_code] || []).slice(-1)[0];
+  if (liv && liv.national_percentile != null) {
+    const p = Math.round(liv.national_percentile);
+    tiles.push([G.livability, `${p}/100`, G.percentile(Math.min(p, 99)), p >= 60 ? "ok" : p < 40 ? "bad" : "neutral"]);
+  }
+  const by = (d.neighbourhood.crime || {}).by_region || {};
+  const here = (by[a.buurt_code] || {}).per_1000_residents_last_12m, nl = (by.NL00 || {}).per_1000_residents_last_12m;
+  if (here != null && nl) {
+    const x = here / nl;
+    tiles.push([G.crime, num(here, 0), `${G.per1000} · ${G.vsNl(num(x, 1))}`, x <= 1 ? "ok" : x > 2 ? "bad" : "warn"]);
+  }
+  return `<div class="glance">${tiles.map(([k, v, sub, st]) =>
+    `<div class="tile ${st}"><span>${esc(k)}</span><b>${esc(v)}</b><small>${esc(sub)}</small></div>`).join("")}</div>`;
+}
+
+function sectionNav() {
+  const N = t("nav");
+  const ids = ["verdict", "outlook", "overview", "livability", "safety", "prices", "news"];
+  return `<nav class="chips" aria-label="${esc(t("outlookTitle"))}">${ids.map((id) =>
+    `<button type="button" data-target="sec-${id}">${esc(N[id])}</button>`).join("")}</nav>`;
+}
+
 function renderResult({ data, mode, news }) {
   const a = data.address;
   const primary = mode === "rent" ? rentCard(data.rent, data.outlook) : purchaseCard(data.purchase);
@@ -563,11 +666,12 @@ function renderResult({ data, mode, news }) {
   const notAHome = use && !use.split(",").includes("woonfunctie")
     ? `<div class="banner warn" role="alert">${esc(t("notAHome")(use))}</div>` : "";
   $("#result").innerHTML = `
-    <div class="where"><h2>${esc(a.display_name)}</h2><p>${esc([a.buurt_name, a.municipality_name, a.province_name].filter(Boolean).join(" · "))}</p>
+    <div class="where"><div><h2>${esc(a.display_name)}</h2><p>${esc([a.buurt_name, a.municipality_name, a.province_name].filter(Boolean).join(" · "))}</p></div>
       <button type="button" class="secondary" id="export-pdf">${esc(t("exportPdf"))}</button></div>
+    ${glance(data)}
+    ${sectionNav()}
     ${notAHome}
-    ${primary}
-    ${secondary}
+    <div id="sec-verdict" class="verdicts">${primary}${secondary}</div>
     ${outlookSection(data.outlook)}
     ${overviewSection(data)}
     ${livabilitySection(data)}
@@ -577,6 +681,12 @@ function renderResult({ data, mode, news }) {
     ${assumptions.length ? `<details class="section"><summary><h3>${esc(t("assumptions"))}</h3></summary><ul class="assumptions">${assumptions.map((x) => `<li>${esc(x)}</li>`).join("")}</ul></details>` : ""}`;
   $("#result").hidden = false;
   $("#export-pdf").addEventListener("click", () => exportReport(lastResult));
+  $("#result").querySelectorAll(".chips button").forEach((b) => b.addEventListener("click", () => {
+    const target = document.getElementById(b.dataset.target);
+    if (!target) return;
+    if (target.tagName === "DETAILS") target.open = true;
+    target.scrollIntoView({ behavior: "smooth", block: "start" });
+  }));
 }
 
 // ---------------------------------------------------------------- start
