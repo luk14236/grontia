@@ -39,7 +39,7 @@ function inputsText(inputs) {
 }
 
 // [{ id, title, body, wide }] in reading order; empty bodies are dropped
-function detailCards({ data, mode, news }) {
+function detailCards({ data, mode, news }, newsLimits = { notices: 40, headlines: 15 }) {
   const R = t("report");
   const a = data.address, dw = data.dwelling, p = data.purchase, rent = data.rent;
   const primary = mode === "rent" ? rentCard(rent, data.outlook) : purchaseCard(p);
@@ -61,13 +61,13 @@ function detailCards({ data, mode, news }) {
   const valuation = `<div class="kpis">${[[t("glance").value, eur(p.range.central)], ["−", eur(p.range.low)], ["+", eur(p.range.high)]]
       .map(([k, v]) => `<div><span>${esc(k)}</span><b>${v}</b></div>`).join("")}</div>`
     + table([R.method, R.value, R.inputs],
-      p.estimates.map((e) => [esc(R.methods[e.method] || e.method), eur(e.value), `<small>${esc(inputsText(e.inputs))}</small>`]))
+      p.estimates.map((e) => [esc(R.methods[e.method] || e.method) + hintButton(`info.methods.${e.method}`), eur(e.value), `<small>${esc(inputsText(e.inputs))}</small>`]))
     + `<p class="detail">${esc(t("priceRange")(eur(p.range.low), eur(p.range.high)))} ${esc(t("basis")(t("basisName")[p.central_basis] || p.central_basis, eur(p.price_per_m2_central)))}</p>`
     + (ref.est_current_avg_sale_price_eur ? `<p class="detail">${esc(R.reference(eur(ref.est_current_avg_sale_price_eur), eur(ref.avg_woz_value_eur), num(ref.woz_ratio_to_municipality, 3), (ref.index_latest_period || "").replace("KW", " Q")))}</p>` : "");
 
   const sc = rent.scenarios, keys = ["low", "typical", "high"];
   const wwsTable = table([R.rubric, ...keys.map((k) => t("scenario")[k === "typical" ? "base" : k])], [
-    ...Object.keys(sc.typical.points_by_rubric).map((r) => [esc(R.rubrics[r] || r), ...keys.map((k) => num(sc[k].points_by_rubric[r], 1))]),
+    ...Object.keys(sc.typical.points_by_rubric).map((r) => [esc(R.rubrics[r] || r) + hintButton(`info.rubrics.${r}`), ...keys.map((k) => num(sc[k].points_by_rubric[r], 1))]),
     [`<b>${esc(R.total)}</b>`, ...keys.map((k) => `<b>${num(sc[k].total_points)}</b>`)],
     [esc(R.segment), ...keys.map((k) => esc(t("segment")[sc[k].segment] || sc[k].segment))],
     [esc(R.maxRent), ...keys.map((k) => `<b>${eur(sc[k].max_rent_eur)}</b>`)],
@@ -77,7 +77,7 @@ function detailCards({ data, mode, news }) {
 
   const woz = (p.appreciation || {}).municipality_avg_woz || [];
   const prices = `<div class="split"><div>${pricesBody(data)}</div>${woz.length > 2 ? `<div><p class="detail">${esc(R.wozHistory)}</p>`
-    + lineChart([{ values: woz.map((x) => x.avg_woz_value_eur), cls: "high" }], woz.map((x) => String(x.year)), kEur) + "</div>" : ""}</div>`;
+    + lineChart([{ values: woz.map((x) => x.avg_woz_value_eur), cls: "high" }], woz.map((x) => String(x.year)), kEur) + caption("info.charts.woz") + "</div>" : ""}</div>`;
 
   const buurtLiv = ((data.neighbourhood.livability || {})[a.buurt_code] || []).slice(-1)[0] || {};
   const crime = data.neighbourhood.crime || {};
@@ -102,7 +102,7 @@ function detailCards({ data, mode, news }) {
     { id: "livability", title: t("livabilityTitle"), body: livabilityBody(data) },
     { id: "safety", title: t("safetyTitle"), body: safetyBody(data) },
     { id: "prices", title: t("pricesTitle"), body: prices },
-    { id: "news", title: t("newsTitle"), body: newsBody(news, { notices: 40, headlines: 15 }) },
+    { id: "news", title: t("newsTitle"), body: newsBody(news, newsLimits) },
     { id: "sources", title: R.sources, body: sources, wide: true },
   ].filter((c) => c.body);
 }
@@ -128,17 +128,22 @@ const SECTORS = [
   ["sources", [["sources", 12]]],
 ];
 
-function renderDetail(state) {
-  const a = state.data.address;
-  const cards = Object.fromEntries(detailCards(state).map((c) => [c.id, c]));
+function sectorsHtml(cards, skip = []) {
   const S = t("sectors");
-  const sectors = SECTORS.map(([id, list]) => {
+  return SECTORS.filter(([id]) => !skip.includes(id)).map(([id, list]) => {
     const present = list.filter(([cid]) => cards[cid]);
     if (!present.length) return "";
     return `<section class="sector" id="s-${id}">
       <header class="sector-head"><h2>${esc(S[id][0])}</h2><p>${esc(S[id][1])}</p></header>
       <div class="sector-grid">${present.map(([cid, span]) => cardHtml({ ...cards[cid], span })).join("")}</div></section>`;
   }).join("");
+}
+
+function renderDetail(state) {
+  const a = state.data.address;
+  const cards = Object.fromEntries(detailCards(state).map((c) => [c.id, c]));
+  const sectors = sectorsHtml(cards);
+  const S = t("sectors");
   $("#detail").innerHTML = `
     <div class="detail-head">
       <img src="brand/grontia-symbol.svg" alt="" width="40" height="40">
@@ -178,15 +183,45 @@ function toggleDetail(open) {
 
 // ---------------------------------------------------------------- PDF report (print)
 
+// Every explanation in one place at the end of the PDF (hints don't print)
+function glossaryCard() {
+  const I = t("info"), R = t("report");
+  const group = (title, entries) => `<h4>${esc(title)}</h4><dl class="glossary">${entries.map(([k, v]) =>
+    `<div><dt>${esc(k)}</dt><dd>${esc(v)}</dd></div>`).join("")}</dl>`;
+  const body = [
+    group(t("livabilityTitle"), [[t("livabilityTitle"), I.livScore], ...Object.keys(I.dims).map((k) => [t("dims")[k], I.dims[k]])]),
+    group(t("overviewTitle"), Object.keys(I.facts).map((k) => [({ crimeRate: t("safetyTitle"), crimeTypes: t("crimeTypes") })[k] || t(k), I.facts[k]])),
+    group(R.valuation, Object.keys(I.methods).map((k) => [R.methods[k], I.methods[k]])),
+    group(R.rentDetails, Object.keys(I.rubrics).map((k) => [R.rubrics[k], I.rubrics[k]])),
+    group(t("outlookTitle"), [[t("valueIn")(new Date().getFullYear() + 5), I.returns.value], [t("totalReturn"), I.returns.total]]),
+  ].join("");
+  return `<section class="sector" id="s-glossary"><header class="sector-head"><h2>${esc(t("glossaryTitle"))}</h2></header>
+    <div class="sector-grid"><article class="card" id="d-glossary">${body}</article></div></section>`;
+}
+
 function buildReport(state) {
   const R = t("report");
-  const a = state.data.address;
+  const { data } = state;
+  const a = data.address;
   const today = new Date().toLocaleDateString(locale(), { day: "numeric", month: "long", year: "numeric" });
-  return `<header class="r-head"><img src="brand/grontia-wordmark.svg" alt="Grontia" class="r-wordmark">
-      <div><p class="r-eyebrow">Grontia · ${esc(R.title)}</p><h1>${esc(a.display_name)}</h1>
-      <p>${esc([a.buurt_name, a.wijk_name, a.municipality_name, a.province_name].filter(Boolean).join(" · "))}</p>
-      <p class="detail">${esc(R.generated(today))}</p></div></header>
-    ${detailCards(state).map(cardHtml).join("")}
+  // the PDF keeps the news short: the 10 nearest notices and 10 headlines
+  const cards = Object.fromEntries(detailCards(state, { notices: 10, headlines: 10 }).map((c) => [c.id, c]));
+  const S = t("sectors");
+  const contents = SECTORS.slice(1).map(([id]) => `<li>${esc(S[id][0])}</li>`).join("") + `<li>${esc(t("glossaryTitle"))}</li>`;
+  return `<section class="r-cover">
+      <div class="r-cover-head"><img src="brand/grontia-wordmark.svg" alt="Grontia" class="r-wordmark">
+        <div><p class="r-eyebrow">${esc(R.title)}</p><h1>${esc(a.display_name)}</h1>
+        <p>${esc([a.buurt_name, a.wijk_name, a.municipality_name, a.province_name].filter(Boolean).join(" · "))}</p>
+        <p>${esc(R.generated(today))}</p></div></div>
+      ${glance(data)}
+      <div class="r-cover-grid">
+        <div class="card" style="--span:12">${cards.verdict.body}</div>
+        ${cards.location ? cardHtml(cards.location) : ""}
+      </div>
+      <div class="r-contents"><p class="r-eyebrow">${esc(t("sectorNav"))}</p><ol>${contents}</ol></div>
+    </section>
+    ${sectorsHtml(cards, ["verdict"])}
+    ${glossaryCard()}
     <footer class="r-foot"><p>${esc(t("disclaimer"))}</p><p>${esc(R.project)}</p></footer>`;
 }
 
@@ -198,6 +233,8 @@ async function exportReport(state) {
   try {
     if (state.newsLoaded) await state.newsLoaded;  // the report includes the news
     $("#report").innerHTML = buildReport(state);
+    const footer = `Grontia · ${state.data.address.display_name}`.replace(/["\\]/g, "");
+    $("#report-page-style").textContent = `@page { @bottom-left { content: "${footer}"; font: 8pt Arial, sans-serif; color: #56627a; } }`;
     // the default PDF file name comes from the page title
     document.title = `Grontia - ${state.data.address.display_name}`;
     await new Promise((r) => setTimeout(r, 50));

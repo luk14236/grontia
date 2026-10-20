@@ -457,7 +457,7 @@ function purchaseCard(p) {
   const diff = check.verdict === "in_range" ? pct(check.vs_central_pct) : `${num(Math.abs(check.vs_central_pct), 1)}%`;
   const headline = { in_range: t("priceIn"), above_range: t("priceAbove"), below_range: t("priceBelow") }[check.verdict](diff);
   return verdictCard(kind, t("purchaseTitle"), t("badge")[check.verdict], headline,
-    [t("priceRange")(eur(r.low), eur(r.high)), basis], rangeScale(r, check.asking_price));
+    [t("priceRange")(eur(r.low), eur(r.high)), basis], rangeScale(r, check.asking_price) + caption("info.charts.scale"));
 }
 
 function rentCard(rent, outlook) {
@@ -522,9 +522,12 @@ const kEur = (v) => (v >= 1e6 ? `€${num(v / 1e6, 2)}M` : `€${num(v / 1000)}k
 const signed = (v, d = 1) => `${v > 0 ? "+" : ""}${num(v, d)}`;
 
 function factGrid(rows) {
-  return `<div class="facts">${rows.filter(Boolean).map(([k, v, s]) =>
-    `<div class="fact"><span>${esc(k)}</span><b>${esc(v)}</b>${s ? `<small>${esc(s)}</small>` : ""}</div>`).join("")}</div>`;
+  return `<div class="facts">${rows.filter(Boolean).map(([k, v, s, hint]) =>
+    `<div class="fact"><span>${esc(k)}${hint ? hintButton(hint) : ""}</span><b>${esc(v)}</b>${s ? `<small>${esc(s)}</small>` : ""}</div>`).join("")}</div>`;
 }
+
+// "How to read this" under every chart: visible on screen and in the PDF
+const caption = (key) => `<p class="caption"><b>${esc(t("howToRead"))}:</b> ${esc(lookup(key))}</p>`;
 
 // ---------------------------------------------------------------- result sections
 
@@ -538,8 +541,8 @@ function outlookBody(o) {
     `<span class="key ${k}">${esc(t("scenario")[k])} ${num(g[k], 1)}% ${esc(t("perYear"))}</span>`).join("");
   const table = (title, r, note) => `<div class="returns"><h4>${esc(title)}</h4>
     <table><thead><tr><th></th>${["low", "base", "high"].map((k) => `<th>${esc(t("scenario")[k])}</th>`).join("")}</tr></thead>
-    <tbody><tr><td>${esc(t("valueIn")(year + o.years))}</td>${["low", "base", "high"].map((k) => `<td>${kEur(r.scenarios[k].value_after)}</td>`).join("")}</tr>
-    <tr><td>${esc(t("totalReturn"))}</td>${["low", "base", "high"].map((k) => {
+    <tbody><tr><td>${esc(t("valueIn")(year + o.years))}${hintButton("info.returns.value")}</td>${["low", "base", "high"].map((k) => `<td>${kEur(r.scenarios[k].value_after)}</td>`).join("")}</tr>
+    <tr><td>${esc(t("totalReturn"))}${hintButton("info.returns.total")}</td>${["low", "base", "high"].map((k) => {
       const s = r.scenarios[k];
       return `<td class="${s.total_return < 0 ? "neg" : "pos"}">${s.total_return < 0 ? "−" : "+"}${kEur(Math.abs(s.total_return))}<small>${signed(s.total_return_pct)}%</small></td>`;
     }).join("")}</tr></tbody></table><p class="detail">${esc(note)}</p></div>`;
@@ -548,7 +551,7 @@ function outlookBody(o) {
   // two columns on wide screens: the chart and its reading on the left, the returns on the right
   return `<div class="split">
     <div><p class="detail">${esc(t("outlookIntro")(eur(o.price), t("priceBasis")[o.price_basis]))}</p>
-      ${chart}<div class="legend">${legend}</div>
+      ${chart}<div class="legend">${legend}</div>${caption("info.charts.outlook")}
       ${g.latest_quarter_yoy != null && g.trend ? `<p class="detail">${esc(t("growthNote")(signed(g.latest_quarter_yoy) + "%", t("trend")[g.trend]))}</p>` : ""}</div>
     <div>${table(t("ownerTitle"), o.owner_occupier, t("ownerNote")(eur(o.owner_occupier.transfer_tax), eur(o.starter_exemption_max_value)))}
       ${table(t("landlordTitle"), o.landlord, landlordNote)}
@@ -565,15 +568,15 @@ function overviewBody(d) {
   const dist = [["gp", b.km_to_gp], ["supermarket", b.km_to_supermarket], ["school", b.km_to_school], ["daycare", b.km_to_daycare]]
     .filter(([, v]) => v != null).map(([k, v]) => `${t(k)} ${num(v, 1)} km`).join(" · ");
   const rows = [
-    b.population && [t("population"), num(b.population), ap.gemiddelde_huishoudsgrootte ? t("householdSize")(num(ap.gemiddelde_huishoudsgrootte, 1)) : ""],
-    b.avg_income_per_resident_eur && [t("income"), eur(b.avg_income_per_resident_eur), gm.avg_income_per_resident_eur ? t("vsMunicipality")(eur(gm.avg_income_per_resident_eur)) : ""],
-    b.avg_woz_value_eur && [t("avgWoz"), eur(b.avg_woz_value_eur), gm.avg_woz_value_eur ? t("vsMunicipality")(eur(gm.avg_woz_value_eur)) : ""],
-    b.dwellings && [t("homes"), num(b.dwellings), b.pct_apartments != null ? t("apartments")(num(b.pct_apartments)) : ""],
-    b.pct_owner_occupied != null && [t("tenure"), `${num(b.pct_owner_occupied)}% / ${num(b.pct_rental)}%`, b.pct_social_housing != null ? t("social")(num(b.pct_social_housing)) : ""],
-    b.pct_built_last_10_years != null && [t("newBuild"), `${num(b.pct_built_last_10_years)}%`, b.pct_vacant != null ? t("vacant")(num(b.pct_vacant)) : ""],
-    sizes.median_m2 && [t("homeSize"), `${num(sizes.median_m2)} m²`, t("homeSizeValue")(num(sizes.median_m2), num(sizes.mean_m2))],
-    b.urbanity_class && [t("urbanity"), t("urbanityClass")[b.urbanity_class] || String(b.urbanity_class), ""],
-    d.dwelling.floor_area_m2 && [t("floorArea"), `${num(d.dwelling.floor_area_m2)} m²`, d.dwelling.build_year ? `${t("buildYear")} ${d.dwelling.build_year}` : ""],
+    b.population && [t("population"), num(b.population), ap.gemiddelde_huishoudsgrootte ? t("householdSize")(num(ap.gemiddelde_huishoudsgrootte, 1)) : "", "info.facts.population"],
+    b.avg_income_per_resident_eur && [t("income"), eur(b.avg_income_per_resident_eur), gm.avg_income_per_resident_eur ? t("vsMunicipality")(eur(gm.avg_income_per_resident_eur)) : "", "info.facts.income"],
+    b.avg_woz_value_eur && [t("avgWoz"), eur(b.avg_woz_value_eur), gm.avg_woz_value_eur ? t("vsMunicipality")(eur(gm.avg_woz_value_eur)) : "", "info.facts.avgWoz"],
+    b.dwellings && [t("homes"), num(b.dwellings), b.pct_apartments != null ? t("apartments")(num(b.pct_apartments)) : "", "info.facts.homes"],
+    b.pct_owner_occupied != null && [t("tenure"), `${num(b.pct_owner_occupied)}% / ${num(b.pct_rental)}%`, b.pct_social_housing != null ? t("social")(num(b.pct_social_housing)) : "", "info.facts.tenure"],
+    b.pct_built_last_10_years != null && [t("newBuild"), `${num(b.pct_built_last_10_years)}%`, b.pct_vacant != null ? t("vacant")(num(b.pct_vacant)) : "", "info.facts.newBuild"],
+    sizes.median_m2 && [t("homeSize"), `${num(sizes.median_m2)} m²`, t("homeSizeValue")(num(sizes.median_m2), num(sizes.mean_m2)), "info.facts.homeSize"],
+    b.urbanity_class && [t("urbanity"), t("urbanityClass")[b.urbanity_class] || String(b.urbanity_class), "", "info.facts.urbanity"],
+    d.dwelling.floor_area_m2 && [t("floorArea"), `${num(d.dwelling.floor_area_m2)} m²`, d.dwelling.build_year ? `${t("buildYear")} ${d.dwelling.build_year}` : "", "info.facts.floorArea"],
   ];
   const body = factGrid(rows) + (dist ? `<p class="detail"><b>${esc(t("distances"))}:</b> ${esc(dist)}</p>` : "");
   return body;
@@ -588,12 +591,14 @@ function livabilityBody(d) {
   const bars = dims.map((k) => {
     const v = liv[k] || 0;
     const w = (50 * Math.abs(v)) / maxAbs;
-    return `<div class="dim"><span>${esc(t("dims")[k])}</span><div class="dim-track"><div class="dim-bar ${v < 0 ? "neg" : "pos"}" style="${v < 0 ? `right:50%` : `left:50%`};width:${w}%"></div></div></div>`;
+    return `<div class="dim"><span>${esc(t("dims")[k])}${hintButton(`info.dims.${k}`)}</span><div class="dim-track"><div class="dim-bar ${v < 0 ? "neg" : "pos"}" style="${v < 0 ? `right:50%` : `left:50%`};width:${w}%"></div></div></div>`;
   }).join("");
   const trendLine = liv.change_since_previous != null && liv.change_since_2014 != null
-    ? `<p class="detail">${esc(t("livabilityTrend")(signed(liv.change_since_previous, 3), signed(liv.change_since_2014, 3)))}</p>` : "";
-  const body = factGrid([[t("livabilityTitle"), `${num(liv.livability_score, 2)}`, t("livabilityValue")(Math.round(liv.national_percentile))]])
-    + trendLine + `<div class="dims">${bars}</div><p class="detail">${esc(t("dimsNote"))}</p>`;
+    ? `<p class="detail">${esc(t("livabilityTrend")(signed(liv.change_since_previous, 3), signed(liv.change_since_2014, 3)))}${hintButton("info.livTrend")}</p>` : "";
+  const glossary = `<h4>${esc(t("dimsTitle"))}</h4><dl class="glossary">${dims.map((k) =>
+    `<div><dt>${esc(t("dims")[k])}</dt><dd>${esc(t("info").dims[k])}</dd></div>`).join("")}</dl>`;
+  const body = factGrid([[t("livabilityTitle"), `${num(liv.livability_score, 2)}`, t("livabilityValue")(Math.round(liv.national_percentile)), "info.livScore"]])
+    + trendLine + `<div class="dims">${bars}</div>${caption("info.charts.dims")}` + glossary;
   return body;
 }
 
@@ -611,8 +616,8 @@ function safetyBody(d) {
   const chart = yearly.length > 2 ? barChart(yearly.map(([, v]) => v), yearly.map(([y]) => y), (v) => num(v)) : "";
   const types = (crime.top_types_last_12m || []).slice(0, 5)
     .map((x) => `<li>${esc(x.type.replace(/^[\d.]+\s*/, ""))} <span class="count">${num(x.count)}</span></li>`).join("");
-  const body = `<p class="detail">${esc(t("crimeRate"))}</p>${factGrid(rows)}${chart}
-    ${types ? `<h4>${esc(t("crimeTypes"))}</h4><ul class="types">${types}</ul>` : ""}
+  const body = `<p class="detail">${esc(t("crimeRate"))}${hintButton("info.facts.crimeRate")}</p>${factGrid(rows)}${chart ? chart + caption("info.charts.safetyYears") : ""}
+    ${types ? `<h4>${esc(t("crimeTypes"))}${hintButton("info.facts.crimeTypes")}</h4><ul class="types">${types}</ul>` : ""}
     <p class="detail">${esc(t("crimeCentreNote"))}</p>`;
   return body;
 }
@@ -623,7 +628,7 @@ function pricesBody(d) {
   if (sales.length < 3) return "";
   const chart = lineChart([{ values: sales.map((x) => x.avg_sale_price_eur), cls: "base" }], sales.map((x) => String(x.year)), kEur);
   const q = (ap.province_index_recent_quarters || [])[0];
-  const body = `<p class="detail">${esc(t("pricesAvg"))} (${esc(d.address.municipality_name)})</p>${chart}
+  const body = `<p class="detail">${esc(t("pricesAvg"))} (${esc(d.address.municipality_name)})</p>${chart}${caption("info.charts.salePrices")}
     ${ap.municipality_avg_sale_price_cagr_5y_pct != null ? `<p class="detail">${esc(t("pricesCagr")(signed(ap.municipality_avg_sale_price_cagr_5y_pct) + "%"))}</p>` : ""}
     ${q ? `<p class="detail">${esc(t("pricesQuarter")(q.period_code.replace("KW", " Q"), signed(q.price_index_yoy_pct) + "%"))}</p>` : ""}`;
   return body;
