@@ -1,11 +1,12 @@
 /* Layout: full-screen PDOK map as the ground with a red-white-blue flag bar on top;
    one floating panel (left on desktop, widening once there is a result; a bottom
    sheet with three heights on phones) holding the search and the report.
-   Colours: the Dutch flag (red #AE1C28, blue #21468B) with orange as the national
-   accent. Red stays the colour for "above the limit"; blue carries the brand. */
+   Colours: the Grontia brand kit (web/static/brand/brand-colors.css): Dutch red
+   #D71920 and Dutch blue #003DA5, with orange as the national accent. Red stays
+   the colour for "above the limit"; blue carries the brand. */
 :root {
-  --nl-red: #ae1c28;
-  --nl-blue: #21468b;
+  --nl-red: #d71920;    /* --grontia-red */
+  --nl-blue: #003da5;   /* --grontia-navy */
   --nl-orange: #e8731a;
   --ground: #e6ebf3;
   --panel: #ffffff;
@@ -73,6 +74,10 @@ body { background: var(--ground); color: var(--ink); font: 15px/1.5 var(--body);
 
 h1, h2, h3, h4 { font-family: var(--display); margin: 0; line-height: 1.15; }
 h1 { font-size: 1.65rem; letter-spacing: -.01em; color: var(--nl-blue); }
+/* the name set like the wordmark: bold capitals, wide tracking */
+.mark h1 { font: 800 1.45rem/1 Arial, Helvetica, sans-serif; letter-spacing: .08em; text-transform: uppercase; }
+.mark p { margin-top: 4px; }
+.r-wordmark { height: 64px; width: auto; }
 h2 { font-size: 1.2rem; }
 h3 { font-size: .76rem; text-transform: uppercase; letter-spacing: .1em; color: var(--muted); }
 p { margin: 0; }
@@ -287,8 +292,8 @@ ul.assumptions { padding: 0 14px 14px 30px; list-style: disc; color: var(--muted
 .report { display: none; }
 @media print {
   :root {
-    --panel: #ffffff; --ink: #13213f; --muted: #56627a; --line: #d8deea; --accent: #21468b; --accent-ink: #ffffff; --nl-red: #ae1c28; --nl-blue: #21468b; --nl-orange: #e8731a;
-    --ok: #1d7a46; --warn: #a85a00; --bad: #ae1c28; --field: #f3f5fa; --ok-soft: #e6f3ec; --warn-soft: #fdf1e3; --bad-soft: #fbe9eb; --accent-soft: #e8eef8; color-scheme: light;
+    --panel: #ffffff; --ink: #13213f; --muted: #56627a; --line: #d8deea; --accent: #003da5; --accent-ink: #ffffff; --nl-red: #d71920; --nl-blue: #003da5; --nl-orange: #e8731a;
+    --ok: #1d7a46; --warn: #a85a00; --bad: #d71920; --field: #f3f5fa; --ok-soft: #e6f3ec; --warn-soft: #fdf1e3; --bad-soft: #fbe9eb; --accent-soft: #e8eef8; color-scheme: light;
   }
   @page { size: A4; margin: 14mm 14mm 16mm; }
   html, body { height: auto; background: #ffffff; }

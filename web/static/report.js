@@ -142,7 +142,7 @@ function buildReport(state) {
   const R = t("report");
   const a = state.data.address;
   const today = new Date().toLocaleDateString(locale(), { day: "numeric", month: "long", year: "numeric" });
-  return `<header class="r-head"><img src="logo.svg" alt="" width="56" height="56">
+  return `<header class="r-head"><img src="brand/grontia-wordmark.svg" alt="Grontia" class="r-wordmark">
       <div><p class="r-eyebrow">Grontia · ${esc(R.title)}</p><h1>${esc(a.display_name)}</h1>
       <p>${esc([a.buurt_name, a.wijk_name, a.municipality_name, a.province_name].filter(Boolean).join(" · "))}</p>
       <p class="detail">${esc(R.generated(today))}</p></div></header>

@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 220"><rect width="900" height="220" fill="none"/><g transform="translate(12,10) scale(.38)">
+<g stroke-linejoin="round">
+ <path fill="#D71920" d="M74 210 132 166V126h56V88h44V55h48v33h44v38h56v40l58 44v46h-72v-36h-18v-39h-44v-37h-44V98h-48v41h-44v37h-44v39H74z"/>
+ <path fill="#003DA5" d="M92 232 151 192h28v-37h44v-38h26V91h14v26h26v38h44v37h28l59 40v198l-55 26H147l-55-26z"/>
+ <path fill="#FFFFFF" d="M235 115h42v48h-42z"/>
+ <path fill="#003DA5" d="M245 125h22v28h-22z"/>
+ <circle cx="256" cy="177" r="13" fill="#FFFFFF"/>
+ <path fill="#FFFFFF" d="M218 224a38 38 0 0 1 76 0v105h-76z"/>
+ <path fill="#003DA5" d="M230 226a26 26 0 0 1 52 0v91h-52z"/>
+ <path stroke="#FFFFFF" stroke-width="7" d="M256 202v115M230 260h52" fill="none"/>
+ <g fill="#FFFFFF"><rect x="139" y="248" width="49" height="65" rx="3"/><rect x="324" y="248" width="49" height="65" rx="3"/><rect x="139" y="333" width="49" height="59" rx="3"/><rect x="324" y="333" width="49" height="59" rx="3"/></g>
+ <g stroke="#003DA5" stroke-width="7"><path d="M163 251v59m-21-30h43M348 251v59m-21-30h43M163 336v53m-21-26h43M348 336v53m-21-26h43" fill="none"/></g>
+ <path fill="#FFFFFF" d="M218 358a38 38 0 0 1 76 0v66h-76z"/>
+ <path fill="#D71920" d="M231 359a25 25 0 0 1 50 0v53h-50z"/>
+ <circle cx="268" cy="385" r="3.5" fill="#FFFFFF"/>
+ <path fill="#FFFFFF" d="M206 421h100v16H206zM190 442h132v15H190zM177 463h158v14H177z"/>
+ <path fill="#003DA5" d="M215 424h82v8h-82zM201 445h110v8H201zM190 466h132v7H190z"/>
+ <path fill="#003DA5" d="M92 405q28 15 58 20l44 54-61-19q-35-15-41-55zM420 405q-28 15-58 20l-44 54 61-19q35-15 41-55z"/>
+</g></g><text x="230" y="139" font-family="Arial, Helvetica, sans-serif" font-size="100" font-weight="800" letter-spacing="7" fill="#003DA5">GRONTIA</text></svg>

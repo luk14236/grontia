@@ -1,3 +1,5 @@
+<p align="center"><img src="web/static/brand/grontia-wordmark.svg" alt="Grontia" width="520"></p>
+
 # Grontia
 
 **Grontia** is an open, hands-on data engineering project that builds real batch pipelines on official open data from the Netherlands, using only free and open-source tools.

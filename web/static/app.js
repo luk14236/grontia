@@ -107,7 +107,7 @@ function panelPadding() {
 
 function focusAddress(lat, lon) {
   if (marker) marker.setLatLng([lat, lon]);
-  else marker = L.circleMarker([lat, lon], { radius: 9, weight: 3, color: "#ffffff", fillColor: "#0b5cad", fillOpacity: 1 }).addTo(map);
+  else marker = L.circleMarker([lat, lon], { radius: 9, weight: 3, color: "#ffffff", fillColor: "#d71920", fillOpacity: 1 }).addTo(map);
   marker.bindTooltip(t("marker"));
   const d = 0.0012; // ~130 m around the address
   map.flyToBounds([[lat - d, lon - d], [lat + d, lon + d]], { ...panelPadding(), maxZoom: 18, duration: 1.2 });
@@ -116,7 +116,7 @@ function focusAddress(lat, lon) {
 function showBuurt(geometry, lat, lon) {
   if (buurtLayer) buurtLayer.remove();
   if (!geometry) return;
-  buurtLayer = L.geoJSON(geometry, { style: { color: "#0b5cad", weight: 2, fillOpacity: 0.08, dashArray: "4 4" } }).addTo(map);
+  buurtLayer = L.geoJSON(geometry, { style: { color: "#003da5", weight: 2, fillOpacity: 0.08, dashArray: "4 4" } }).addTo(map);
   if (marker) marker.bringToFront();
   map.flyToBounds(buurtLayer.getBounds().extend([lat, lon]), { ...panelPadding(), maxZoom: 17, duration: 1.2 });
 }
