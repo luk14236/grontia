@@ -465,7 +465,12 @@ function rentCard(rent, outlook) {
   const market = outlook ? t("rentMarket")(eur(outlook.market_rent.low), eur(outlook.market_rent.high)) : "";
   const typ = s.typical;
   const pts = t("rentPoints")(typ.total_points, t("segment")[typ.segment] || typ.segment);
-  const scen = t("rentScenarios")(eur(s.low.max_rent_eur), eur(typ.max_rent_eur), eur(s.high.max_rent_eur));
+  // a free-sector scenario has no legal maximum: its table price must not read as one
+  const cap = eur((rent.segment_limits || {}).middle_max_rent || typ.max_rent_eur);
+  const borderline = ["low", "typical", "high"].some((k) => s[k].segment === "free") && s.low.segment !== "free";
+  const scen = typ.segment === "free" ? t("rentScenariosFree")(typ.total_points, cap)
+    : s.high.segment === "free" ? t("rentScenariosHighFree")(eur(s.low.max_rent_eur), eur(typ.max_rent_eur))
+    : t("rentScenarios")(eur(s.low.max_rent_eur), eur(typ.max_rent_eur), eur(s.high.max_rent_eur));
   const c = rent.rent_check;
   if (!c) {
     const free = typ.segment === "free";
@@ -476,7 +481,8 @@ function rentCard(rent, outlook) {
     within_limit: () => t("rentWithin")(eur(c.max_rent_typical)),
     above_limit: () => t("rentAbove")(eur(c.difference_eur), eur(c.max_rent_typical)),
     free_sector: () => t("rentFree"),
-    depends_on_details: () => t("rentDepends")(eur(s.low.max_rent_eur), eur(s.high.max_rent_eur)),
+    depends_on_details: () => borderline ? t("rentBorderline")(s.low.total_points, s.high.total_points, cap)
+      : t("rentDepends")(eur(s.low.max_rent_eur), eur(s.high.max_rent_eur)),
   }[c.verdict]();
   const deposit = c.deposit_ok === undefined ? "" : (c.deposit_ok ? t("depositOk") : t("depositHigh"))(c.deposit_max_months);
   return verdictCard(kind, t("rentTitle"), t("badge")[c.verdict], headline, [scen, pts, market, deposit]);

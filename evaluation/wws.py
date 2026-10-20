@@ -189,7 +189,9 @@ def assess(facts: DwellingFacts, asked_rent: float | None = None,
             verdict = "free_sector"          # no legal maximum at the start of the contract
         elif asked_rent <= results["low"]["max_rent_eur"]:
             verdict = "within_limit"
-        elif asked_rent <= results["high"]["max_rent_eur"]:
+        elif results["high"]["segment"] == "free" or asked_rent <= results["high"]["max_rent_eur"]:
+            # a free-sector scenario has no maximum, so its table price is no limit:
+            # above the regulated scenarios the answer hinges on the unknown details
             verdict = "depends_on_details"
         else:
             verdict = "above_limit"
