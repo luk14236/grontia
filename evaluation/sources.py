@@ -33,10 +33,27 @@ NEWS_RSS       = "https://news.google.com/rss/search"
 TIMEOUT = float(os.getenv("GRONTIA_HTTP_TIMEOUT", "60"))
 
 
+# PDOK's Locatieserver sometimes hangs on one request and answers the next in
+# 0.1 s, so a timed-out or 502/503/504 call is tried once more
+RETRIES = int(os.getenv("GRONTIA_HTTP_RETRIES", "1"))
+_RETRY_STATUS = {502, 503, 504}
+
+
 def _get(url: str, **params) -> requests.Response:
-    r = requests.get(url, params=params or None, timeout=TIMEOUT)
-    r.raise_for_status()
-    return r
+    for attempt in range(RETRIES + 1):
+        last = attempt == RETRIES
+        try:
+            r = requests.get(url, params=params or None, timeout=TIMEOUT)
+        except (requests.Timeout, requests.ConnectionError):
+            if last:
+                raise
+            logger.warning("Retrying %s after a timeout", url)
+            continue
+        if r.status_code in _RETRY_STATUS and not last:
+            logger.warning("Retrying %s after HTTP %s", url, r.status_code)
+            continue
+        r.raise_for_status()
+        return r
 
 
 # ---------------------------------------------------------------------------
