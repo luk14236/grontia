@@ -47,14 +47,14 @@
         <strong data-i18n="dropTitle"></strong>
         <span data-i18n="dropHint"></span>
       </label>
-      <p class="note" data-i18n="pdfPrivacy"></p>
+      <span class="label-row"><span class="note" data-i18n="pdfPrivacy"></span><button type="button" class="hint" data-hint="hints.pdf"></button></span>
       <p class="status" id="pdf-status" role="status"></p>
     </section>
 
     <form id="form" novalidate>
       <section id="pane-address" role="tabpanel" aria-labelledby="tab-address">
         <div class="field search">
-          <label for="search" data-i18n="searchLabel"></label>
+          <span class="label-row"><label for="search" data-i18n="searchLabel"></label><button type="button" class="hint" data-hint="hints.search"></button></span>
           <input id="search" type="search" autocomplete="off" role="combobox" aria-expanded="false" aria-controls="suggestions" data-i18n-placeholder="searchPlaceholder">
           <ul id="suggestions" role="listbox" hidden></ul>
         </div>
@@ -63,36 +63,37 @@
       <div class="banner" id="pdf-banner" hidden data-i18n="pdfBanner"></div>
 
       <div class="row">
-        <div class="field"><label for="postcode" data-i18n="postcode"></label><input id="postcode" name="postcode" required placeholder="1234AB" maxlength="7"></div>
-        <div class="field small"><label for="number" data-i18n="number"></label><input id="number" name="number" required inputmode="numeric" placeholder="9"></div>
-        <div class="field small"><label for="suffix" data-i18n="suffix"></label><input id="suffix" name="suffix" maxlength="6" placeholder="A"></div>
+        <div class="field"><span class="label-row"><label for="postcode" data-i18n="postcode"></label><button type="button" class="hint" data-hint="hints.postcode"></button></span><input id="postcode" name="postcode" required placeholder="1234AB" maxlength="7"></div>
+        <div class="field small"><span class="label-row"><label for="number" data-i18n="number"></label><button type="button" class="hint" data-hint="hints.number"></button></span><input id="number" name="number" required inputmode="numeric" placeholder="9"></div>
+        <div class="field small"><span class="label-row"><label for="suffix" data-i18n="suffix"></label><button type="button" class="hint" data-hint="hints.suffix"></button></span><input id="suffix" name="suffix" maxlength="6" placeholder="A"></div>
       </div>
 
+      <span class="label-row"><span class="label" data-i18n="modeLabel"></span><button type="button" class="hint" data-hint="hints.mode"></button></span>
       <div class="mode segmented" role="radiogroup" data-i18n-aria="modeLabel">
         <label><input type="radio" name="mode" value="sale" checked><span data-i18n="modeSale"></span></label>
         <label><input type="radio" name="mode" value="rent"><span data-i18n="modeRent"></span></label>
       </div>
 
       <div class="row" data-mode="sale">
-        <div class="field"><label for="asking_price" data-i18n="askingPrice"></label><input id="asking_price" name="asking_price" inputmode="decimal" placeholder="€ 400000"></div>
+        <div class="field"><span class="label-row"><label for="asking_price" data-i18n="askingPrice"></label><button type="button" class="hint" data-hint="hints.asking_price"></button></span><input id="asking_price" name="asking_price" inputmode="decimal" placeholder="€ 400000"></div>
       </div>
       <div class="row" data-mode="rent" hidden>
-        <div class="field"><label for="rent" data-i18n="rent"></label><input id="rent" name="rent" inputmode="decimal" placeholder="€ 1500"></div>
-        <div class="field"><label for="deposit" data-i18n="deposit"></label><input id="deposit" name="deposit" inputmode="decimal" placeholder="€ 3000"></div>
+        <div class="field"><span class="label-row"><label for="rent" data-i18n="rent"></label><button type="button" class="hint" data-hint="hints.rent"></button></span><input id="rent" name="rent" inputmode="decimal" placeholder="€ 1500"></div>
+        <div class="field"><span class="label-row"><label for="deposit" data-i18n="deposit"></label><button type="button" class="hint" data-hint="hints.deposit"></button></span><input id="deposit" name="deposit" inputmode="decimal" placeholder="€ 3000"></div>
       </div>
 
       <details class="more">
-        <summary data-i18n="moreDetails"></summary>
+        <summary><span data-i18n="moreDetails"></span><button type="button" class="hint" data-hint="hints.more"></button></summary>
         <div class="row">
-          <div class="field"><label for="energy_label" data-i18n="energyLabel"></label><input id="energy_label" name="energy_label" maxlength="5" placeholder="A"></div>
-          <div class="field"><label for="woz" data-i18n="woz"></label><input id="woz" name="woz" inputmode="decimal"></div>
-          <div class="field small"><label for="woz_year" data-i18n="wozYear"></label><input id="woz_year" name="woz_year" inputmode="numeric" placeholder="2026"></div>
+          <div class="field"><span class="label-row"><label for="energy_label" data-i18n="energyLabel"></label><button type="button" class="hint" data-hint="hints.energy_label"></button></span><input id="energy_label" name="energy_label" maxlength="5" placeholder="A"></div>
+          <div class="field"><span class="label-row"><label for="woz" data-i18n="woz"></label><button type="button" class="hint" data-hint="hints.woz"></button></span><input id="woz" name="woz" inputmode="decimal"></div>
+          <div class="field small"><span class="label-row"><label for="woz_year" data-i18n="wozYear"></label><button type="button" class="hint" data-hint="hints.woz_year"></button></span><input id="woz_year" name="woz_year" inputmode="numeric" placeholder="2026"></div>
         </div>
         <p class="note" data-i18n="comparableHint"></p>
         <div class="row">
-          <div class="field"><label for="comparable_price" data-i18n="comparablePrice"></label><input id="comparable_price" name="comparable_price" inputmode="decimal"></div>
-          <div class="field small"><label for="comparable_date" data-i18n="comparableDate"></label><input id="comparable_date" name="comparable_date" placeholder="2026-06"></div>
-          <div class="field small"><label for="comparable_m2" data-i18n="comparableM2"></label><input id="comparable_m2" name="comparable_m2" inputmode="decimal"></div>
+          <div class="field"><span class="label-row"><label for="comparable_price" data-i18n="comparablePrice"></label><button type="button" class="hint" data-hint="hints.comparable_price"></button></span><input id="comparable_price" name="comparable_price" inputmode="decimal"></div>
+          <div class="field small"><span class="label-row"><label for="comparable_date" data-i18n="comparableDate"></label><button type="button" class="hint" data-hint="hints.comparable_date"></button></span><input id="comparable_date" name="comparable_date" placeholder="2026-06"></div>
+          <div class="field small"><span class="label-row"><label for="comparable_m2" data-i18n="comparableM2"></label><button type="button" class="hint" data-hint="hints.comparable_m2"></button></span><input id="comparable_m2" name="comparable_m2" inputmode="decimal"></div>
         </div>
       </details>
 
@@ -123,6 +124,9 @@
 
     <footer class="disclaimer" data-i18n="disclaimer"></footer>
   </main>
+
+  <section id="detail" class="detail-view" hidden data-i18n-aria="detailTitle"></section>
+  <div id="tooltip" class="tooltip" role="tooltip" hidden></div>
 
   <article id="report" class="report"></article>
 

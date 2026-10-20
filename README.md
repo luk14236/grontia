@@ -132,6 +132,8 @@ Step-by-step instructions are in [`docs/PROJETO_COMPLETO.md`](docs/PROJETO_COMPL
 - **Verdict:** asking price vs. the expected value range, or asked rent vs. the legal maximum (WWS points), the market rent and the deposit limit.
 - **5-year outlook:** three growth scenarios and the return after transfer tax for living in the home (2%) or renting it out (8%, rent capped at the legal maximum), from `evaluation/outlook.py` (shared with the report skill).
 - **Neighbourhood:** overview (income, WOZ, tenure, new build, distances), livability by dimension, crime per 1,000 residents with trend and top offences, municipal price trend, and the latest official notices and headlines, loaded after the verdict from `/api/news`. The outline of the neighbourhood is drawn on the map.
+- **Two views:** a summary in the side panel (four headline numbers and the verdict) and a detailed view next to it with every section as a card, larger charts, the valuation and WWS tables and a short explanation per card.
+- **Hints:** every form field, headline number and card has an ⓘ with an explanation on hover, keyboard focus or tap.
 - **Export PDF:** builds a full report (summary, neighbourhood outline, valuation methods, WWS points per rubric, outlook, neighbourhood, safety, price and WOZ history, all notices and headlines with links, data periods, methodology and sources) and opens the browser's print window to save it as a PDF (`web/static/report.js`).
 
 The API lives at `/api/evaluate` and `/api/listing` (docs at `/api/docs`) and reads the warehouse wherever DAG 40 publishes it. The page also has an **About** view that explains the project, the data and the privacy rules.

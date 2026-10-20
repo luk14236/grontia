@@ -28,6 +28,8 @@ function applyLang(next) {
   renderIntro();
   setMode(document.querySelector('input[name="mode"]:checked').value);
   if (lastResult) renderSummary(lastResult);
+  document.querySelectorAll(".hint").forEach((h) => h.setAttribute("aria-label", t("hintLabel")));
+  if (lastResult && !$("#detail").hidden) renderDetail(lastResult);
   document.querySelectorAll("[data-lang]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.lang === lang)));
   if (marker) marker.bindTooltip(t("marker"));
   if (lastResult) renderResult(lastResult);
@@ -39,6 +41,49 @@ const eur = (n) => new Intl.NumberFormat(locale(), { style: "currency", currency
 const num = (n, d = 0) => new Intl.NumberFormat(locale(), { maximumFractionDigits: d }).format(n);
 const pct = (n) => `${n > 0 ? "+" : ""}${num(n, 1)}%`;
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+
+// ---------------------------------------------------------------- hints (ⓘ with an explanation on hover, focus or tap)
+
+// key is a dotted path into the language strings, e.g. "hints.postcode"
+const lookup = (key) => key.split(".").reduce((o, k) => (o || {})[k], I18N[lang]);
+const hintButton = (key) => `<button type="button" class="hint" data-hint="${key}"></button>`;
+
+const tooltip = document.getElementById("tooltip");
+let tipFor = null;
+function showTip(btn) {
+  tipFor = btn;
+  tooltip.textContent = lookup(btn.dataset.hint) || "";
+  tooltip.hidden = false;
+  btn.setAttribute("aria-describedby", "tooltip");
+  const r = btn.getBoundingClientRect(), tw = Math.min(300, window.innerWidth - 24);
+  tooltip.style.width = `${tw}px`;
+  const left = Math.min(Math.max(12, r.left + r.width / 2 - tw / 2), window.innerWidth - tw - 12);
+  const below = r.bottom + 8 + tooltip.offsetHeight < window.innerHeight;
+  tooltip.style.left = `${left}px`;
+  tooltip.style.top = `${below ? r.bottom + 8 : r.top - tooltip.offsetHeight - 8}px`;
+}
+function hideTip() {
+  if (tipFor) tipFor.removeAttribute("aria-describedby");
+  tipFor = null;
+  tooltip.hidden = true;
+}
+document.addEventListener("mouseover", (e) => { const b = e.target.closest(".hint"); if (b) showTip(b); });
+document.addEventListener("mouseout", (e) => { if (e.target.closest(".hint")) hideTip(); });
+document.addEventListener("focusin", (e) => { const b = e.target.closest(".hint"); if (b) showTip(b); });
+document.addEventListener("focusout", (e) => { if (e.target.closest(".hint")) hideTip(); });
+document.addEventListener("click", (e) => {
+  const b = e.target.closest(".hint");
+  if (b) {  // touch screens have no hover: a tap toggles the hint (and must not toggle a <details>)
+    e.preventDefault(); e.stopPropagation();
+    if (tipFor === b) hideTip(); else showTip(b);
+  } else if (tipFor) hideTip();
+}, true);
+document.addEventListener("keydown", (e) => {
+  if (e.key !== "Escape") return;
+  if (tipFor) hideTip();
+  else if (!$("#detail").hidden) toggleDetail(false);
+});
+document.addEventListener("scroll", () => tipFor && hideTip(), true);
 
 // ---------------------------------------------------------------- map
 
@@ -342,6 +387,7 @@ $("#form").addEventListener("submit", async (e) => {
   status.className = "status";
   status.textContent = "";
   $("#intro").hidden = true;
+  toggleDetail(false);
   showProgress(true);
   try {
     const res = await fetch("/api/evaluate", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
@@ -475,10 +521,6 @@ function barChart(values, labels, fmt, highlightLast = false) {
 const kEur = (v) => (v >= 1e6 ? `€${num(v / 1e6, 2)}M` : `€${num(v / 1000)}k`);
 const signed = (v, d = 1) => `${v > 0 ? "+" : ""}${num(v, d)}`;
 
-function section(id, title, body, open = true) {
-  return `<details class="section" id="sec-${id}"${open ? " open" : ""}><summary><h3>${esc(title)}</h3></summary><div class="section-body">${body}</div></details>`;
-}
-
 function factGrid(rows) {
   return `<div class="facts">${rows.filter(Boolean).map(([k, v, s]) =>
     `<div class="fact"><span>${esc(k)}</span><b>${esc(v)}</b>${s ? `<small>${esc(s)}</small>` : ""}</div>`).join("")}</div>`;
@@ -486,7 +528,7 @@ function factGrid(rows) {
 
 // ---------------------------------------------------------------- result sections
 
-function outlookSection(o) {
+function outlookBody(o) {
   if (!o) return "";
   const g = o.growth_pct_per_year;
   const year = new Date().getFullYear();
@@ -509,10 +551,10 @@ function outlookSection(o) {
     ${table(t("ownerTitle"), o.owner_occupier, t("ownerNote")(eur(o.owner_occupier.transfer_tax), eur(o.starter_exemption_max_value)))}
     ${table(t("landlordTitle"), o.landlord, landlordNote)}
     <p class="detail">${esc(t("excludedNote"))}</p>`;
-  return section("outlook", t("outlookTitle"), body);
+  return body;
 }
 
-function overviewSection(d) {
+function overviewBody(d) {
   const a = d.address;
   const kf = d.neighbourhood.key_figures || {};
   const b = kf[a.buurt_code] || {};
@@ -533,10 +575,10 @@ function overviewSection(d) {
     d.dwelling.floor_area_m2 && [t("floorArea"), `${num(d.dwelling.floor_area_m2)} m²`, d.dwelling.build_year ? `${t("buildYear")} ${d.dwelling.build_year}` : ""],
   ];
   const body = factGrid(rows) + (dist ? `<p class="detail"><b>${esc(t("distances"))}:</b> ${esc(dist)}</p>` : "");
-  return section("overview", t("overviewTitle"), body);
+  return body;
 }
 
-function livabilitySection(d) {
+function livabilityBody(d) {
   const series = (d.neighbourhood.livability || {})[d.address.buurt_code] || [];
   const liv = series.slice(-1)[0];
   if (!liv) return "";
@@ -551,10 +593,10 @@ function livabilitySection(d) {
     ? `<p class="detail">${esc(t("livabilityTrend")(signed(liv.change_since_previous, 3), signed(liv.change_since_2014, 3)))}</p>` : "";
   const body = factGrid([[t("livabilityTitle"), `${num(liv.livability_score, 2)}`, t("livabilityValue")(Math.round(liv.national_percentile))]])
     + trendLine + `<div class="dims">${bars}</div><p class="detail">${esc(t("dimsNote"))}</p>`;
-  return section("livability", t("livabilityTitle"), body);
+  return body;
 }
 
-function safetySection(d) {
+function safetyBody(d) {
   const crime = d.neighbourhood.crime || {};
   if (crime.error || !crime.by_region) return "";
   const a = d.address;
@@ -571,10 +613,10 @@ function safetySection(d) {
   const body = `<p class="detail">${esc(t("crimeRate"))}</p>${factGrid(rows)}${chart}
     ${types ? `<h4>${esc(t("crimeTypes"))}</h4><ul class="types">${types}</ul>` : ""}
     <p class="detail">${esc(t("crimeCentreNote"))}</p>`;
-  return section("safety", t("safetyTitle"), body);
+  return body;
 }
 
-function pricesSection(d) {
+function pricesBody(d) {
   const ap = d.purchase.appreciation || {};
   const sales = ap.municipality_avg_sale_price || [];
   if (sales.length < 3) return "";
@@ -583,11 +625,11 @@ function pricesSection(d) {
   const body = `<p class="detail">${esc(t("pricesAvg"))} (${esc(d.address.municipality_name)})</p>${chart}
     ${ap.municipality_avg_sale_price_cagr_5y_pct != null ? `<p class="detail">${esc(t("pricesCagr")(signed(ap.municipality_avg_sale_price_cagr_5y_pct) + "%"))}</p>` : ""}
     ${q ? `<p class="detail">${esc(t("pricesQuarter")(q.period_code.replace("KW", " Q"), signed(q.price_index_yoy_pct) + "%"))}</p>` : ""}`;
-  return section("prices", t("pricesTitle"), body);
+  return body;
 }
 
-function newsSection(news, limits = { notices: 8, headlines: 6 }) {
-  if (!news) return section("news", t("newsTitle"), `<p class="detail">${esc(t("newsLoading"))}</p>`);
+function newsBody(news, limits = { notices: 8, headlines: 6 }) {
+  if (!news) return `<p class="detail">${esc(t("newsLoading"))}</p>`;
   const fmtDate = (s) => (s ? new Date(s).toLocaleDateString(locale(), { day: "numeric", month: "short", year: "numeric" }) : "");
   const link = (url, text) => (url ? `<a href="${esc(url)}" target="_blank" rel="noopener">${esc(text)}</a>` : esc(text));
   const n = news.official_notices || {};
@@ -604,7 +646,7 @@ function newsSection(news, limits = { notices: 8, headlines: 6 }) {
   const headlines = h && h.error ? `<p class="detail">${esc(t("newsUnavailable"))}</p>`
     : (h || []).length ? `<ul class="news">${h.slice(0, limits.headlines).map((x) => `<li>${link(x.url, x.title)}<small>${esc(x.source || "")} · ${esc(fmtDate(x.date))}</small></li>`).join("")}</ul>`
     : `<p class="detail">${esc(t("headlinesNone"))}</p>`;
-  return section("news", t("newsTitle"), `<h4>${esc(t("noticesTitle"))}</h4>${notices}<h4>${esc(t("headlinesTitle"))}</h4>${headlines}`);
+  return `<h4>${esc(t("noticesTitle"))}</h4>${notices}<h4>${esc(t("headlinesTitle"))}</h4>${headlines}`;
 }
 
 async function loadNews(state) {
@@ -617,8 +659,8 @@ async function loadNews(state) {
     state.news = { official_notices: { error: "network" }, headlines: { error: "network" } };
   }
   if (lastResult === state) {
-    const old = $("#sec-news");
-    if (old) old.outerHTML = newsSection(state.news);
+    const old = document.getElementById("d-news");
+    if (old) old.outerHTML = cardHtml({ id: "news", title: t("newsTitle"), body: newsBody(state.news, { notices: 40, headlines: 15 }) });
   }
 }
 
@@ -627,66 +669,48 @@ function glance(d) {
   const G = t("glance"), a = d.address;
   const tiles = [];
   const check = d.purchase.asking_price_check;
-  tiles.push([G.value, eur(d.purchase.range.central),
+  tiles.push(["value", eur(d.purchase.range.central),
     check ? t("badge")[check.verdict] : `${eur(d.purchase.price_per_m2_central)}/m²`,
     check ? (check.verdict === "above_range" ? "bad" : "ok") : "neutral"]);
   const typ = d.rent.scenarios.typical, rc = d.rent.rent_check;
-  tiles.push([G.rent, typ.segment === "free" ? t("badge").free_sector : eur(typ.max_rent_eur),
+  tiles.push(["rent", typ.segment === "free" ? t("badge").free_sector : eur(typ.max_rent_eur),
     rc ? t("badge")[rc.verdict] : `${G.perMonth} · ${t("segment")[typ.segment]}`,
     rc ? ({ within_limit: "ok", above_limit: "bad", depends_on_details: "warn" }[rc.verdict] || "neutral") : "neutral"]);
   const liv = ((d.neighbourhood.livability || {})[a.buurt_code] || []).slice(-1)[0];
   if (liv && liv.national_percentile != null) {
     const p = Math.round(liv.national_percentile);
-    tiles.push([G.livability, `${p}/100`, G.percentile(Math.min(p, 99)), p >= 60 ? "ok" : p < 40 ? "bad" : "neutral"]);
+    tiles.push(["livability", `${p}/100`, G.percentile(Math.min(p, 99)), p >= 60 ? "ok" : p < 40 ? "bad" : "neutral"]);
   }
   const by = (d.neighbourhood.crime || {}).by_region || {};
   const here = (by[a.buurt_code] || {}).per_1000_residents_last_12m, nl = (by.NL00 || {}).per_1000_residents_last_12m;
   if (here != null && nl) {
     const x = here / nl;
-    tiles.push([G.crime, num(here, 0), `${G.per1000} · ${G.vsNl(num(x, 1))}`, x <= 1 ? "ok" : x > 2 ? "bad" : "warn"]);
+    tiles.push(["crime", num(here, 0), `${G.per1000} · ${G.vsNl(num(x, 1))}`, x <= 1 ? "ok" : x > 2 ? "bad" : "warn"]);
   }
   return `<div class="glance">${tiles.map(([k, v, sub, st]) =>
-    `<div class="tile ${st}"><span>${esc(k)}</span><b>${esc(v)}</b><small>${esc(sub)}</small></div>`).join("")}</div>`;
+    `<div class="tile ${st}"><span>${esc(G[k])}${hintButton(`glanceHints.${k}`)}</span><b>${esc(v)}</b><small>${esc(sub)}</small></div>`).join("")}</div>`;
 }
 
-function sectionNav() {
-  const N = t("nav");
-  const ids = ["verdict", "outlook", "overview", "livability", "safety", "prices", "news"];
-  return `<nav class="chips" aria-label="${esc(t("outlookTitle"))}">${ids.map((id) =>
-    `<button type="button" data-target="sec-${id}">${esc(N[id])}</button>`).join("")}</nav>`;
-}
-
-function renderResult({ data, mode, news }) {
+function renderResult({ data, mode }) {
   const a = data.address;
   const primary = mode === "rent" ? rentCard(data.rent, data.outlook) : purchaseCard(data.purchase);
-  const secondary = mode === "rent" ? purchaseCard({ ...data.purchase, asking_price_check: null }) : rentCard({ ...data.rent, rent_check: null }, data.outlook);
-  const assumptions = data.rent.assumptions || [];
   // BAG "woonfunctie" = residential use; offices, shops etc. get a warning
   const use = data.dwelling.use || "";
   const notAHome = use && !use.split(",").includes("woonfunctie")
     ? `<div class="banner warn" role="alert">${esc(t("notAHome")(use))}</div>` : "";
   $("#result").innerHTML = `
-    <div class="where"><div><h2>${esc(a.display_name)}</h2><p>${esc([a.buurt_name, a.municipality_name, a.province_name].filter(Boolean).join(" · "))}</p></div>
-      <button type="button" class="secondary" id="export-pdf">${esc(t("exportPdf"))}</button></div>
+    <div class="where"><div><h2>${esc(a.display_name)}</h2><p>${esc([a.buurt_name, a.municipality_name, a.province_name].filter(Boolean).join(" · "))}</p></div></div>
     ${glance(data)}
-    ${sectionNav()}
     ${notAHome}
-    <div id="sec-verdict" class="verdicts">${primary}${secondary}</div>
-    ${outlookSection(data.outlook)}
-    ${overviewSection(data)}
-    ${livabilitySection(data)}
-    ${safetySection(data)}
-    ${pricesSection(data)}
-    ${newsSection(news)}
-    ${assumptions.length ? `<details class="section"><summary><h3>${esc(t("assumptions"))}</h3></summary><ul class="assumptions">${assumptions.map((x) => `<li>${esc(x)}</li>`).join("")}</ul></details>` : ""}`;
+    ${primary}
+    <div class="result-actions">
+      <button type="button" class="primary" id="open-detail">${esc(t("openDetail"))}</button>
+      <button type="button" class="secondary" id="export-pdf">${esc(t("exportPdf"))}</button>
+    </div>`;
   $("#result").hidden = false;
+  document.querySelectorAll("#result .hint").forEach((h) => h.setAttribute("aria-label", t("hintLabel")));
+  $("#open-detail").addEventListener("click", () => toggleDetail(true));
   $("#export-pdf").addEventListener("click", () => exportReport(lastResult));
-  $("#result").querySelectorAll(".chips button").forEach((b) => b.addEventListener("click", () => {
-    const target = document.getElementById(b.dataset.target);
-    if (!target) return;
-    if (target.tagName === "DETAILS") target.open = true;
-    target.scrollIntoView({ behavior: "smooth", block: "start" });
-  }));
 }
 
 // ---------------------------------------------------------------- start
