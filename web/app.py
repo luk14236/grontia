@@ -24,6 +24,7 @@ from collections import defaultdict, deque
 from concurrent.futures import ThreadPoolExecutor
 from datetime import date, timedelta
 from pathlib import Path
+from urllib.parse import urlparse
 
 import requests
 from fastapi import Depends, FastAPI, File, HTTPException, Request, UploadFile
@@ -38,6 +39,8 @@ from . import listing
 logger = logging.getLogger("grontia.web")
 
 MAX_UPLOAD_BYTES = 15 * 1024 * 1024
+SOURCE_NAMES = {"pdok.nl": "PDOK (the Dutch address and building register)", "cbs.nl": "CBS (Statistics Netherlands)",
+                "overheid.nl": "The official notices service", "google.com": "The news service"}
 RATE_LIMIT = int(os.getenv("GRONTIA_RATE_LIMIT", "10"))
 RATE_WINDOW_S = 600
 PASSWORD = os.getenv("GRONTIA_WEB_PASSWORD")
@@ -124,7 +127,10 @@ def evaluate(req: EvaluateRequest) -> dict:
         raise HTTPException(404, str(e))
     except requests.RequestException as e:
         logger.exception("Upstream source failed")
-        raise HTTPException(502, f"An open-data source did not answer: {e}")
+        # name the source, not the URL: the page shows this message to the visitor
+        host = urlparse(getattr(e.request, "url", "") or "").hostname or ""
+        source = next((name for key, name in SOURCE_NAMES.items() if key in host), "An open-data source")
+        raise HTTPException(502, f"{source} is not answering right now. Try again in a minute.")
 
 
 @app.post("/api/listing", dependencies=[Depends(rate_limiter("check"))])

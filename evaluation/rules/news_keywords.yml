@@ -1,0 +1,19 @@
+# Which official notices and headlines count as important (shown first, with a
+# category badge) and which are routine (folded away on the site, left out of
+# the PDF). Matched case-insensitively against the title; a keyword matches the
+# start of a word, so "brand" also matches "brandweer". Categories are tried in
+# this order and the first match wins.
+categories:
+  safety: [politie, inbraak, inbreker, overval, steekpartij, steekincident, schietpartij, schietincident, schoten, explosie,
+           aanslag, brand, drugs, drugslab, hennep, aangehouden, arrestatie, gearresteerd, verdachte, geweld, moord, doodgeslagen,
+           doodgeschoten, mishandeling, ramkraak, overlast, criminaliteit, cameratoezicht, noodverordening, onveilig]
+  traffic: [verkeersbesluit, wegafsluiting, afsluiting, afgesloten, omleiding, wegwerkzaamheden, parkeerverbod, parkeren,
+            parkeervergunning, snelheid, ongeluk, aanrijding, verkeer]
+  development: [nieuwbouw, woningbouw, woningen, appartementen, sloop, slopen, renovatie, transformatie, herinrichting,
+                bestemmingsplan, omgevingsplan, omgevingsvisie, gebiedsontwikkeling, investering, investeert, stadspark,
+                station, ziekenhuis, school, fietspad, brug, tunnel, rotonde, infrastructuur, verbouwen, uitbreiden, uitbreiding,
+                bouwen, bouw, splitsen, arbeidsmigranten, windmolen, windturbine, zonnepark, laadpalen]
+# Routine notice types: never important, even when a keyword above matches.
+routine: [evenementenvergunning, evenement, alcoholwetvergunning, drank- en horecavergunning, exploitatievergunning,
+          ontheffing, standplaats, apv vergunning, terrasvergunning, collectevergunning, incidentele festiviteit,
+          melding incidentele, kansspelvergunning, speelautomaat, rijbewijs, naamswijziging]

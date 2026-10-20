@@ -15,8 +15,10 @@ import time
 import xml.etree.ElementTree as ET
 from datetime import datetime
 from email.utils import parsedate_to_datetime
+from pathlib import Path
 
 import requests
+import yaml
 
 logger = logging.getLogger(__name__)
 
@@ -212,6 +214,23 @@ def crime(region_codes: list[str], buurt_code: str, months: int = 12) -> dict:
 # Local news: official notices (overheid.nl) and press headlines
 # ---------------------------------------------------------------------------
 
+# ---------------------------------------------------------------------------
+# News relevance: important (safety, traffic, city development) vs routine
+# ---------------------------------------------------------------------------
+
+_NEWS_RULES = yaml.safe_load((Path(__file__).parent / "rules" / "news_keywords.yml").read_text())
+_NEWS_CATEGORIES = [(cat, re.compile(r"\b(?:" + "|".join(re.escape(k) for k in kws) + ")", re.I))
+                    for cat, kws in _NEWS_RULES["categories"].items()]
+_NEWS_ROUTINE = re.compile("|".join(re.escape(k) for k in _NEWS_RULES["routine"]), re.I)
+
+
+def news_category(title: str) -> str | None:
+    """'safety', 'traffic' or 'development' for news that matters, None for routine items."""
+    if _NEWS_ROUTINE.search(title):
+        return None
+    return next((cat for cat, pattern in _NEWS_CATEGORIES if pattern.search(title)), None)
+
+
 def official_notices(municipality_name: str, postcode: str, street: str, since: str) -> list[dict]:
     """Permits, demolition, events... published by the municipality near the address."""
     return official_notices_within(municipality_name, postcode, street, since)["items"]
@@ -271,6 +290,7 @@ def official_notices_within(municipality_name: str, postcode: str, street: str, 
         notices.append({
             "title": title, "date": date.group(1) if date else None,
             "url": link.group(1) if link else None, "scope": scope,
+            "category": news_category(title),
         })
     # Notices on the street itself first, then the postcode area; newest first in each
     notices.sort(key=lambda n: n["date"] or "", reverse=True)
@@ -292,6 +312,7 @@ def news_headlines(place: str, limit: int = 15) -> list[dict]:
         seen.add(title.lower())
         items.append({
             "title": title,
+            "category": news_category(title),
             "source": source,
             "date": parsedate_to_datetime(pub).date().isoformat() if pub else None,
             "url": item.findtext("link"),

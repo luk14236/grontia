@@ -39,7 +39,7 @@ function inputsText(inputs) {
 }
 
 // [{ id, title, body, wide }] in reading order; empty bodies are dropped
-function detailCards({ data, mode, news }, newsLimits = { notices: 40, headlines: 15 }) {
+function detailCards({ data, mode, news }, { onlyImportantNews = false } = {}) {
   const R = t("report");
   const a = data.address, dw = data.dwelling, p = data.purchase, rent = data.rent;
   const primary = mode === "rent" ? rentCard(rent, data.outlook) : purchaseCard(p);
@@ -102,7 +102,7 @@ function detailCards({ data, mode, news }, newsLimits = { notices: 40, headlines
     { id: "livability", title: t("livabilityTitle"), body: livabilityBody(data) },
     { id: "safety", title: t("safetyTitle"), body: safetyBody(data) },
     { id: "prices", title: t("pricesTitle"), body: prices },
-    { id: "news", title: t("newsTitle"), body: newsBody(news, newsLimits) },
+    { id: "news", title: t("newsTitle"), body: newsBody(news, { onlyImportant: onlyImportantNews }) },
     { id: "sources", title: R.sources, body: sources, wide: true },
   ].filter((c) => c.body);
 }
@@ -128,9 +128,9 @@ const SECTORS = [
   ["sources", [["sources", 12]]],
 ];
 
-function sectorsHtml(cards, skip = []) {
+function sectorsHtml(cards, sectors = SECTORS) {
   const S = t("sectors");
-  return SECTORS.filter(([id]) => !skip.includes(id)).map(([id, list]) => {
+  return sectors.map(([id, list]) => {
     const present = list.filter(([cid]) => cards[cid]);
     if (!present.length) return "";
     return `<section class="sector" id="s-${id}">
@@ -199,15 +199,24 @@ function glossaryCard() {
     <div class="sector-grid"><article class="card" id="d-glossary">${body}</article></div></section>`;
 }
 
+// PDF order: the answer first, the parts that can run long last
+const PRINT_SECTORS = [
+  ["home", [["home", 5], ["valuation", 7], ["rent", 12]]],
+  ["outlook", [["outlook", 12]]],
+  ["area", [["overview", 12], ["livability", 6], ["safety", 6], ["prices", 12]]],
+  ["sources", [["sources", 12]]],
+];
+
 function buildReport(state) {
   const R = t("report");
   const { data } = state;
   const a = data.address;
   const today = new Date().toLocaleDateString(locale(), { day: "numeric", month: "long", year: "numeric" });
-  // the PDF keeps the news short: the 10 nearest notices and 10 headlines
-  const cards = Object.fromEntries(detailCards(state, { notices: 10, headlines: 10 }).map((c) => [c.id, c]));
+  // the PDF keeps only the news that matters (safety, traffic, city development)
+  const cards = Object.fromEntries(detailCards(state, { onlyImportantNews: true }).map((c) => [c.id, c]));
   const S = t("sectors");
-  const contents = SECTORS.slice(1).map(([id]) => `<li>${esc(S[id][0])}</li>`).join("") + `<li>${esc(t("glossaryTitle"))}</li>`;
+  const contents = PRINT_SECTORS.map(([id]) => `<li>${esc(S[id][0])}</li>`).join("")
+    + `<li>${esc(t("glossaryTitle"))}</li><li>${esc(S.news[0])}</li>`;
   return `<section class="r-cover">
       <div class="r-cover-head"><img src="brand/grontia-wordmark.svg" alt="Grontia" class="r-wordmark">
         <div><p class="r-eyebrow">${esc(R.title)}</p><h1>${esc(a.display_name)}</h1>
@@ -220,8 +229,9 @@ function buildReport(state) {
       </div>
       <div class="r-contents"><p class="r-eyebrow">${esc(t("sectorNav"))}</p><ol>${contents}</ol></div>
     </section>
-    ${sectorsHtml(cards, ["verdict"])}
+    ${sectorsHtml(cards, PRINT_SECTORS)}
     ${glossaryCard()}
+    ${sectorsHtml(cards, [["news", [["news", 12]]]])}
     <footer class="r-foot"><p>${esc(t("disclaimer"))}</p><p>${esc(R.project)}</p></footer>`;
 }
 

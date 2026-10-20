@@ -127,6 +127,10 @@ window.I18N = {
     scope: { street: "street", postcode_area: "postcode area" },
     headlinesTitle: "In the news",
     headlinesNone: "No recent headlines found.",
+    newsCategory: { safety: "Safety", traffic: "Traffic", development: "City development" },
+    newsNoMajor: "Nothing about safety, traffic or city development.",
+    newsShowMinor: (n) => `Show ${n} smaller ${n === 1 ? "item" : "items"} (events, licences, other news)`,
+    newsMinorLeftOut: (n) => `${n} smaller ${n === 1 ? "item" : "items"} (events, licences, other news) left out.`,
     newsUnavailable: "This source did not answer.",
 
     sectors: {
@@ -477,6 +481,10 @@ window.I18N = {
     scope: { street: "straat", postcode_area: "postcodegebied" },
     headlinesTitle: "In het nieuws",
     headlinesNone: "Geen recente krantenkoppen gevonden.",
+    newsCategory: { safety: "Veiligheid", traffic: "Verkeer", development: "Stadsontwikkeling" },
+    newsNoMajor: "Niets over veiligheid, verkeer of stadsontwikkeling.",
+    newsShowMinor: (n) => `Toon ${n} ${n === 1 ? "kleiner bericht" : "kleinere berichten"} (evenementen, vergunningen, overig nieuws)`,
+    newsMinorLeftOut: (n) => `${n} ${n === 1 ? "kleiner bericht" : "kleinere berichten"} (evenementen, vergunningen, overig nieuws) weggelaten.`,
     newsUnavailable: "Deze bron reageerde niet.",
 
     sectors: {

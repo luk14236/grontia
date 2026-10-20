@@ -143,7 +143,7 @@ input:focus-visible, button:focus-visible, summary:focus-visible, .drop:focus-wi
 .banner.warn { background: var(--warn-soft); border-left-color: var(--warn); }
 .status { font-size: .88rem; color: var(--muted); min-height: 1.2em; }
 .status:empty { display: none; }
-.status.error { color: var(--bad); }
+.status.error { color: var(--bad); overflow-wrap: anywhere; }
 
 button.primary { background: var(--nl-blue); color: #ffffff; border: 0; border-radius: 12px; padding: 14px; font: 700 1.05rem var(--display); cursor: pointer;
   box-shadow: inset 0 -3px 0 var(--nl-red); }
@@ -388,90 +388,120 @@ body.detail-open .leaflet-control-zoom { display: none; }
 }
 
 /* ---------------------------------------------------------------- PDF report (print)
-   A4, a cover page with the headline numbers and the verdict, then one sector per
-   page with cards side by side as on screen, a glossary at the end and a running
-   footer (address + page numbers, set by report.js). */
+   A4. Cover page with the headline numbers, the verdict and the neighbourhood;
+   then the sectors flow on (no forced page per sector, so no half-empty pages):
+   a card never splits, a heading never ends a page. News comes last. Running
+   footer with the address (set by report.js) and page numbers. */
 @media print {
   :root {
     --panel: #ffffff; --ink: #13213f; --muted: #56627a; --line: #d8deea; --accent: #003da5; --accent-ink: #ffffff;
     --nl-red: #d71920; --nl-blue: #003da5; --nl-orange: #e8731a; --ok: #1d7a46; --warn: #a85a00; --bad: #d71920;
     --field: #f3f5fa; --ok-soft: #e6f3ec; --warn-soft: #fdf1e3; --bad-soft: #fbe9eb; --accent-soft: #e8eef8; color-scheme: light;
   }
-  @page { size: A4; margin: 14mm 13mm 16mm;
-    @bottom-right { content: counter(page) " / " counter(pages); font: 8pt Arial, sans-serif; color: #56627a; } }
-  @page :first { @bottom-left { content: none; } }
+  @page { size: A4; margin: 13mm 12mm 15mm;
+    @bottom-right { content: counter(page) " / " counter(pages); font: 7.5pt Arial, sans-serif; color: #56627a; } }
   html, body { height: auto; background: #ffffff; }
-  body { font-size: 9.5pt; line-height: 1.45; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  body { font-size: 8.8pt; line-height: 1.4; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
   body > *:not(.report) { display: none !important; }
   .report { display: block; color: var(--ink); }
-  .report button.hint, .report .chips { display: none !important; }
+  .report button.hint, .report .chips, .report .more-news { display: none !important; }
+  .report h4 { font-size: 9pt; margin: 0; break-after: avoid; }
+  .report p { orphans: 3; widows: 3; }
 
   /* cover */
-  .r-cover { break-after: page; display: grid; gap: 10mm; }
-  .r-cover-head { display: grid; grid-template-columns: auto 1fr; gap: 8mm; align-items: center; padding-bottom: 6mm; position: relative; }
-  .r-cover-head::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 6px;
+  .r-cover { break-after: page; display: block; }
+  .r-cover > * + * { margin-top: 5mm; }
+  .r-cover-head { display: grid; grid-template-columns: auto 1fr; gap: 7mm; align-items: center; padding-bottom: 5mm; position: relative; }
+  .r-cover-head::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 5px;
     background: linear-gradient(var(--nl-red) 0 33.3%, #ffffff 33.3% 66.6%, var(--nl-blue) 66.6%); }
-  .r-wordmark { height: 22mm; width: auto; }
-  .r-cover-head h1 { font-size: 20pt; color: var(--ink); line-height: 1.1; }
+  .r-wordmark { height: 20mm; width: auto; }
+  .r-cover-head h1 { font-size: 18pt; color: var(--ink); line-height: 1.12; }
   .r-cover-head p { color: var(--muted); }
-  .r-eyebrow { font: 700 8pt var(--display); letter-spacing: .12em; text-transform: uppercase; color: var(--nl-red); }
-  .r-cover .glance { grid-template-columns: repeat(4, 1fr); }
-  .r-cover .tile b { font-size: 14pt; }
-  .r-cover-grid { display: grid; grid-template-columns: 1.25fr 1fr; gap: 5mm; align-items: start; }
+  .r-eyebrow { font: 700 7.5pt var(--display); letter-spacing: .12em; text-transform: uppercase; color: var(--nl-red); }
+  .r-cover .glance { grid-template-columns: repeat(4, 1fr); gap: 3mm; }
+  .r-cover .tile { padding: 3mm 3.5mm; }
+  .r-cover .tile b { font-size: 13pt; }
+  .r-cover-grid { display: grid; grid-template-columns: 1.3fr 1fr; gap: 4mm; align-items: start; }
   .report .r-cover-grid > .card { grid-column: auto; }
   .r-cover-grid .verdict + .verdict { margin-top: 3mm; }
   .r-cover-grid #d-location .explain { display: none; }
-  .r-contents { border-top: 1px solid var(--line); padding-top: 4mm; }
-  .r-contents ol { margin: 2mm 0 0; padding-left: 5mm; columns: 2; font-size: 9.5pt; }
+  .r-contents { border-top: 1px solid var(--line); padding-top: 3mm; }
+  .r-contents ol { margin: 2mm 0 0; padding-left: 5mm; columns: 3; font-size: 9pt; }
 
-  /* sectors and cards */
-  .report .sector { display: block; break-before: page; }
-  .report .sector-head { border-left: 5px solid var(--nl-blue); padding-left: 3mm; margin-bottom: 4mm; break-after: avoid; }
-  .report .sector-head h2 { font-size: 15pt; color: var(--ink); }
-  .report .sector-head p { color: var(--muted); }
-  .report .sector-grid { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 4mm; align-items: start; }
-  .report .card { grid-column: span var(--span, 12); display: block; padding: 4mm 4.5mm; border: 1px solid var(--line); border-top: 3px solid var(--nl-blue);
-    border-radius: 3mm; box-shadow: none; break-inside: avoid; }
-  .report #d-news, .report #d-sources, .report #d-glossary { break-inside: auto; }
-  .report .r-table, .report .returns, .report .split > div { break-inside: avoid; }
-  .report .card > * + * { margin-top: 2.5mm; }
+  /* sectors flow; cards keep together */
+  /* the sector heading is the first row of the same grid as its cards, so it
+     always travels to the next page together with the first row of cards */
+  .report .sector { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 3.5mm; align-items: start;
+    margin-top: 7mm; break-before: auto; }
+  .report .sector > .sector-grid { display: contents; }
+  .report .sector > .sector-head { grid-column: 1 / -1; margin-bottom: 0; }
+  .report .sector:first-of-type { margin-top: 0; }
+  /* the blue mark is part of the heading's text line: a box border could be left
+     behind at the foot of a page when Chrome moves the heading to the next one */
+  .report .sector-head { border-left: 0; padding-left: 0; margin-bottom: 3mm; break-after: avoid; break-inside: avoid; }
+  .report .sector-head h2::before { content: ""; display: inline-block; width: 1.2mm; height: .95em; margin-right: 2.5mm;
+    background: var(--nl-blue); vertical-align: -.1em; }
+  .report .sector-head p { padding-left: 3.7mm; }
+  .report .sector-head h2 { font-size: 13pt; color: var(--ink); }
+  .report .sector-head p { color: var(--muted); font-size: 8.5pt; }
+  .report .sector-grid { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 3.5mm; align-items: start; }
+  .report .card { grid-column: span var(--span, 12); display: block; padding: 3.5mm 4mm; border: 1px solid var(--line); border-top: 3px solid var(--nl-blue);
+    border-radius: 2.5mm; box-shadow: none; break-inside: avoid; }
+  .report #d-news, .report #d-glossary, .report #d-sources { break-inside: auto; }
+  .report .card > * + * { margin-top: 2mm; }
   .report .card > header { break-after: avoid; }
-  .report .card > header h2 { font-size: 11pt; color: var(--nl-blue); }
-  .report .card .explain { font-size: 8.5pt; padding: 2mm 3mm; }
-  .report .verdict { padding: 3mm 4mm; break-inside: avoid; }
-  .report .verdict .headline { font-size: 10.5pt; }
-  .report .split { display: grid; grid-template-columns: 1fr 1fr; gap: 5mm; }
-  .report .split > div { display: block; }
-  .report .split > div > * + * { margin-top: 2mm; }
-  .report .chart { width: 100%; max-width: 100%; }
-  .report .outline { width: 100%; max-height: 62mm; }
+  .report .card > header h2 { font-size: 10pt; color: var(--nl-blue); }
+  .report .card .explain { font-size: 8pt; padding: 1.5mm 2.5mm; }
+  .report #d-livability .glossary, .report #d-livability .glossary + *, .report #d-livability h4 { display: none; }
+  .report .verdict { padding: 3mm 3.5mm; gap: 1.5mm; break-inside: avoid; }
+  .report .verdict .headline { font-size: 10pt; }
+  .report .verdict .detail { font-size: 8.3pt; }
+  .report .split { display: grid; grid-template-columns: 1fr 1fr; gap: 4mm; align-items: start; }
+  .report .split > div { display: block; break-inside: avoid; }
+  .report .split > div > * + * { margin-top: 1.5mm; }
+  .report .chart { width: 100%; max-width: 100%; max-height: 52mm; }
+  .report .outline { width: 100%; max-height: 55mm; }
   .report .facts { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 2mm; }
-  .report .fact { padding: 2mm 3mm; break-inside: avoid; }
-  .report .fact b { font-size: 10pt; }
-  .report .caption { font-size: 8pt; }
+  .report .fact { padding: 1.8mm 2.5mm; break-inside: avoid; }
+  .report .fact b { font-size: 9.5pt; }
+  .report .fact small, .report .fact span { font-size: 7.5pt; }
+  .report .dims { gap: 1.2mm; }
+  .report .dim { font-size: 8pt; grid-template-columns: 30mm 1fr; }
+  .report ul.types { gap: 1mm; font-size: 8.3pt; }
+  .report .caption { font-size: 7.5pt; }
+  .report .legend { font-size: 7.5pt; }
+  .report .kpis b { font-size: 9.5pt; }
   .report .scroll-box { max-height: none; overflow: visible; border-top: 0; padding: 0; }
   .report .table-wrap { overflow: visible; }
-  .report .r-table { font-size: 8.5pt; }
+  .report .r-table { font-size: 8pt; }
+  .report .r-table th, .report .r-table td { padding: 1.2mm 2mm; }
   .report .r-table tr { break-inside: avoid; }
   .report .r-table tbody tr:nth-child(even) td { background: var(--field); }
-  .report .returns table, .report .returns td { font-size: 8.5pt; }
-  .report ul.news { gap: 2mm; font-size: 8.5pt; }
+  .report .r-list { font-size: 8pt; gap: .8mm; }
+  .report .returns table, .report .returns td { font-size: 8pt; }
+  .report ul.news { gap: 1.8mm; font-size: 8.3pt; }
+  /* news flows as one column so a long list never pushes a whole block to the next page */
+  .report #d-news .split { display: block; }
+  .report #d-news .split > div { break-inside: auto; }
+  .report #d-news .split > div + div { margin-top: 4mm; }
   .report ul.news li { break-inside: avoid; }
   .report a { color: var(--accent); text-decoration: none; overflow-wrap: anywhere; }
   .report ul.news a { color: var(--ink); }
   .report .glossary { display: block; }
   .report #d-glossary .glossary { columns: 2; column-gap: 6mm; }
-  .report .glossary div { break-inside: avoid; margin-bottom: 2mm; }
-  .r-foot { margin-top: 6mm; border-top: 1px solid var(--line); padding-top: 3mm; font-size: 8pt; color: var(--muted); }
+  .report .glossary div { break-inside: avoid; margin-bottom: 1.8mm; }
+  .report .glossary dt { font-size: 8.5pt; }
+  .report .glossary dd { font-size: 8pt; margin: 0; }
+  .report .glossary div { display: block; }
+  .r-foot { margin-top: 5mm; border-top: 1px solid var(--line); padding-top: 2.5mm; font-size: 7.5pt; color: var(--muted); }
 }
 
-/* "How to read this" captions and the definition lists */
-.caption { font-size: .8rem; color: var(--muted); border-left: 2px solid var(--line); padding-left: 8px; }
-.caption b { color: var(--ink); font-weight: 600; }
-.glossary { margin: 0; display: grid; gap: 8px; }
-.glossary div { display: grid; gap: 1px; }
-.glossary dt { font: 600 .86rem var(--body); color: var(--ink); }
-.glossary dd { margin: 0; font-size: .84rem; color: var(--muted); }
-.dim span { display: flex; align-items: center; gap: 4px; }
-.returns td button.hint, .r-table td button.hint { margin-left: 5px; width: 15px; height: 15px; font-size: 9px; }
-.fact span button.hint, .detail button.hint, h4 button.hint, .dim span button.hint { margin-left: 5px; width: 16px; height: 16px; font-size: 10px; }
+/* news: importance badges and the folded routine items */
+.news-badge { justify-self: start; display: inline-block; margin-right: 6px; padding: 1px 7px; border-radius: 999px; font: 700 .68rem var(--body);
+  letter-spacing: .04em; text-transform: uppercase; color: #ffffff; vertical-align: 1px; background: var(--nl-blue); }
+.news-badge.safety { background: var(--nl-red); }
+.news-badge.traffic { background: var(--warn); }
+.news-badge.development { background: var(--nl-blue); }
+.more-news { margin-top: 8px; }
+.more-news summary { cursor: pointer; font: 600 .84rem var(--body); color: var(--accent); }
+.more-news ul.news { margin-top: 8px; opacity: .85; }

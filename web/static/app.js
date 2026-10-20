@@ -640,25 +640,35 @@ function pricesBody(d) {
   return body;
 }
 
-function newsBody(news, limits = { notices: 8, headlines: 6 }) {
+// Important items (safety, traffic, city development) first with a badge; routine
+// ones fold away on screen and are left out of the PDF (onlyImportant).
+function newsBody(news, { onlyImportant = false } = {}) {
   if (!news) return `<p class="detail">${esc(t("newsLoading"))}</p>`;
   const fmtDate = (s) => (s ? new Date(s).toLocaleDateString(locale(), { day: "numeric", month: "short", year: "numeric" }) : "");
   const link = (url, text) => (url ? `<a href="${esc(url)}" target="_blank" rel="noopener">${esc(text)}</a>` : esc(text));
+  const badge = (x) => (x.category ? `<span class="news-badge ${x.category}">${esc(t("newsCategory")[x.category])}</span>` : "");
+  // notices all start with "Gemeente <name> - "; the municipality is already known
+  const shortTitle = (title) => title.replace(/^(Rectificatie )?Gemeente .+? [-–] /, "$1");
+  const list = (items, meta) => `<ul class="news">${items.map((x) => `<li>${badge(x)}${link(x.url, shortTitle(x.title))}<small>${esc(meta(x))}</small></li>`).join("")}</ul>`;
+
+  const column = (src, meta, noneKey) => {
+    if (src && src.error) return `<p class="detail">${esc(t("newsUnavailable"))}</p>`;
+    const items = Array.isArray(src) ? src : (src && src.items) || [];
+    if (!items.length) return `<p class="detail">${esc(t(noneKey))}</p>`;
+    const important = items.filter((x) => x.category), minor = items.filter((x) => !x.category);
+    let html = important.length ? list(important, meta) : `<p class="detail">${esc(t("newsNoMajor"))}</p>`;
+    if (minor.length) {
+      html += onlyImportant
+        ? `<p class="detail">${esc(t("newsMinorLeftOut")(minor.length))}</p>`
+        : `<details class="more-news"><summary>${esc(t("newsShowMinor")(minor.length))}</summary>${list(minor, meta)}</details>`;
+    }
+    return html;
+  };
   const n = news.official_notices || {};
-  let notices;
-  if (n.error) notices = `<p class="detail">${esc(t("newsUnavailable"))}</p>`;
-  else {
-    const items = (n.items || []).slice(0, limits.notices);
-    notices = items.length
-      ? `<ul class="news">${items.map((x) => `<li>${link(x.url, x.title)}<small>${esc(fmtDate(x.date))} · ${esc(t("scope")[x.scope] || x.scope)}</small></li>`).join("")}</ul>`
-      : `<p class="detail">${esc(t("noticesNone"))}</p>`;
-    if (n.complete === false) notices += `<p class="detail">${esc(t("noticesPartial")(fmtDate(n.searched_back_to)))}</p>`;
-  }
-  const h = news.headlines;
-  const headlines = h && h.error ? `<p class="detail">${esc(t("newsUnavailable"))}</p>`
-    : (h || []).length ? `<ul class="news">${h.slice(0, limits.headlines).map((x) => `<li>${link(x.url, x.title)}<small>${esc(x.source || "")} · ${esc(fmtDate(x.date))}</small></li>`).join("")}</ul>`
-    : `<p class="detail">${esc(t("headlinesNone"))}</p>`;
-  // two scrolling columns, so a city with dozens of notices doesn't stretch the page
+  let notices = column(n, (x) => `${fmtDate(x.date)} · ${t("scope")[x.scope] || x.scope}`, "noticesNone");
+  if (n.complete === false) notices += `<p class="detail">${esc(t("noticesPartial")(fmtDate(n.searched_back_to)))}</p>`;
+  const headlines = column(news.headlines, (x) => `${x.source || ""} · ${fmtDate(x.date)}`, "headlinesNone");
+  // two columns that scroll on their own, so a city with dozens of notices doesn't stretch the page
   return `<div class="split news-cols">
     <div><h4>${esc(t("noticesTitle"))}</h4><div class="scroll-box">${notices}</div></div>
     <div><h4>${esc(t("headlinesTitle"))}</h4><div class="scroll-box">${headlines}</div></div></div>`;
@@ -675,7 +685,7 @@ async function loadNews(state) {
   }
   if (lastResult === state) {
     const old = document.getElementById("d-news");
-    if (old) old.outerHTML = cardHtml({ id: "news", title: t("newsTitle"), body: newsBody(state.news, { notices: 40, headlines: 15 }) });
+    if (old) old.outerHTML = cardHtml({ id: "news", title: t("newsTitle"), body: newsBody(state.news), span: 12 });
   }
 }
 
