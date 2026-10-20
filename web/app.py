@@ -27,7 +27,7 @@ from pathlib import Path
 from urllib.parse import urlparse
 
 import requests
-from fastapi import Depends, FastAPI, File, HTTPException, Request, UploadFile
+from fastapi import Depends, FastAPI, File, HTTPException, Query, Request, UploadFile
 from fastapi.responses import Response
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
@@ -70,13 +70,13 @@ def rate_limiter(bucket: str):
     return rate_limit
 
 
-def _count(ip: str, bucket: str) -> None:
+def _count(ip: str, bucket: str, limit: int = RATE_LIMIT) -> None:
     now = time.monotonic()
     with _hits_lock:
         hits = _hits[(ip, bucket)]
         while hits and now - hits[0] > RATE_WINDOW_S:
             hits.popleft()
-        if len(hits) >= RATE_LIMIT:
+        if len(hits) >= limit:
             retry = int(RATE_WINDOW_S - (now - hits[0])) + 1
             raise HTTPException(429, "Too many checks from your connection", headers={"Retry-After": str(retry)})
         hits.append(now)
@@ -161,6 +161,44 @@ def news(municipality: str, postcode: str, street: str, place: str) -> dict:
                               municipality, postcode, street, since, NEWS_BUDGET_S)
         headlines = pool.submit(_optional, "headlines", sources.news_headlines, place)
         return {"official_notices": notices.result(), "headlines": headlines.result(), "since": since}
+
+
+# Address search (proxied so it gets timeouts and retries; see sources.suggest_addresses).
+# Typing fires a request per pause, so these share their own, larger budget.
+SEARCH_LIMIT = int(os.getenv("GRONTIA_SEARCH_LIMIT", "200"))
+
+
+def search_limit(request: Request) -> None:
+    _count(client_ip(request), "search", SEARCH_LIMIT)
+
+
+def _upstream(fn, *args):
+    try:
+        return fn(*args)
+    except requests.RequestException:
+        logger.warning("Address search failed upstream", exc_info=True)
+        raise HTTPException(502, "PDOK (the Dutch address and building register) is not answering right now.")
+
+
+@app.get("/api/suggest", dependencies=[Depends(search_limit)])
+def suggest(q: str = Query(..., min_length=3, max_length=100)) -> list[dict]:
+    return _upstream(sources.suggest_addresses, q)
+
+
+@app.get("/api/lookup", dependencies=[Depends(search_limit)])
+def lookup(id: str = Query(..., max_length=100)) -> dict:
+    found = _upstream(sources.resolve_address, id)
+    if not found:
+        raise HTTPException(404, "Address not found")
+    return found
+
+
+@app.get("/api/locate", dependencies=[Depends(search_limit)])
+def locate(postcode: str = Query(..., pattern=r"^\s*\d{4}\s?[A-Za-z]{2}\s*$"), number: int = Query(..., gt=0)) -> dict:
+    found = _upstream(sources.locate_address, postcode.replace(" ", "").upper(), number)
+    if not found:
+        raise HTTPException(404, "Address not found")
+    return found
 
 
 @app.get("/api/health")

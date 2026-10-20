@@ -157,7 +157,7 @@ English and Dutch, on a full-screen PDOK map, in the colours of the Dutch flag.
 - **Export PDF**: the same cards as an A4 report, saved through the browser's print window.
 - **About** page with the method, the data, privacy and limits.
 
-API: `POST /api/evaluate`, `POST /api/listing`, `GET /api/news`, docs at `/api/docs`. Nothing a visitor sends is stored.
+API: `POST /api/evaluate`, `POST /api/listing`, `GET /api/news`, and the address search `GET /api/suggest`, `/api/lookup`, `/api/locate` (proxied to PDOK with hedged requests, because its search intermittently hangs); docs at `/api/docs`. Nothing a visitor sends is stored.
 
 ---
 

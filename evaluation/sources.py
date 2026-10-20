@@ -12,6 +12,7 @@ import os
 import re
 import statistics
 import time
+from concurrent.futures import ThreadPoolExecutor, as_completed
 import xml.etree.ElementTree as ET
 from datetime import datetime
 from email.utils import parsedate_to_datetime
@@ -39,11 +40,12 @@ RETRIES = int(os.getenv("GRONTIA_HTTP_RETRIES", "1"))
 _RETRY_STATUS = {502, 503, 504}
 
 
-def _get(url: str, **params) -> requests.Response:
-    for attempt in range(RETRIES + 1):
-        last = attempt == RETRIES
+def _get(url: str, _timeout: float | None = None, _retries: int | None = None, **params) -> requests.Response:
+    retries = RETRIES if _retries is None else _retries
+    for attempt in range(retries + 1):
+        last = attempt == retries
         try:
-            r = requests.get(url, params=params or None, timeout=TIMEOUT)
+            r = requests.get(url, params=params or None, timeout=_timeout or TIMEOUT)
         except (requests.Timeout, requests.ConnectionError):
             if last:
                 raise
@@ -60,10 +62,58 @@ def _get(url: str, **params) -> requests.Response:
 # Address and dwelling (PDOK Locatieserver + BAG)
 # ---------------------------------------------------------------------------
 
+# Address search for the web app. The browser used to call PDOK itself, with no
+# timeout or retry: when the Locatieserver hung, suggestions silently never came.
+# A good call answers in ~0.1 s and a hung one never does, so each round fires
+# two identical requests and takes the first answer (hedging), up to three rounds.
+SEARCH_TIMEOUT, SEARCH_ROUNDS, SEARCH_PARALLEL = 3.0, 3, 2
+LOCATIESERVER_BASE = LOCATIESERVER.rsplit("/", 1)[0]
+_search_pool = ThreadPoolExecutor(max_workers=8)
+
+
+def _hedged_get(url: str, **params) -> requests.Response:
+    last_error: Exception | None = None
+    for _ in range(SEARCH_ROUNDS):
+        futures = [_search_pool.submit(_get, url, _timeout=SEARCH_TIMEOUT, _retries=0, **params)
+                   for _ in range(SEARCH_PARALLEL)]
+        for done in as_completed(futures):
+            try:
+                return done.result()
+            except requests.RequestException as e:
+                last_error = e
+        logger.warning("Address search round failed, retrying: %s", last_error)
+    raise last_error
+
+
+def suggest_addresses(q: str, rows: int = 6) -> list[dict]:
+    docs = _hedged_get(f"{LOCATIESERVER_BASE}/suggest", q=q, fq="type:adres", rows=rows).json()["response"]["docs"]
+    return [{"id": d["id"], "label": d["weergavenaam"]} for d in docs]
+
+
+def _point(doc: dict) -> dict:
+    lon, lat = map(float, re.findall(r"[-\d.]+", doc.get("centroide_ll", "")))
+    return {"lat": lat, "lon": lon}
+
+
+def resolve_address(address_id: str) -> dict | None:
+    docs = _hedged_get(f"{LOCATIESERVER_BASE}/lookup", id=address_id, fl="*").json()["response"]["docs"]
+    if not docs:
+        return None
+    d = docs[0]
+    return {"label": d["weergavenaam"], "postcode": d.get("postcode"), "number": d.get("huisnummer"),
+            "suffix": f"{d.get('huisletter') or ''}{d.get('huisnummertoevoeging') or ''}", **_point(d)}
+
+
+def locate_address(postcode: str, number: int) -> dict | None:
+    docs = _hedged_get(LOCATIESERVER, q=f"postcode:{postcode} and huisnummer:{number}", fq="type:adres", rows=1,
+                       fl="centroide_ll,weergavenaam").json()["response"]["docs"]
+    return {"label": docs[0]["weergavenaam"], **_point(docs[0])} if docs else None
+
+
 def lookup_address(postcode: str, number: int, suffix: str | None = None) -> dict:
     postcode = postcode.replace(" ", "").upper()
     q = f"postcode:{postcode} and huisnummer:{number}"
-    docs = _get(LOCATIESERVER, q=q, fq="type:adres", rows=10).json()["response"]["docs"]
+    docs = _hedged_get(LOCATIESERVER, q=q, fq="type:adres", rows=10).json()["response"]["docs"]
     if suffix:
         s = suffix.upper()
         docs = [d for d in docs if s in (str(d.get("huisletter", "")) + str(d.get("huisnummertoevoeging", ""))).upper()]

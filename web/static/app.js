@@ -1,6 +1,5 @@
 "use strict";
 
-const LOCATIESERVER = "https://api.pdok.nl/bzk/locatieserver/search/v3_1";
 const NL_BOUNDS = [[50.75, 3.36], [53.55, 7.23]];
 const $ = (sel) => document.querySelector(sel);
 
@@ -136,16 +135,43 @@ search.addEventListener("input", () => {
   suggestTimer = setTimeout(() => suggest(q), 250);
 });
 
-async function suggest(q) {
+// Address search goes through our API (/api/suggest, /api/lookup, /api/locate),
+// which adds timeouts and retries: PDOK's search sometimes hangs, and a direct
+// call from the browser then simply never showed any suggestion.
+async function api(path, timeoutMs = 15000) {
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), timeoutMs);
   try {
-    const url = `${LOCATIESERVER}/suggest?q=${encodeURIComponent(q)}&fq=type:adres&rows=6`;
-    const docs = (await (await fetch(url)).json()).response.docs;
-    suggestions = docs;
+    const res = await fetch(path, { signal: ctrl.signal });
+    if (res.status === 404) return null;
+    if (!res.ok) throw new Error(String(res.status));
+    return await res.json();
+  } finally { clearTimeout(timer); }
+}
+
+function searchStatus(key) {
+  const el = $("#search-status");
+  el.textContent = key ? t(key) : "";
+  el.className = key ? "status error" : "status";
+}
+
+let suggestSeq = 0;
+async function suggest(q) {
+  const seq = ++suggestSeq;  // only the answer to the latest keystrokes counts
+  try {
+    const docs = await api(`/api/suggest?q=${encodeURIComponent(q)}`);
+    if (seq !== suggestSeq) return;
+    suggestions = docs || [];
     active = -1;
-    list.innerHTML = docs.map((d, i) => `<li role="option" id="sg-${i}" data-i="${i}">${esc(d.weergavenaam)}</li>`).join("");
-    list.hidden = docs.length === 0;
+    list.innerHTML = suggestions.map((d, i) => `<li role="option" id="sg-${i}" data-i="${i}">${esc(d.label)}</li>`).join("");
+    list.hidden = suggestions.length === 0;
     search.setAttribute("aria-expanded", String(!list.hidden));
-  } catch (e) { closeSuggestions(); }
+    searchStatus(suggestions.length ? "" : "searchNone");
+  } catch (e) {
+    if (seq !== suggestSeq) return;
+    closeSuggestions();
+    searchStatus("searchDown");
+  }
 }
 
 function closeSuggestions() {
@@ -176,18 +202,16 @@ search.addEventListener("blur", () => setTimeout(closeSuggestions, 150));
 
 async function choose(doc) {
   closeSuggestions();
-  search.value = doc.weergavenaam;
-  const d = (await (await fetch(`${LOCATIESERVER}/lookup?id=${encodeURIComponent(doc.id)}&fl=*`)).json()).response.docs[0];
-  if (!d) return;
-  $("#postcode").value = d.postcode || "";
-  $("#number").value = d.huisnummer || "";
-  $("#suffix").value = [d.huisletter, d.huisnummertoevoeging].filter(Boolean).join("");
-  placeFromCentroid(d.centroide_ll);
-}
-
-function placeFromCentroid(wkt) {
-  const m = /POINT\(([-\d.]+) ([-\d.]+)\)/.exec(wkt || "");
-  if (m) focusAddress(Number(m[2]), Number(m[1]));
+  search.value = doc.label;
+  try {
+    const d = await api(`/api/lookup?id=${encodeURIComponent(doc.id)}`);
+    if (!d) return;
+    $("#postcode").value = d.postcode || "";
+    $("#number").value = d.number || "";
+    $("#suffix").value = d.suffix || "";
+    searchStatus("");
+    focusAddress(d.lat, d.lon);
+  } catch (e) { searchStatus("searchDown"); }
 }
 
 // postcode + number typed by hand, or filled from a PDF: still zoom to it
@@ -196,10 +220,9 @@ async function geocodeForm() {
   const nr = $("#number").value.trim();
   if (!/^\d{4}[A-Z]{2}$/.test(pc) || !/^\d+$/.test(nr)) return;
   try {
-    const url = `${LOCATIESERVER}/free?q=${encodeURIComponent(`postcode:${pc} and huisnummer:${nr}`)}&fq=type:adres&rows=1&fl=centroide_ll,weergavenaam`;
-    const d = (await (await fetch(url)).json()).response.docs[0];
-    if (d) { placeFromCentroid(d.centroide_ll); if (!search.value) search.value = d.weergavenaam; }
-  } catch (e) { /* the map just stays where it is */ }
+    const d = await api(`/api/locate?postcode=${pc}&number=${nr}`);
+    if (d) { focusAddress(d.lat, d.lon); if (!search.value) search.value = d.label; }
+  } catch (e) { /* the map just stays where it is; the check itself still works */ }
 }
 ["#postcode", "#number"].forEach((sel) => $(sel).addEventListener("change", geocodeForm));
 
