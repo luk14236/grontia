@@ -21,6 +21,13 @@ function outlineMap(geometry, lat, lon) {
     <path d="${d}" fill-rule="evenodd"/><circle cx="${X([lon, lat])}" cy="${Y([lon, lat])}" r="6"/></svg>`;
 }
 
+// "2026MM09", 12 -> "2025-10 – 2026-09"
+function crimeWindow(latest, months) {
+  const [y, m] = latest.split("MM").map(Number);
+  const start = new Date(y, m - months, 1);
+  return `${start.getFullYear()}-${String(start.getMonth() + 1).padStart(2, "0")} – ${y}-${String(m).padStart(2, "0")}`;
+}
+
 function table(head, rows) {
   return `<div class="table-wrap"><table class="r-table"><thead><tr>${head.map((h) => `<th>${esc(h)}</th>`).join("")}</tr></thead>
     <tbody>${rows.map((r) => `<tr>${r.map((c) => `<td>${c}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`;
@@ -59,24 +66,25 @@ function detailCards({ data, mode, news }) {
     + (ref.est_current_avg_sale_price_eur ? `<p class="detail">${esc(R.reference(eur(ref.est_current_avg_sale_price_eur), eur(ref.avg_woz_value_eur), num(ref.woz_ratio_to_municipality, 3), (ref.index_latest_period || "").replace("KW", " Q")))}</p>` : "");
 
   const sc = rent.scenarios, keys = ["low", "typical", "high"];
-  const wws = table([R.rubric, ...keys.map((k) => t("scenario")[k === "typical" ? "base" : k])], [
+  const wwsTable = table([R.rubric, ...keys.map((k) => t("scenario")[k === "typical" ? "base" : k])], [
     ...Object.keys(sc.typical.points_by_rubric).map((r) => [esc(R.rubrics[r] || r), ...keys.map((k) => num(sc[k].points_by_rubric[r], 1))]),
     [`<b>${esc(R.total)}</b>`, ...keys.map((k) => `<b>${num(sc[k].total_points)}</b>`)],
     [esc(R.segment), ...keys.map((k) => esc(t("segment")[sc[k].segment] || sc[k].segment))],
     [esc(R.maxRent), ...keys.map((k) => `<b>${eur(sc[k].max_rent_eur)}</b>`)],
-  ]) + `<p class="detail">${esc(R.rulesFrom(rent.rules_valid_from, rent.rules_source))}</p>`
-    + `<h4>${esc(t("assumptions"))}</h4><ul class="r-list">${(rent.assumptions || []).map((x) => `<li>${esc(x)}</li>`).join("")}</ul>`;
+  ]);
+  const wws = `<div class="split"><div>${wwsTable}<p class="detail">${esc(R.rulesFrom(rent.rules_valid_from, rent.rules_source))}</p></div>
+    <div><h4>${esc(t("assumptions"))}</h4><ul class="r-list">${(rent.assumptions || []).map((x) => `<li>${esc(x)}</li>`).join("")}</ul></div></div>`;
 
   const woz = (p.appreciation || {}).municipality_avg_woz || [];
-  const prices = pricesBody(data) + (woz.length > 2 ? `<h4>${esc(R.wozHistory)}</h4>`
-    + lineChart([{ values: woz.map((x) => x.avg_woz_value_eur), cls: "high" }], woz.map((x) => String(x.year)), kEur) : "");
+  const prices = `<div class="split"><div>${pricesBody(data)}</div>${woz.length > 2 ? `<div><p class="detail">${esc(R.wozHistory)}</p>`
+    + lineChart([{ values: woz.map((x) => x.avg_woz_value_eur), cls: "high" }], woz.map((x) => String(x.year)), kEur) + "</div>" : ""}</div>`;
 
   const buurtLiv = ((data.neighbourhood.livability || {})[a.buurt_code] || []).slice(-1)[0] || {};
   const crime = data.neighbourhood.crime || {};
   const kf = (data.neighbourhood.key_figures || {})[a.buurt_code] || {};
   const periods = R.periodRows({
     index: (ref.index_latest_period || "").replace("KW", " Q"), kf: (kf.period_code || "").slice(0, 4),
-    crime: crime.latest_period ? `${crime.window_months} → ${crime.latest_period.replace("MM", "-")}` : "–",
+    crime: crime.latest_period ? crimeWindow(crime.latest_period, crime.window_months) : "–",
     liv: buurtLiv.year || "–", rules: rent.rules_valid_from, costs: (data.outlook || {}).costs_valid_from || "–",
   });
   const sources = `<h4>${esc(R.periods)}</h4>${table(["", ""], periods.map(([k, v]) => [esc(k), esc(v)]))}
@@ -101,7 +109,7 @@ function detailCards({ data, mode, news }) {
 
 function cardHtml(c) {
   const explain = t("explain")[c.id];
-  return `<article class="card${c.wide ? " wide" : ""}" id="d-${c.id}">
+  return `<article class="card${c.wide ? " wide" : ""}" id="d-${c.id}"${c.span ? ` style="--span:${c.span}"` : ""}>
     <header><h2>${esc(c.title)}</h2>${explain ? hintButton(`explain.${c.id}`) : ""}</header>
     ${explain ? `<p class="explain">${esc(explain)}</p>` : ""}
     ${c.body}</article>`;
@@ -109,24 +117,56 @@ function cardHtml(c) {
 
 // ---------------------------------------------------------------- detailed view (screen)
 
+// Cards grouped into sectors on a 12-column grid; the spans pair cards of
+// similar height so the grid has no holes. One column on narrow screens.
+const SECTORS = [
+  ["verdict", [["verdict", 7], ["location", 5]]],
+  ["home", [["home", 5], ["valuation", 7], ["rent", 12]]],
+  ["outlook", [["outlook", 12]]],
+  ["area", [["overview", 12], ["livability", 6], ["safety", 6], ["prices", 12]]],
+  ["news", [["news", 12]]],
+  ["sources", [["sources", 12]]],
+];
+
 function renderDetail(state) {
   const a = state.data.address;
-  const cards = detailCards(state);
+  const cards = Object.fromEntries(detailCards(state).map((c) => [c.id, c]));
+  const S = t("sectors");
+  const sectors = SECTORS.map(([id, list]) => {
+    const present = list.filter(([cid]) => cards[cid]);
+    if (!present.length) return "";
+    return `<section class="sector" id="s-${id}">
+      <header class="sector-head"><h2>${esc(S[id][0])}</h2><p>${esc(S[id][1])}</p></header>
+      <div class="sector-grid">${present.map(([cid, span]) => cardHtml({ ...cards[cid], span })).join("")}</div></section>`;
+  }).join("");
   $("#detail").innerHTML = `
     <div class="detail-head">
-      <div><p class="r-eyebrow">${esc(t("detailTitle"))}</p><h1>${esc(a.display_name)}</h1>
+      <img src="brand/grontia-symbol.svg" alt="" width="40" height="40">
+      <div class="detail-title"><p class="r-eyebrow">${esc(t("detailTitle"))}</p><h1>${esc(a.display_name)}</h1>
         <p>${esc([a.buurt_name, a.municipality_name, a.province_name].filter(Boolean).join(" · "))}</p></div>
       <div class="detail-actions">
         <button type="button" class="secondary" id="detail-pdf">${esc(t("exportPdf"))}</button>
         <button type="button" class="primary small" id="detail-close">${esc(t("closeDetail"))}</button>
       </div>
     </div>
-    <nav class="chips">${cards.map((c) => `<button type="button" data-target="d-${c.id}">${esc(c.title)}</button>`).join("")}</nav>
-    <div class="detail-grid">${cards.map(cardHtml).join("")}</div>`;
+    <div class="detail-body">
+      <nav class="sector-nav" aria-label="${esc(t("sectorNav"))}"><p>${esc(t("sectorNav"))}</p>
+        ${SECTORS.map(([id]) => `<a href="#s-${id}" data-target="s-${id}">${esc(S[id][0])}</a>`).join("")}</nav>
+      <div class="detail-main">${sectors}</div>
+    </div>`;
   $("#detail-close").addEventListener("click", () => toggleDetail(false));
   $("#detail-pdf").addEventListener("click", () => exportReport(state));
-  $("#detail").querySelectorAll(".chips button").forEach((b) => b.addEventListener("click", () =>
-    document.getElementById(b.dataset.target).scrollIntoView({ behavior: "smooth", block: "start" })));
+  const links = [...$("#detail").querySelectorAll(".sector-nav a")];
+  links.forEach((l) => l.addEventListener("click", (e) => {
+    e.preventDefault();
+    document.getElementById(l.dataset.target).scrollIntoView({ behavior: "smooth", block: "start" });
+  }));
+  // highlight the sector being read (the first one until the reader scrolls)
+  if (links[0]) links[0].classList.add("active");
+  const spy = new IntersectionObserver((entries) => entries.forEach((en) => {
+    if (en.isIntersecting) links.forEach((l) => l.classList.toggle("active", l.dataset.target === en.target.id));
+  }), { root: $("#detail"), rootMargin: "-30% 0px -60% 0px" });
+  $("#detail").querySelectorAll(".sector").forEach((sec) => spy.observe(sec));
 }
 
 function toggleDetail(open) {

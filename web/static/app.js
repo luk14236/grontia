@@ -545,13 +545,14 @@ function outlookBody(o) {
     }).join("")}</tr></tbody></table><p class="detail">${esc(note)}</p></div>`;
   const landlordNote = t("landlordNote")(eur(o.landlord.transfer_tax), eur(o.landlord_monthly_rent), `${num(o.gross_yield_pct, 1)}%`)
     + (o.rent_regulated ? " " + t("regulatedNote")(eur(o.legal_max_rent)) : "");
-  const body = `<p class="detail">${esc(t("outlookIntro")(eur(o.price), t("priceBasis")[o.price_basis]))}</p>
-    ${chart}<div class="legend">${legend}</div>
-    ${g.latest_quarter_yoy != null && g.trend ? `<p class="detail">${esc(t("growthNote")(signed(g.latest_quarter_yoy) + "%", t("trend")[g.trend]))}</p>` : ""}
-    ${table(t("ownerTitle"), o.owner_occupier, t("ownerNote")(eur(o.owner_occupier.transfer_tax), eur(o.starter_exemption_max_value)))}
-    ${table(t("landlordTitle"), o.landlord, landlordNote)}
-    <p class="detail">${esc(t("excludedNote"))}</p>`;
-  return body;
+  // two columns on wide screens: the chart and its reading on the left, the returns on the right
+  return `<div class="split">
+    <div><p class="detail">${esc(t("outlookIntro")(eur(o.price), t("priceBasis")[o.price_basis]))}</p>
+      ${chart}<div class="legend">${legend}</div>
+      ${g.latest_quarter_yoy != null && g.trend ? `<p class="detail">${esc(t("growthNote")(signed(g.latest_quarter_yoy) + "%", t("trend")[g.trend]))}</p>` : ""}</div>
+    <div>${table(t("ownerTitle"), o.owner_occupier, t("ownerNote")(eur(o.owner_occupier.transfer_tax), eur(o.starter_exemption_max_value)))}
+      ${table(t("landlordTitle"), o.landlord, landlordNote)}
+      <p class="detail">${esc(t("excludedNote"))}</p></div></div>`;
 }
 
 function overviewBody(d) {
@@ -646,7 +647,10 @@ function newsBody(news, limits = { notices: 8, headlines: 6 }) {
   const headlines = h && h.error ? `<p class="detail">${esc(t("newsUnavailable"))}</p>`
     : (h || []).length ? `<ul class="news">${h.slice(0, limits.headlines).map((x) => `<li>${link(x.url, x.title)}<small>${esc(x.source || "")} · ${esc(fmtDate(x.date))}</small></li>`).join("")}</ul>`
     : `<p class="detail">${esc(t("headlinesNone"))}</p>`;
-  return `<h4>${esc(t("noticesTitle"))}</h4>${notices}<h4>${esc(t("headlinesTitle"))}</h4>${headlines}`;
+  // two scrolling columns, so a city with dozens of notices doesn't stretch the page
+  return `<div class="split news-cols">
+    <div><h4>${esc(t("noticesTitle"))}</h4><div class="scroll-box">${notices}</div></div>
+    <div><h4>${esc(t("headlinesTitle"))}</h4><div class="scroll-box">${headlines}</div></div></div>`;
 }
 
 async function loadNews(state) {

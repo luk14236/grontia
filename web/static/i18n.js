@@ -126,6 +126,15 @@ window.I18N = {
     headlinesNone: "No recent headlines found.",
     newsUnavailable: "This source did not answer.",
 
+    sectors: {
+      verdict: ["Verdict", "The answer to your question and where the home is."],
+      home: ["The home and its price", "What the home is, what it is worth and what the rent law allows."],
+      outlook: ["5-year outlook", "Three growth scenarios and what buying could return."],
+      area: ["The neighbourhood", "Who lives there, how livable and safe it is, and how prices moved."],
+      news: ["News and notices", "Permits near the address and recent headlines about the place."],
+      sources: ["Sources and method", "Where each number comes from and how recent it is."],
+    },
+    sectorNav: "Sections",
     hintLabel: "What is this?",
     openDetail: "Detailed view",
     closeDetail: "Back to summary",
@@ -409,6 +418,15 @@ window.I18N = {
     headlinesNone: "Geen recente krantenkoppen gevonden.",
     newsUnavailable: "Deze bron reageerde niet.",
 
+    sectors: {
+      verdict: ["Oordeel", "Het antwoord op je vraag en waar de woning staat."],
+      home: ["De woning en de prijs", "Wat de woning is, wat die waard is en wat de huurwet toestaat."],
+      outlook: ["Vooruitblik op 5 jaar", "Drie groeiscenario's en wat kopen kan opleveren."],
+      area: ["De buurt", "Wie er wonen, hoe leefbaar en veilig het is en hoe de prijzen zich ontwikkelden."],
+      news: ["Nieuws en bekendmakingen", "Vergunningen bij het adres en recente krantenkoppen over de plaats."],
+      sources: ["Bronnen en methode", "Waar elk getal vandaan komt en hoe recent het is."],
+    },
+    sectorNav: "Onderdelen",
     hintLabel: "Wat is dit?",
     openDetail: "Uitgebreide weergave",
     closeDetail: "Terug naar overzicht",
