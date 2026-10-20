@@ -10,6 +10,7 @@ import logging
 import os
 import re
 import statistics
+import time
 import xml.etree.ElementTree as ET
 from datetime import datetime
 from email.utils import parsedate_to_datetime
@@ -212,22 +213,45 @@ def crime(region_codes: list[str], buurt_code: str, months: int = 12) -> dict:
 
 def official_notices(municipality_name: str, postcode: str, street: str, since: str) -> list[dict]:
     """Permits, demolition, events... published by the municipality near the address."""
+    return official_notices_within(municipality_name, postcode, street, since)["items"]
+
+
+def official_notices_within(municipality_name: str, postcode: str, street: str, since: str,
+                            budget_s: float | None = None) -> dict:
+    """Same, newest first, stopping after budget_s seconds of paging. A big city
+    publishes ~30k notices in six months; the web app can't wait for all of
+    them, so it gets the most recent ones and complete=False."""
     query = (
         f'c.product-area==officielepublicaties AND dt.creator=="{municipality_name}" '
-        f"AND dt.modified>={since}"
+        f"AND dt.modified>={since} sortby dt.modified/sort.descending"
     )
-    records, start = [], 1
+    deadline = time.monotonic() + budget_s if budget_s else None
+    # sorted pages of 1000 take 3 to 8+ s; smaller ones keep within the budget
+    page_size = 500 if budget_s else 1000
+    records, start, complete = [], 1, True
     while True:
-        text = _get(BEKENDMAKINGEN, operation="searchRetrieve", version="2.0",
-                    maximumRecords=1000, startRecord=start, query=query).text
+        if deadline and time.monotonic() > deadline:
+            complete = False
+            break
+        try:
+            text = _get(BEKENDMAKINGEN, operation="searchRetrieve", version="2.0",
+                        maximumRecords=page_size, startRecord=start, query=query).text
+        except requests.Timeout:
+            if not (deadline and records):
+                raise
+            complete = False  # a slow later page: keep what we have
+            break
         page = re.findall(r"<sru:record>.*?</sru:record>", text, flags=re.S)
         records.extend(page)
         total = int((re.findall(r"numberOfRecords>(\d+)", text) or [0])[0])
         start += len(page)
         if not page or start > total:
             break
+    searched_back_to = min(re.findall(r"<dcterms:modified>([\d-]+)", "".join(records[-1:])) or [since])
 
     pc4, pc6 = postcode[:4], postcode
+    # whole word, so "Kerkstraat" no longer matches "Vondelkerkstraat"
+    on_street = re.compile(rf"(?<![\w-]){re.escape(street)}(?![\w-])", re.I)
     notices = []
     for rec in records:
         title = re.search(r"<dcterms:title>(.*?)</dcterms:title>", rec, flags=re.S)
@@ -236,7 +260,7 @@ def official_notices(municipality_name: str, postcode: str, street: str, since: 
         title = re.sub(r"\s+", " ", title.group(1)).strip()
         date = re.search(r"<dcterms:modified>([\d-]+)", rec)
         link = re.search(r"<gzd:preferredUrl>(.*?)</gzd:preferredUrl>", rec)
-        if street.lower() in title.lower() or pc6 in title.replace(" ", ""):
+        if on_street.search(title) or pc6 in title.replace(" ", ""):
             scope = "street"
         elif pc4 in title:
             scope = "postcode_area"
@@ -249,7 +273,7 @@ def official_notices(municipality_name: str, postcode: str, street: str, since: 
     # Notices on the street itself first, then the postcode area; newest first in each
     notices.sort(key=lambda n: n["date"] or "", reverse=True)
     notices.sort(key=lambda n: n["scope"] != "street")
-    return notices
+    return {"items": notices, "complete": complete, "searched_back_to": since if complete else searched_back_to}
 
 
 def news_headlines(place: str, limit: int = 15) -> list[dict]:

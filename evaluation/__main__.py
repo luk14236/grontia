@@ -19,7 +19,7 @@ from concurrent.futures import ThreadPoolExecutor
 from datetime import date, timedelta
 from pathlib import Path
 
-from . import sources, valuation, warehouse as w
+from . import outlook, sources, valuation, warehouse as w
 from .wws import DwellingFacts, assess
 
 logger = logging.getLogger("evaluation")
@@ -144,6 +144,7 @@ def run(args: argparse.Namespace) -> dict:
             "headlines": headlines.result(),
         } if with_news else None,
     }
+    result["outlook"] = outlook.build(result)
     # The web app draws the neighbourhood on its map; the CLI JSON stays lean
     if getattr(args, "with_geometry", False):
         result["neighbourhood"]["buurt_geometry"] = area["geometry"]

@@ -1,0 +1,11 @@
+# Buyer costs used by the 5-year outlook (evaluation/outlook.py).
+# Update every January. Sources: SRA-Nieuwsbank "Overdrachtsbelasting: drie
+# tarieven en hogere startersvrijstelling in 2026"; Wijzer in Geldzaken,
+# "Dit verandert er in 2026 op het gebied van wonen".
+valid_from: "2026-01-01"
+transfer_tax:
+  owner_occupier: 0.02        # main residence
+  investor: 0.08              # rented out or not the buyer's main residence (10.4% in 2025)
+# Buyers under 35 pay no transfer tax on a main residence up to this market
+# value (all-or-nothing): shown as a note, not applied, since age is unknown.
+starter_exemption_max_value: 555000

@@ -13,15 +13,15 @@ const t = (key) => I18N[lang][key];
 function initialLang() {
   try {
     const saved = localStorage.getItem("grontia.lang");
-    if (saved === "en" || saved === "pt") return saved;
+    if (saved === "en" || saved === "nl") return saved;
   } catch (e) { /* storage blocked */ }
-  return (navigator.language || "").toLowerCase().startsWith("pt") ? "pt" : "en";
+  return (navigator.language || "").toLowerCase().startsWith("nl") ? "nl" : "en";
 }
 
 function applyLang(next) {
   lang = next;
   try { localStorage.setItem("grontia.lang", lang); } catch (e) { /* storage blocked */ }
-  document.documentElement.lang = lang === "pt" ? "pt-BR" : "en";
+  document.documentElement.lang = lang;
   document.querySelectorAll("[data-i18n]").forEach((el) => { el.textContent = t(el.dataset.i18n); });
   document.querySelectorAll("[data-i18n-placeholder]").forEach((el) => { el.placeholder = t(el.dataset.i18nPlaceholder); });
   document.querySelectorAll("[data-lang]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.lang === lang)));
@@ -30,7 +30,7 @@ function applyLang(next) {
   renderAbout();
 }
 
-const locale = () => (lang === "pt" ? "pt-BR" : "en-GB");
+const locale = () => (lang === "nl" ? "nl-NL" : "en-GB");
 const eur = (n) => new Intl.NumberFormat(locale(), { style: "currency", currency: "EUR", maximumFractionDigits: 0 }).format(n);
 const num = (n, d = 0) => new Intl.NumberFormat(locale(), { maximumFractionDigits: d }).format(n);
 const pct = (n) => `${n > 0 ? "+" : ""}${num(n, 1)}%`;
@@ -285,8 +285,9 @@ $("#form").addEventListener("submit", async (e) => {
     const data = await res.json();
     if (!res.ok) throw new Error(typeof data.detail === "string" ? data.detail : t("errorGeneric"));
     status.textContent = "";
-    lastResult = { data, mode };
+    lastResult = { data, mode, news: null };
     renderResult(lastResult);
+    loadNews(lastResult);
     focusAddress(data.address.lat, data.address.lon);
     setTimeout(() => showBuurt(data.neighbourhood.buurt_geometry, data.address.lat, data.address.lon), 1300);
     $("#result").scrollIntoView({ behavior: "smooth", block: "start" });
@@ -344,15 +345,16 @@ function purchaseCard(p) {
     [t("priceRange")(eur(r.low), eur(r.high)), basis], rangeScale(r, check.asking_price));
 }
 
-function rentCard(rent) {
+function rentCard(rent, outlook) {
   const s = rent.scenarios;
+  const market = outlook ? t("rentMarket")(eur(outlook.market_rent.low), eur(outlook.market_rent.high)) : "";
   const typ = s.typical;
   const pts = t("rentPoints")(typ.total_points, t("segment")[typ.segment] || typ.segment);
   const scen = t("rentScenarios")(eur(s.low.max_rent_eur), eur(typ.max_rent_eur), eur(s.high.max_rent_eur));
   const c = rent.rent_check;
   if (!c) {
     const free = typ.segment === "free";
-    return verdictCard("info", t("legalRentTitle"), t("badge")[free ? "free_sector" : "estimate"], free ? t("rentFree") : scen, [free ? scen : "", pts]);
+    return verdictCard("info", t("legalRentTitle"), t("badge")[free ? "free_sector" : "estimate"], free ? t("rentFree") : scen, [free ? scen : "", pts, market]);
   }
   const kind = { within_limit: "ok", above_limit: "bad", free_sector: "info", depends_on_details: "warn" }[c.verdict];
   const headline = {
@@ -362,34 +364,199 @@ function rentCard(rent) {
     depends_on_details: () => t("rentDepends")(eur(s.low.max_rent_eur), eur(s.high.max_rent_eur)),
   }[c.verdict]();
   const deposit = c.deposit_ok === undefined ? "" : (c.deposit_ok ? t("depositOk") : t("depositHigh"))(c.deposit_max_months);
-  return verdictCard(kind, t("rentTitle"), t("badge")[c.verdict], headline, [scen, pts, deposit]);
+  return verdictCard(kind, t("rentTitle"), t("badge")[c.verdict], headline, [scen, pts, market, deposit]);
 }
 
-function facts(d) {
-  const a = d.address;
-  const kf = d.neighbourhood.key_figures || {};
-  const buurt = kf[a.buurt_code] || {};
-  const out = [];
-  const liv = ((d.neighbourhood.livability || {})[a.buurt_code] || []).slice(-1)[0];
-  if (liv && liv.national_percentile != null) {
-    out.push([t("livability"), `${num(liv.livability_score, 2)}`, t("livabilityValue")(Math.round(liv.national_percentile))]);
-  }
-  const crime = (d.neighbourhood.crime || {}).by_region || {};
-  if (crime[a.buurt_code] && crime[a.buurt_code].per_1000_residents_last_12m != null) {
-    out.push([t("crime"), num(crime[a.buurt_code].per_1000_residents_last_12m, 1), t("crimeValue")(num((crime.NL00 || {}).per_1000_residents_last_12m || 0, 1))]);
-  }
-  if (buurt.population) out.push([t("population"), num(buurt.population), a.buurt_name]);
-  if (buurt.avg_woz_value_eur) out.push([t("avgWoz"), eur(buurt.avg_woz_value_eur), a.buurt_name]);
-  if (d.dwelling.floor_area_m2) out.push([t("floorArea"), `${num(d.dwelling.floor_area_m2)} m²`, ""]);
-  if (d.dwelling.build_year) out.push([t("buildYear"), String(d.dwelling.build_year), ""]);
-  return `<h3>${esc(t("neighbourhood"))}</h3><div class="facts">${out.map(([k, v, s]) =>
+// ---------------------------------------------------------------- small SVG charts
+
+const W = 340, H = 140, PAD = { l: 46, r: 16, t: 10, b: 22 };
+
+// lines: [{ values: [...], cls: "base" }], all the same length as xLabels
+function lineChart(lines, xLabels, fmt) {
+  const all = lines.flatMap((l) => l.values).filter((v) => v != null);
+  let lo = Math.min(...all), hi = Math.max(...all);
+  const span = hi - lo || hi || 1;
+  lo -= span * 0.08; hi += span * 0.08;
+  const x = (i) => PAD.l + (i * (W - PAD.l - PAD.r)) / Math.max(1, xLabels.length - 1);
+  const y = (v) => PAD.t + ((hi - v) * (H - PAD.t - PAD.b)) / (hi - lo);
+  const grid = [0, 0.5, 1].map((f) => lo + f * (hi - lo)).map((v) =>
+    `<line class="grid" x1="${PAD.l}" x2="${W - PAD.r}" y1="${y(v)}" y2="${y(v)}"/><text class="axis" x="${PAD.l - 6}" y="${y(v) + 4}" text-anchor="end">${esc(fmt(v))}</text>`).join("");
+  const ticks = xLabels.map((l, i) => (i === 0 || i === xLabels.length - 1 || i === Math.floor(xLabels.length / 2))
+    ? `<text class="axis" x="${x(i)}" y="${H - 6}" text-anchor="${i === 0 ? "start" : i === xLabels.length - 1 ? "end" : "middle"}">${esc(l)}</text>` : "").join("");
+  const paths = lines.map((l) => {
+    const pts = l.values.map((v, i) => (v == null ? null : `${x(i)},${y(v)}`)).filter(Boolean);
+    const last = l.values.length - 1;
+    return `<polyline class="line ${l.cls}" points="${pts.join(" ")}"/><circle class="dot ${l.cls}" cx="${x(last)}" cy="${y(l.values[last])}" r="3"/>`;
+  }).join("");
+  return `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img">${grid}${ticks}${paths}</svg>`;
+}
+
+function barChart(values, labels, fmt, highlightLast = false) {
+  const hi = Math.max(...values) * 1.1 || 1;
+  const bw = (W - PAD.l - PAD.r) / values.length;
+  const y = (v) => PAD.t + ((hi - v) * (H - PAD.t - PAD.b)) / hi;
+  const bars = values.map((v, i) => `<rect class="bar${highlightLast && i === values.length - 1 ? " last" : ""}" x="${PAD.l + i * bw + 2}" y="${y(v)}" width="${bw - 4}" height="${H - PAD.b - y(v)}"/>`).join("");
+  const ticks = labels.map((l, i) => (i === 0 || i === labels.length - 1 || i === Math.floor(labels.length / 2))
+    ? `<text class="axis" x="${PAD.l + i * bw + bw / 2}" y="${H - 6}" text-anchor="middle">${esc(l)}</text>` : "").join("");
+  const grid = [0, 0.5, 1].map((f) => f * hi).map((v) =>
+    `<line class="grid" x1="${PAD.l}" x2="${W - PAD.r}" y1="${y(v)}" y2="${y(v)}"/><text class="axis" x="${PAD.l - 6}" y="${y(v) + 4}" text-anchor="end">${esc(fmt(v))}</text>`).join("");
+  return `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img">${grid}${bars}${ticks}</svg>`;
+}
+
+const kEur = (v) => (v >= 1e6 ? `€${num(v / 1e6, 2)}M` : `€${num(v / 1000)}k`);
+const signed = (v, d = 1) => `${v > 0 ? "+" : ""}${num(v, d)}`;
+
+function section(id, title, body, open = true) {
+  return `<details class="section" id="sec-${id}"${open ? " open" : ""}><summary><h3>${esc(title)}</h3></summary><div class="section-body">${body}</div></details>`;
+}
+
+function factGrid(rows) {
+  return `<div class="facts">${rows.filter(Boolean).map(([k, v, s]) =>
     `<div class="fact"><span>${esc(k)}</span><b>${esc(v)}</b>${s ? `<small>${esc(s)}</small>` : ""}</div>`).join("")}</div>`;
 }
 
-function renderResult({ data, mode }) {
+// ---------------------------------------------------------------- result sections
+
+function outlookSection(o) {
+  if (!o) return "";
+  const g = o.growth_pct_per_year;
+  const year = new Date().getFullYear();
+  const years = Array.from({ length: o.years + 1 }, (_, i) => String(year + i));
+  const chart = lineChart(["low", "base", "high"].map((k) => ({ values: o.value_paths[k], cls: k })), years, kEur);
+  const legend = ["low", "base", "high"].map((k) =>
+    `<span class="key ${k}">${esc(t("scenario")[k])} ${num(g[k], 1)}% ${esc(t("perYear"))}</span>`).join("");
+  const table = (title, r, note) => `<div class="returns"><h4>${esc(title)}</h4>
+    <table><thead><tr><th></th>${["low", "base", "high"].map((k) => `<th>${esc(t("scenario")[k])}</th>`).join("")}</tr></thead>
+    <tbody><tr><td>${esc(t("valueIn")(year + o.years))}</td>${["low", "base", "high"].map((k) => `<td>${kEur(r.scenarios[k].value_after)}</td>`).join("")}</tr>
+    <tr><td>${esc(t("totalReturn"))}</td>${["low", "base", "high"].map((k) => {
+      const s = r.scenarios[k];
+      return `<td class="${s.total_return < 0 ? "neg" : "pos"}">${s.total_return < 0 ? "−" : "+"}${kEur(Math.abs(s.total_return))}<small>${signed(s.total_return_pct)}%</small></td>`;
+    }).join("")}</tr></tbody></table><p class="detail">${esc(note)}</p></div>`;
+  const landlordNote = t("landlordNote")(eur(o.landlord.transfer_tax), eur(o.landlord_monthly_rent), `${num(o.gross_yield_pct, 1)}%`)
+    + (o.rent_regulated ? " " + t("regulatedNote")(eur(o.legal_max_rent)) : "");
+  const body = `<p class="detail">${esc(t("outlookIntro")(eur(o.price), t("priceBasis")[o.price_basis]))}</p>
+    ${chart}<div class="legend">${legend}</div>
+    ${g.latest_quarter_yoy != null && g.trend ? `<p class="detail">${esc(t("growthNote")(signed(g.latest_quarter_yoy) + "%", t("trend")[g.trend]))}</p>` : ""}
+    ${table(t("ownerTitle"), o.owner_occupier, t("ownerNote")(eur(o.owner_occupier.transfer_tax), eur(o.starter_exemption_max_value)))}
+    ${table(t("landlordTitle"), o.landlord, landlordNote)}
+    <p class="detail">${esc(t("excludedNote"))}</p>`;
+  return section("outlook", t("outlookTitle"), body);
+}
+
+function overviewSection(d) {
+  const a = d.address;
+  const kf = d.neighbourhood.key_figures || {};
+  const b = kf[a.buurt_code] || {};
+  const gm = kf[a.municipality_code] || {};
+  const sizes = d.neighbourhood.dwelling_sizes || {};
+  const ap = d.neighbourhood.area_properties || {};
+  const dist = [["gp", b.km_to_gp], ["supermarket", b.km_to_supermarket], ["school", b.km_to_school], ["daycare", b.km_to_daycare]]
+    .filter(([, v]) => v != null).map(([k, v]) => `${t(k)} ${num(v, 1)} km`).join(" · ");
+  const rows = [
+    b.population && [t("population"), num(b.population), ap.gemiddelde_huishoudsgrootte ? t("householdSize")(num(ap.gemiddelde_huishoudsgrootte, 1)) : ""],
+    b.avg_income_per_resident_eur && [t("income"), eur(b.avg_income_per_resident_eur), gm.avg_income_per_resident_eur ? t("vsMunicipality")(eur(gm.avg_income_per_resident_eur)) : ""],
+    b.avg_woz_value_eur && [t("avgWoz"), eur(b.avg_woz_value_eur), gm.avg_woz_value_eur ? t("vsMunicipality")(eur(gm.avg_woz_value_eur)) : ""],
+    b.dwellings && [t("homes"), num(b.dwellings), b.pct_apartments != null ? t("apartments")(num(b.pct_apartments)) : ""],
+    b.pct_owner_occupied != null && [t("tenure"), `${num(b.pct_owner_occupied)}% / ${num(b.pct_rental)}%`, b.pct_social_housing != null ? t("social")(num(b.pct_social_housing)) : ""],
+    b.pct_built_last_10_years != null && [t("newBuild"), `${num(b.pct_built_last_10_years)}%`, b.pct_vacant != null ? t("vacant")(num(b.pct_vacant)) : ""],
+    sizes.median_m2 && [t("homeSize"), `${num(sizes.median_m2)} m²`, t("homeSizeValue")(num(sizes.median_m2), num(sizes.mean_m2))],
+    b.urbanity_class && [t("urbanity"), t("urbanityClass")[b.urbanity_class] || String(b.urbanity_class), ""],
+    d.dwelling.floor_area_m2 && [t("floorArea"), `${num(d.dwelling.floor_area_m2)} m²`, d.dwelling.build_year ? `${t("buildYear")} ${d.dwelling.build_year}` : ""],
+  ];
+  const body = factGrid(rows) + (dist ? `<p class="detail"><b>${esc(t("distances"))}:</b> ${esc(dist)}</p>` : "");
+  return section("overview", t("overviewTitle"), body);
+}
+
+function livabilitySection(d) {
+  const series = (d.neighbourhood.livability || {})[d.address.buurt_code] || [];
+  const liv = series.slice(-1)[0];
+  if (!liv) return "";
+  const dims = Object.keys(t("dims"));
+  const maxAbs = Math.max(0.05, ...dims.map((k) => Math.abs(liv[k] || 0)));
+  const bars = dims.map((k) => {
+    const v = liv[k] || 0;
+    const w = (50 * Math.abs(v)) / maxAbs;
+    return `<div class="dim"><span>${esc(t("dims")[k])}</span><div class="dim-track"><div class="dim-bar ${v < 0 ? "neg" : "pos"}" style="${v < 0 ? `right:50%` : `left:50%`};width:${w}%"></div></div></div>`;
+  }).join("");
+  const trendLine = liv.change_since_previous != null && liv.change_since_2014 != null
+    ? `<p class="detail">${esc(t("livabilityTrend")(signed(liv.change_since_previous, 3), signed(liv.change_since_2014, 3)))}</p>` : "";
+  const body = factGrid([[t("livabilityTitle"), `${num(liv.livability_score, 2)}`, t("livabilityValue")(Math.round(liv.national_percentile))]])
+    + trendLine + `<div class="dims">${bars}</div><p class="detail">${esc(t("dimsNote"))}</p>`;
+  return section("livability", t("livabilityTitle"), body);
+}
+
+function safetySection(d) {
+  const crime = d.neighbourhood.crime || {};
+  if (crime.error || !crime.by_region) return "";
+  const a = d.address;
+  const by = crime.by_region;
+  const here = by[a.buurt_code] || {};
+  const rate = (c) => (by[c] && by[c].per_1000_residents_last_12m != null ? num(by[c].per_1000_residents_last_12m, 1) : "–");
+  const rows = [[t("here"), rate(a.buurt_code), here.change_pct != null ? t("crimeChange")(signed(here.change_pct) + "%") : ""],
+                [t("municipality"), rate(a.municipality_code), ""], [t("netherlands"), rate("NL00"), ""]];
+  const thisYear = String(new Date().getFullYear());
+  const yearly = Object.entries(here.yearly || {}).filter(([y]) => y !== thisYear);  // current year is partial
+  const chart = yearly.length > 2 ? barChart(yearly.map(([, v]) => v), yearly.map(([y]) => y), (v) => num(v)) : "";
+  const types = (crime.top_types_last_12m || []).slice(0, 5)
+    .map((x) => `<li>${esc(x.type.replace(/^[\d.]+\s*/, ""))} <span class="count">${num(x.count)}</span></li>`).join("");
+  const body = `<p class="detail">${esc(t("crimeRate"))}</p>${factGrid(rows)}${chart}
+    ${types ? `<h4>${esc(t("crimeTypes"))}</h4><ul class="types">${types}</ul>` : ""}
+    <p class="detail">${esc(t("crimeCentreNote"))}</p>`;
+  return section("safety", t("safetyTitle"), body);
+}
+
+function pricesSection(d) {
+  const ap = d.purchase.appreciation || {};
+  const sales = ap.municipality_avg_sale_price || [];
+  if (sales.length < 3) return "";
+  const chart = lineChart([{ values: sales.map((x) => x.avg_sale_price_eur), cls: "base" }], sales.map((x) => String(x.year)), kEur);
+  const q = (ap.province_index_recent_quarters || [])[0];
+  const body = `<p class="detail">${esc(t("pricesAvg"))} (${esc(d.address.municipality_name)})</p>${chart}
+    ${ap.municipality_avg_sale_price_cagr_5y_pct != null ? `<p class="detail">${esc(t("pricesCagr")(signed(ap.municipality_avg_sale_price_cagr_5y_pct) + "%"))}</p>` : ""}
+    ${q ? `<p class="detail">${esc(t("pricesQuarter")(q.period_code.replace("KW", " Q"), signed(q.price_index_yoy_pct) + "%"))}</p>` : ""}`;
+  return section("prices", t("pricesTitle"), body);
+}
+
+function newsSection(news) {
+  if (!news) return section("news", t("newsTitle"), `<p class="detail">${esc(t("newsLoading"))}</p>`);
+  const fmtDate = (s) => (s ? new Date(s).toLocaleDateString(locale(), { day: "numeric", month: "short", year: "numeric" }) : "");
+  const link = (url, text) => (url ? `<a href="${esc(url)}" target="_blank" rel="noopener">${esc(text)}</a>` : esc(text));
+  const n = news.official_notices || {};
+  let notices;
+  if (n.error) notices = `<p class="detail">${esc(t("newsUnavailable"))}</p>`;
+  else {
+    const items = (n.items || []).slice(0, 8);
+    notices = items.length
+      ? `<ul class="news">${items.map((x) => `<li>${link(x.url, x.title)}<small>${esc(fmtDate(x.date))} · ${esc(t("scope")[x.scope] || x.scope)}</small></li>`).join("")}</ul>`
+      : `<p class="detail">${esc(t("noticesNone"))}</p>`;
+    if (n.complete === false) notices += `<p class="detail">${esc(t("noticesPartial")(fmtDate(n.searched_back_to)))}</p>`;
+  }
+  const h = news.headlines;
+  const headlines = h && h.error ? `<p class="detail">${esc(t("newsUnavailable"))}</p>`
+    : (h || []).length ? `<ul class="news">${h.slice(0, 6).map((x) => `<li>${link(x.url, x.title)}<small>${esc(x.source || "")} · ${esc(fmtDate(x.date))}</small></li>`).join("")}</ul>`
+    : `<p class="detail">${esc(t("headlinesNone"))}</p>`;
+  return section("news", t("newsTitle"), `<h4>${esc(t("noticesTitle"))}</h4>${notices}<h4>${esc(t("headlinesTitle"))}</h4>${headlines}`);
+}
+
+async function loadNews(state) {
+  const a = state.data.address;
+  const q = new URLSearchParams({ municipality: a.municipality_name, postcode: a.postcode, street: a.street, place: a.place });
+  try {
+    const res = await fetch(`/api/news?${q}`);
+    state.news = res.ok ? await res.json() : { official_notices: { error: res.status }, headlines: { error: res.status } };
+  } catch (e) {
+    state.news = { official_notices: { error: "network" }, headlines: { error: "network" } };
+  }
+  if (lastResult === state) {
+    const old = $("#sec-news");
+    if (old) old.outerHTML = newsSection(state.news);
+  }
+}
+
+function renderResult({ data, mode, news }) {
   const a = data.address;
-  const primary = mode === "rent" ? rentCard(data.rent) : purchaseCard(data.purchase);
-  const secondary = mode === "rent" ? purchaseCard({ ...data.purchase, asking_price_check: null }) : rentCard({ ...data.rent, rent_check: null });
+  const primary = mode === "rent" ? rentCard(data.rent, data.outlook) : purchaseCard(data.purchase);
+  const secondary = mode === "rent" ? purchaseCard({ ...data.purchase, asking_price_check: null }) : rentCard({ ...data.rent, rent_check: null }, data.outlook);
   const assumptions = data.rent.assumptions || [];
   // BAG "woonfunctie" = residential use; offices, shops etc. get a warning
   const use = data.dwelling.use || "";
@@ -399,9 +566,14 @@ function renderResult({ data, mode }) {
     <div class="where"><h2>${esc(a.display_name)}</h2><p>${esc([a.buurt_name, a.municipality_name, a.province_name].filter(Boolean).join(" · "))}</p></div>
     ${notAHome}
     ${primary}
-    ${facts(data)}
     ${secondary}
-    ${assumptions.length ? `<details><summary>${esc(t("assumptions"))}</summary><ul>${assumptions.map((x) => `<li>${esc(x)}</li>`).join("")}</ul></details>` : ""}`;
+    ${outlookSection(data.outlook)}
+    ${overviewSection(data)}
+    ${livabilitySection(data)}
+    ${safetySection(data)}
+    ${pricesSection(data)}
+    ${newsSection(news)}
+    ${assumptions.length ? `<details class="section"><summary><h3>${esc(t("assumptions"))}</h3></summary><ul class="assumptions">${assumptions.map((x) => `<li>${esc(x)}</li>`).join("")}</ul></details>` : ""}`;
   $("#result").hidden = false;
 }
 

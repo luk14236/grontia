@@ -718,7 +718,9 @@ Abra `http://localhost:8000` (serviço `grontia-web` do compose, só em localhos
 
 Nada do que o usuário envia é gravado: nem o PDF, nem o texto dele, nem o resultado. Isso segue a política de dados de anúncios (nunca guardar o arquivo original, fotos ou descrição).
 
-A página tem o logo do projeto (`web/static/logo.svg`: pino de mapa com uma fachada de casa de canal com empena escalonada) e uma tela **Sobre** que explica o projeto, a origem dos dados, a privacidade e os limites, em inglês e português.
+A página tem o logo do projeto (`web/static/logo.svg`: pino de mapa com uma fachada de casa de canal com empena escalonada) e uma tela **Sobre** que explica o projeto, a origem dos dados, a privacidade e os limites, em inglês e holandês.
+
+O resultado mostra, além do veredito: **projeção de 5 anos** (`evaluation/outlook.py`, com as alíquotas de `evaluation/rules/costs_2026.yml`: retorno para morar ou alugar em três cenários), **panorama do bairro**, **qualidade de vida** por dimensão, **segurança** (crimes por 1.000 moradores, tendência e tipos), **histórico de preços** e **últimas notícias**. As notícias vêm de `GET /api/news`, chamado depois do veredito; os avisos oficiais são lidos do mais recente para o mais antigo e param em `GRONTIA_NEWS_BUDGET_S` (14 s), porque Amsterdã publica ~30 mil avisos em seis meses.
 
 **Deploy público:** a app web vai para o Heroku e lê do MotherDuck; o pipeline continua local. Passo a passo em [`deploy-heroku.md`](deploy-heroku.md). Na versão pública valem um limite de avaliações por visitante (`GRONTIA_RATE_LIMIT`), uma senha opcional (`GRONTIA_WEB_PASSWORD`) e timeout menor nas fontes (`GRONTIA_HTTP_TIMEOUT`), por causa do limite de 30 s do roteador do Heroku.
 

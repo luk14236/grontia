@@ -13,14 +13,13 @@ from __future__ import annotations
 
 import html
 import json
-import statistics
 import sys
+from pathlib import Path
 from urllib.parse import quote
 
-# Gross yield band used to turn a sale value into a market-rent estimate when no
-# real rent comparable is given (annual rent / value). See methodology.md.
-YIELD_LOW, YIELD_BASE, YIELD_HIGH = 0.035, 0.040, 0.045
-PROJECTION_YEARS = 5
+# The yield band and growth method live in evaluation/outlook.py, shared with the web app
+sys.path.insert(0, str(Path(__file__).resolve().parents[4]))
+from evaluation import outlook  # noqa: E402
 
 e = html.escape
 
@@ -43,38 +42,22 @@ def pct(v, digits=1, sign=True) -> str:
 
 def rent_estimate(ev: dict, nar: dict) -> dict:
     sale = ev["purchase"]["range"]["central"]
-    m2 = ev["dwelling"]["floor_area_m2"]
     comps = nar.get("rent", {}).get("comparables") or []      # [{"rent":1299,"m2":88,"label":"..."}]
-    if comps:
-        per_m2 = statistics.median(c["rent"] / c["m2"] for c in comps)
-        central = per_m2 * m2
-        low, high = central * 0.95, central * 1.05
-        basis = "rent comparables"
-    else:
-        low, central, high = (sale * y / 12 for y in (YIELD_LOW, YIELD_BASE, YIELD_HIGH))
-        basis = "sale value × gross yield"
+    m = outlook.market_rent(sale, ev["dwelling"]["floor_area_m2"], comps)
     wws = ev["rent"]["scenarios"]
     return {
-        "market_low": round(low, -1), "market": round(central, -1), "market_high": round(high, -1),
-        "basis": basis, "per_m2": central / m2,
+        "market_low": m["low"], "market": m["central"], "market_high": m["high"],
+        "basis": "rent comparables" if comps else "sale value × gross yield", "per_m2": m["per_m2"],
         "legal": {k: wws[k] for k in ("low", "typical", "high")},
-        "gross_yield_pct": 100 * central * 12 / sale,
+        "gross_yield_pct": 100 * m["central"] * 12 / sale,
     }
 
 
 def projection(ev: dict) -> dict:
-    a = ev["purchase"]["appreciation"]
-    quarters = [q["price_index_yoy_pct"] for q in a["province_index_recent_quarters"][:4]
-                if q.get("price_index_yoy_pct") is not None]
-    base = statistics.mean(quarters) if quarters else 3.0
-    high = a.get("municipality_avg_sale_price_cagr_5y_pct") or base * 1.5
-    high = max(high, base)
-    low = base / 2
+    g = outlook.growth_scenarios(ev["purchase"]["appreciation"])
     start = ev["purchase"]["range"]["central"]
-    years = list(range(PROJECTION_YEARS + 1))
-    path = lambda r: [start * (1 + r / 100) ** y for y in years]
-    return {"low": low, "base": base, "high": high, "years": years,
-            "paths": {"low": path(low), "base": path(base), "high": path(high)}}
+    return {"low": g["low"], "base": g["base"], "high": g["high"], "years": list(range(outlook.YEARS + 1)),
+            "paths": {k: outlook.value_path(start, g[k]) for k in ("low", "base", "high")}}
 
 
 def similar_links(ev: dict) -> list[dict]:
@@ -410,7 +393,7 @@ def render(ev: dict, nar: dict) -> str:
     {proj_chart}
     <dl class="kv">
       <dt>Scenarios per year</dt><dd>{pct(proj["low"], sign=False)} · <strong>{pct(proj["base"], sign=False)}</strong> · {pct(proj["high"], sign=False)}</dd>
-      <dt>Value in {now_year + PROJECTION_YEARS}</dt><dd>{eur(pp["low"][-1], 0)} – {eur(pp["high"][-1], 0)}</dd>
+      <dt>Value in {now_year + outlook.YEARS}</dt><dd>{eur(pp["low"][-1], 0)} – {eur(pp["high"][-1], 0)}</dd>
     </dl>
     <p class="note">Scenarios, not a forecast. Base = average yearly change of the regional price index over the last four quarters; high = the municipality's 5-year growth rate; low = half the base.</p>
   </div>

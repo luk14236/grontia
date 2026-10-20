@@ -21,6 +21,8 @@ import threading
 import time
 from argparse import Namespace
 from collections import defaultdict, deque
+from concurrent.futures import ThreadPoolExecutor
+from datetime import date, timedelta
 from pathlib import Path
 
 import requests
@@ -29,7 +31,8 @@ from fastapi.responses import Response
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
-from evaluation.__main__ import run
+from evaluation import sources
+from evaluation.__main__ import _optional, run
 from . import listing
 
 logger = logging.getLogger("grontia.web")
@@ -38,10 +41,14 @@ MAX_UPLOAD_BYTES = 15 * 1024 * 1024
 RATE_LIMIT = int(os.getenv("GRONTIA_RATE_LIMIT", "10"))
 RATE_WINDOW_S = 600
 PASSWORD = os.getenv("GRONTIA_WEB_PASSWORD")
+# Paging through official notices stops after this many seconds (Heroku cuts
+# requests at 30 s; Amsterdam alone publishes ~30k notices in six months)
+NEWS_BUDGET_S = float(os.getenv("GRONTIA_NEWS_BUDGET_S", "14"))
+NEWS_MONTHS = 6
 
 app = FastAPI(title="Grontia", docs_url="/api/docs", openapi_url="/api/openapi.json")
 
-_hits: dict[str, deque] = defaultdict(deque)
+_hits: dict[tuple[str, str], deque] = defaultdict(deque)
 _hits_lock = threading.Lock()
 
 
@@ -52,11 +59,18 @@ def client_ip(request: Request) -> str:
     return forwarded.split(",")[-1].strip() if forwarded else request.client.host
 
 
-def rate_limit(request: Request) -> None:
-    """Each check costs MotherDuck compute and calls to public APIs."""
-    ip, now = client_ip(request), time.monotonic()
+def rate_limiter(bucket: str):
+    """Each check costs MotherDuck compute and calls to public APIs. Buckets keep
+    the news request that follows every check from eating the check budget."""
+    def rate_limit(request: Request) -> None:
+        _count(client_ip(request), bucket)
+    return rate_limit
+
+
+def _count(ip: str, bucket: str) -> None:
+    now = time.monotonic()
     with _hits_lock:
-        hits = _hits[ip]
+        hits = _hits[(ip, bucket)]
         while hits and now - hits[0] > RATE_WINDOW_S:
             hits.popleft()
         if len(hits) >= RATE_LIMIT:
@@ -97,7 +111,7 @@ class EvaluateRequest(BaseModel):
     comparable_m2: float | None = Field(None, gt=0)
 
 
-@app.post("/api/evaluate", dependencies=[Depends(rate_limit)])
+@app.post("/api/evaluate", dependencies=[Depends(rate_limiter("check"))])
 def evaluate(req: EvaluateRequest) -> dict:
     fields = req.model_dump()
     fields["postcode"] = fields["postcode"].replace(" ", "").upper()
@@ -113,7 +127,7 @@ def evaluate(req: EvaluateRequest) -> dict:
         raise HTTPException(502, f"An open-data source did not answer: {e}")
 
 
-@app.post("/api/listing", dependencies=[Depends(rate_limit)])
+@app.post("/api/listing", dependencies=[Depends(rate_limiter("check"))])
 async def parse_listing(file: UploadFile = File(...)) -> dict:
     data = await file.read(MAX_UPLOAD_BYTES + 1)
     if len(data) > MAX_UPLOAD_BYTES:
@@ -128,6 +142,19 @@ async def parse_listing(file: UploadFile = File(...)) -> dict:
     finally:
         del data
     return {"fields": fields}
+
+
+@app.get("/api/news", dependencies=[Depends(rate_limiter("news"))])
+def news(municipality: str, postcode: str, street: str, place: str) -> dict:
+    """Official notices near the address and recent headlines for the place,
+    loaded by the page after the check itself so the verdict isn't kept waiting."""
+    since = (date.today() - timedelta(days=30 * NEWS_MONTHS)).isoformat()
+    postcode = postcode.replace(" ", "").upper()
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        notices = pool.submit(_optional, "official notices", sources.official_notices_within,
+                              municipality, postcode, street, since, NEWS_BUDGET_S)
+        headlines = pool.submit(_optional, "headlines", sources.news_headlines, place)
+        return {"official_notices": notices.result(), "headlines": headlines.result(), "since": since}
 
 
 @app.get("/api/health")

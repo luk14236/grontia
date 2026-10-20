@@ -125,11 +125,13 @@ Step-by-step instructions are in [`docs/PROJETO_COMPLETO.md`](docs/PROJETO_COMPL
 
 ## 🗺️ Web App
 
-`http://localhost:8000` (Docker service `grontia-web`, bound to localhost because it has no login). In English or Portuguese:
+`http://localhost:8000` (Docker service `grontia-web`, bound to localhost because it has no login). In English or Dutch:
 
 - **Address:** type a street or postcode; the PDOK address search suggests matches and the map zooms to the home as soon as you pick one.
 - **Listing PDF:** drop a Funda/Pararius PDF. Address, asking price or rent, deposit, floor area and energy label are pulled out and filled into the form for you to check. The PDF is read in memory and never stored.
-- **Verdict:** asking price vs. the expected value range, or asked rent vs. the legal maximum (WWS points) and the deposit limit, plus livability, crime and WOZ for the neighbourhood, whose outline is drawn on the map.
+- **Verdict:** asking price vs. the expected value range, or asked rent vs. the legal maximum (WWS points), the market rent and the deposit limit.
+- **5-year outlook:** three growth scenarios and the return after transfer tax for living in the home (2%) or renting it out (8%, rent capped at the legal maximum), from `evaluation/outlook.py` (shared with the report skill).
+- **Neighbourhood:** overview (income, WOZ, tenure, new build, distances), livability by dimension, crime per 1,000 residents with trend and top offences, municipal price trend, and the latest official notices and headlines, loaded after the verdict from `/api/news`. The outline of the neighbourhood is drawn on the map.
 
 The API lives at `/api/evaluate` and `/api/listing` (docs at `/api/docs`) and reads the warehouse wherever DAG 40 publishes it. The page also has an **About** view that explains the project, the data and the privacy rules.
 

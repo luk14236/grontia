@@ -138,9 +138,60 @@ button.primary:disabled { opacity: .6; cursor: progress; }
 .fact span { font-size: .76rem; color: var(--muted); }
 .fact b { font: 600 1.05rem var(--mono); font-variant-numeric: tabular-nums; }
 .fact small { color: var(--muted); font-size: .76rem; }
-.result details summary { cursor: pointer; font-weight: 600; font-size: .88rem; }
-.result details ul { margin: 8px 0 0; padding-left: 18px; font-size: .85rem; color: var(--muted); display: grid; gap: 4px; }
 .disclaimer { font-size: .76rem; color: var(--muted); border-top: 1px solid var(--line); padding-top: 12px; }
 
 .leaflet-container { font: inherit; }
 @media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; } }
+
+/* Result sections (outlook, overview, livability, safety, prices, news) */
+.section { border: 1px solid var(--line); border-radius: 12px; padding: 0; }
+.section > summary { list-style: none; cursor: pointer; padding: 12px 14px; display: flex; justify-content: space-between; align-items: center; }
+.section > summary::-webkit-details-marker { display: none; }
+.section > summary::after { content: "+"; color: var(--muted); font: 600 1.1rem var(--mono); }
+.section[open] > summary::after { content: "–"; }
+.section > summary h3 { color: var(--ink); font-size: .82rem; }
+.section-body { display: grid; gap: 10px; padding: 0 14px 14px; min-width: 0; }
+.section h4 { margin: 4px 0 0; font: 600 .86rem var(--display); }
+.detail b { color: var(--ink); font-weight: 600; }
+
+.chart { width: 100%; height: auto; display: block; }
+.chart .grid { stroke: var(--line); stroke-width: 1; }
+.chart .axis { fill: var(--muted); font: 500 9px var(--mono); }
+.chart .line { fill: none; stroke-width: 2.2; stroke-linejoin: round; stroke-linecap: round; }
+.chart .line.base, .chart .dot.base { stroke: var(--accent); }
+.chart .line.high, .chart .dot.high { stroke: var(--ok); }
+.chart .line.low, .chart .dot.low { stroke: var(--warn); }
+.chart .dot { fill: var(--panel); stroke-width: 2; }
+.chart .bar { fill: var(--accent); opacity: .45; }
+.chart .bar.last { opacity: .9; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: .8rem; color: var(--muted); }
+.legend .key::before { content: ""; display: inline-block; width: 14px; height: 3px; border-radius: 2px; margin-right: 6px; vertical-align: middle; background: var(--accent); }
+.legend .key.high::before { background: var(--ok); }
+.legend .key.low::before { background: var(--warn); }
+
+.returns { display: grid; gap: 6px; }
+.returns table { width: 100%; border-collapse: collapse; font-size: .84rem; font-variant-numeric: tabular-nums; }
+.returns th, .returns td { padding: 5px 4px; text-align: right; border-bottom: 1px solid var(--line); }
+.returns th:first-child, .returns td:first-child { text-align: left; color: var(--muted); font-weight: 500; }
+.returns th { font: 600 .74rem var(--body); color: var(--muted); text-transform: uppercase; letter-spacing: .06em; }
+.returns td { font-family: var(--mono); }
+.returns td small { display: block; color: var(--muted); font-size: .72rem; }
+.returns td.pos { color: var(--ok); }
+.returns td.neg { color: var(--bad); }
+
+.dims { display: grid; gap: 6px; }
+.dim { display: grid; grid-template-columns: minmax(0, 9.5rem) minmax(0, 1fr); gap: 8px; align-items: center; font-size: .82rem; }
+.dim-track { position: relative; height: 10px; background: var(--field); border-radius: 5px; }
+.dim-track::after { content: ""; position: absolute; left: 50%; top: -2px; bottom: -2px; width: 1px; background: var(--muted); }
+.dim-bar { position: absolute; top: 0; bottom: 0; border-radius: 5px; }
+.dim-bar.pos { background: var(--ok); }
+.dim-bar.neg { background: var(--bad); }
+
+ul.types, ul.news, ul.assumptions { margin: 0; padding-left: 0; list-style: none; display: grid; gap: 8px; font-size: .86rem; }
+ul.types li { display: flex; justify-content: space-between; gap: 10px; border-bottom: 1px dashed var(--line); padding-bottom: 4px; }
+ul.types .count { font-family: var(--mono); color: var(--muted); }
+ul.news li { display: grid; gap: 2px; }
+ul.news a { color: var(--ink); text-decoration-color: var(--line); text-underline-offset: 3px; }
+ul.news a:hover { color: var(--accent); }
+ul.news small { color: var(--muted); font-size: .76rem; }
+ul.assumptions { padding: 0 14px 14px 30px; list-style: disc; color: var(--muted); }
