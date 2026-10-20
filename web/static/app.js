@@ -287,7 +287,7 @@ $("#form").addEventListener("submit", async (e) => {
     status.textContent = "";
     lastResult = { data, mode, news: null };
     renderResult(lastResult);
-    loadNews(lastResult);
+    lastResult.newsLoaded = loadNews(lastResult);
     focusAddress(data.address.lat, data.address.lon);
     setTimeout(() => showBuurt(data.neighbourhood.buurt_geometry, data.address.lat, data.address.lon), 1300);
     $("#result").scrollIntoView({ behavior: "smooth", block: "start" });
@@ -517,7 +517,7 @@ function pricesSection(d) {
   return section("prices", t("pricesTitle"), body);
 }
 
-function newsSection(news) {
+function newsSection(news, limits = { notices: 8, headlines: 6 }) {
   if (!news) return section("news", t("newsTitle"), `<p class="detail">${esc(t("newsLoading"))}</p>`);
   const fmtDate = (s) => (s ? new Date(s).toLocaleDateString(locale(), { day: "numeric", month: "short", year: "numeric" }) : "");
   const link = (url, text) => (url ? `<a href="${esc(url)}" target="_blank" rel="noopener">${esc(text)}</a>` : esc(text));
@@ -525,7 +525,7 @@ function newsSection(news) {
   let notices;
   if (n.error) notices = `<p class="detail">${esc(t("newsUnavailable"))}</p>`;
   else {
-    const items = (n.items || []).slice(0, 8);
+    const items = (n.items || []).slice(0, limits.notices);
     notices = items.length
       ? `<ul class="news">${items.map((x) => `<li>${link(x.url, x.title)}<small>${esc(fmtDate(x.date))} · ${esc(t("scope")[x.scope] || x.scope)}</small></li>`).join("")}</ul>`
       : `<p class="detail">${esc(t("noticesNone"))}</p>`;
@@ -533,7 +533,7 @@ function newsSection(news) {
   }
   const h = news.headlines;
   const headlines = h && h.error ? `<p class="detail">${esc(t("newsUnavailable"))}</p>`
-    : (h || []).length ? `<ul class="news">${h.slice(0, 6).map((x) => `<li>${link(x.url, x.title)}<small>${esc(x.source || "")} · ${esc(fmtDate(x.date))}</small></li>`).join("")}</ul>`
+    : (h || []).length ? `<ul class="news">${h.slice(0, limits.headlines).map((x) => `<li>${link(x.url, x.title)}<small>${esc(x.source || "")} · ${esc(fmtDate(x.date))}</small></li>`).join("")}</ul>`
     : `<p class="detail">${esc(t("headlinesNone"))}</p>`;
   return section("news", t("newsTitle"), `<h4>${esc(t("noticesTitle"))}</h4>${notices}<h4>${esc(t("headlinesTitle"))}</h4>${headlines}`);
 }
@@ -563,7 +563,8 @@ function renderResult({ data, mode, news }) {
   const notAHome = use && !use.split(",").includes("woonfunctie")
     ? `<div class="banner warn" role="alert">${esc(t("notAHome")(use))}</div>` : "";
   $("#result").innerHTML = `
-    <div class="where"><h2>${esc(a.display_name)}</h2><p>${esc([a.buurt_name, a.municipality_name, a.province_name].filter(Boolean).join(" · "))}</p></div>
+    <div class="where"><h2>${esc(a.display_name)}</h2><p>${esc([a.buurt_name, a.municipality_name, a.province_name].filter(Boolean).join(" · "))}</p>
+      <button type="button" class="secondary" id="export-pdf">${esc(t("exportPdf"))}</button></div>
     ${notAHome}
     ${primary}
     ${secondary}
@@ -575,6 +576,7 @@ function renderResult({ data, mode, news }) {
     ${newsSection(news)}
     ${assumptions.length ? `<details class="section"><summary><h3>${esc(t("assumptions"))}</h3></summary><ul class="assumptions">${assumptions.map((x) => `<li>${esc(x)}</li>`).join("")}</ul></details>` : ""}`;
   $("#result").hidden = false;
+  $("#export-pdf").addEventListener("click", () => exportReport(lastResult));
 }
 
 // ---------------------------------------------------------------- start

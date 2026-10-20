@@ -6,6 +6,7 @@ come from the user. News headlines are kept as title + link + date only.
 """
 from __future__ import annotations
 
+import html
 import logging
 import os
 import re
@@ -257,7 +258,8 @@ def official_notices_within(municipality_name: str, postcode: str, street: str, 
         title = re.search(r"<dcterms:title>(.*?)</dcterms:title>", rec, flags=re.S)
         if not title:
             continue
-        title = re.sub(r"\s+", " ", title.group(1)).strip()
+        # the SRU XML carries the title HTML-escaped ("Rock &amp; Roots")
+        title = html.unescape(re.sub(r"\s+", " ", title.group(1)).strip())
         date = re.search(r"<dcterms:modified>([\d-]+)", rec)
         link = re.search(r"<gzd:preferredUrl>(.*?)</gzd:preferredUrl>", rec)
         if on_street.search(title) or pc6 in title.replace(" ", ""):
@@ -279,13 +281,17 @@ def official_notices_within(municipality_name: str, postcode: str, street: str, 
 def news_headlines(place: str, limit: int = 15) -> list[dict]:
     """Recent press headlines mentioning the place (title, source, date, link only)."""
     xml = _get(NEWS_RSS, q=f'"{place}"', hl="nl", gl="NL", ceid="NL:nl").text
-    items = []
+    items, seen = [], set()
     for item in ET.fromstring(xml).iter("item"):
         title = item.findtext("title") or ""
         source = item.findtext("source") or ""
         pub = item.findtext("pubDate")
+        title = title.rsplit(" - ", 1)[0] if source and title.endswith(source) else title
+        if title.lower() in seen:  # the same story syndicated by several outlets
+            continue
+        seen.add(title.lower())
         items.append({
-            "title": title.rsplit(" - ", 1)[0] if source and title.endswith(source) else title,
+            "title": title,
             "source": source,
             "date": parsedate_to_datetime(pub).date().isoformat() if pub else None,
             "url": item.findtext("link"),

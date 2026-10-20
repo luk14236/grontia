@@ -195,3 +195,53 @@ ul.news a { color: var(--ink); text-decoration-color: var(--line); text-underlin
 ul.news a:hover { color: var(--accent); }
 ul.news small { color: var(--muted); font-size: .76rem; }
 ul.assumptions { padding: 0 14px 14px 30px; list-style: disc; color: var(--muted); }
+
+.where { position: relative; }
+button.secondary { justify-self: start; margin-top: 6px; border: 1px solid var(--accent); background: none; color: var(--accent);
+  border-radius: 8px; padding: 6px 12px; font: 600 .84rem var(--body); cursor: pointer; }
+button.secondary:disabled { opacity: .7; cursor: progress; }
+
+/* Printable report (Export PDF). Hidden on screen; in print it is the only thing shown. */
+.report { display: none; }
+@media print {
+  :root {
+    --panel: #ffffff; --ink: #17212b; --muted: #55626e; --line: #d5dce2; --accent: #0b5cad; --accent-ink: #ffffff;
+    --ok: #1d7a46; --warn: #9a6400; --bad: #b42318; --field: #f2f4f6; color-scheme: light;
+  }
+  @page { size: A4; margin: 14mm 14mm 16mm; }
+  html, body { height: auto; background: #ffffff; }
+  body { font-size: 10pt; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  body > *:not(.report) { display: none !important; }
+  /* block layout: page breaks are honoured in block flow, not inside grids */
+  .report, .report .r-sec, .report .section, .report .section-body, .report .r-extra { display: block; }
+  .report > * + *, .report .r-sec > * + *, .report .section-body > * + * { margin-top: 8px; }
+  .report > * + * { margin-top: 16px; }
+  .report { color: var(--ink); }
+  .r-sec h2, .report .section > summary, .report h4 { break-after: avoid; page-break-after: avoid; }
+  .report .r-sec:has(> .outline), .report .r-sec:has(> .r-table:only-of-type) { break-inside: avoid; }
+  .r-head { display: flex; gap: 14px; align-items: center; border-bottom: 2px solid var(--accent); padding-bottom: 10px; }
+  .r-head h1 { font-size: 18pt; }
+  .r-head p { color: var(--muted); }
+  .r-eyebrow { font: 700 8pt var(--display); letter-spacing: .12em; text-transform: uppercase; color: var(--accent) !important; }
+
+  .r-sec h2 { font-size: 12pt; border-bottom: 1px solid var(--line); padding-bottom: 4px; break-after: avoid; }
+  .report .section { border: 0; border-radius: 0; }
+  .report .section > summary { padding: 0; border-bottom: 1px solid var(--line); padding-bottom: 4px; }
+  .report .section > summary::after { content: none; }
+  .report .section > summary h3 { font-size: 12pt; text-transform: none; letter-spacing: 0; color: var(--ink); }
+  .report .section-body { padding: 0; }
+  .report .verdict, .report .chart, .report .outline, .report table, .report .fact, .report .dims, .report .returns { break-inside: avoid; }
+  .report .facts { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .report .chart { max-width: 125mm; }
+  .outline { width: 100%; max-width: 125mm; height: auto; }
+  .outline path { fill: rgba(11, 92, 173, .1); stroke: var(--accent); stroke-width: 2; stroke-dasharray: 5 4; }
+  .outline circle { fill: var(--accent); stroke: #ffffff; stroke-width: 3; }
+  .r-table { width: 100%; border-collapse: collapse; font-size: 9pt; font-variant-numeric: tabular-nums; }
+  .r-table th, .r-table td { text-align: left; padding: 4px 6px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  .r-table th { font: 600 7.5pt var(--body); text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+  .r-table td small { color: var(--muted); }
+  .r-list { margin: 0; padding-left: 16px; display: grid; gap: 3px; font-size: 9pt; color: var(--muted); }
+  .report a { color: var(--accent); text-decoration: none; overflow-wrap: anywhere; }
+  .report ul.news a { color: var(--ink); }
+  .r-foot { border-top: 1px solid var(--line); padding-top: 8px; font-size: 8pt; color: var(--muted); display: grid; gap: 4px; }
+}

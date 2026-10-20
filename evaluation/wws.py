@@ -151,7 +151,8 @@ def _scenarios(facts: DwellingFacts, woz_range: tuple[float, float, float] | Non
             if getattr(d, attr) is None:
                 setattr(d, attr, values[k])
                 if name == "typical":
-                    facts.assumptions.append(f"{attr}: {values[1]} ({note})")
+                    shown = round(values[1], 1) if isinstance(values[1], float) else values[1]
+                    facts.assumptions.append(f"{attr}: {shown} ({note})")
         fill("rooms_m2", (0.75 * ga, 0.82 * ga, 0.9 * ga), "WWS room area is smaller than BAG floor area")
         fill("other_spaces_m2", (0, 0, 6), "storage inside the dwelling")
         fill("heated_rooms", (rooms_est - 1, rooms_est, rooms_est + 1), f"~1 room per 22 m² of {ga} m²")
