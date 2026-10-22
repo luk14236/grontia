@@ -27,6 +27,12 @@ x-airflow-common: &airflow-common
     MOTHERDUCK_TOKEN: ${MOTHERDUCK_TOKEN:-}
     # Optional Slack-compatible webhook for pipeline / data-quality alerts
     GRONTIA_ALERT_WEBHOOK_URL: ${GRONTIA_ALERT_WEBHOOK_URL:-}
+    # Optional e-mail for alerts (Gmail by default; needs an app password)
+    GRONTIA_ALERT_EMAIL_TO: ${GRONTIA_ALERT_EMAIL_TO:-}
+    GRONTIA_SMTP_HOST: ${GRONTIA_SMTP_HOST:-smtp.gmail.com}
+    GRONTIA_SMTP_PORT: ${GRONTIA_SMTP_PORT:-587}
+    GRONTIA_SMTP_USER: ${GRONTIA_SMTP_USER:-}
+    GRONTIA_SMTP_PASSWORD: ${GRONTIA_SMTP_PASSWORD:-}
   labels:
     autoheal: 'true'
   volumes:

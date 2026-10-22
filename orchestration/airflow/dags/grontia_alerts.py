@@ -1,15 +1,20 @@
 """Alerting shared by the Grontia DAGs (no DAG is defined here).
 
-Alerts always go to the task log. When GRONTIA_ALERT_WEBHOOK_URL is set they are
-also POSTed as {"text": ...}, the payload Slack, Mattermost, Google Chat and
-Discord's /slack-compatible endpoint all accept.
+Alerts always go to the task log, and additionally to:
+- a webhook, when GRONTIA_ALERT_WEBHOOK_URL is set: POSTed as {"text": ...},
+  the payload Slack, Mattermost, Google Chat and Discord's /slack endpoint accept;
+- an e-mail, when GRONTIA_ALERT_EMAIL_TO and GRONTIA_SMTP_PASSWORD are set
+  (GRONTIA_SMTP_HOST/PORT/USER default to Gmail on 587 with STARTTLS; Gmail
+  needs an app password, not the account password).
 """
 from __future__ import annotations
 
 import json
 import logging
 import os
+import smtplib
 from datetime import datetime
+from email.message import EmailMessage
 from pathlib import Path
 
 import requests
@@ -22,6 +27,11 @@ DBT_RUN_RESULTS = Path("/tmp/dbt/target/run_results.json")
 def send_alert(title: str, lines: list[str]) -> None:
     text = "\n".join([f"[grontia] {title}", *lines])
     logger.warning(text)
+    _send_webhook(text)
+    _send_email(f"[grontia] {title}", "\n".join(lines))
+
+
+def _send_webhook(text: str) -> None:
     url = os.getenv("GRONTIA_ALERT_WEBHOOK_URL")
     if not url:
         return
@@ -30,6 +40,25 @@ def send_alert(title: str, lines: list[str]) -> None:
     except requests.RequestException:
         # A broken webhook must never mask the original failure
         logger.exception("Could not deliver alert to GRONTIA_ALERT_WEBHOOK_URL")
+
+
+def _send_email(subject: str, body: str) -> None:
+    to, password = os.getenv("GRONTIA_ALERT_EMAIL_TO"), os.getenv("GRONTIA_SMTP_PASSWORD")
+    if not to or not password:
+        return
+    user = os.getenv("GRONTIA_SMTP_USER") or to
+    msg = EmailMessage()
+    msg["Subject"], msg["From"], msg["To"] = subject, user, to
+    msg.set_content(body + "\n\nAirflow: http://localhost:8080\n")
+    try:
+        with smtplib.SMTP(os.getenv("GRONTIA_SMTP_HOST", "smtp.gmail.com"),
+                          int(os.getenv("GRONTIA_SMTP_PORT", "587")), timeout=20) as smtp:
+            smtp.starttls()
+            smtp.login(user, password)
+            smtp.send_message(msg)
+    except (OSError, smtplib.SMTPException):
+        # A broken mailbox must never mask the original failure
+        logger.exception("Could not e-mail the alert to GRONTIA_ALERT_EMAIL_TO")
 
 
 def dbt_problems(not_before: datetime | None = None) -> list[dict] | None:

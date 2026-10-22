@@ -125,7 +125,7 @@ Every silver read goes through the `read_silver()` macro, so switching between t
 - **122 dbt tests** on every staging model and mart: grain uniqueness (`unique_combination`), value ranges (`expect_between`), minimum row counts, referential integrity and freshness (`expect_recent`). Custom generic tests live in `analytics/dbt/macros/tests/`.
 - **Policy:** wrong data stops the build (yesterday's marts stay); stale data only warns.
 - **History:** an `on-run-end` hook writes every model and test result to `main_OBSERVABILITY.dbt_run_results`.
-- **Alerts:** failures and warnings in DAGs 30 and 40 go to the task log and, when `GRONTIA_ALERT_WEBHOOK_URL` is set, to a Slack-compatible webhook.
+- **Alerts:** failures and warnings in DAGs 30 and 40 go to the task log and, when configured, to a Slack-compatible webhook (`GRONTIA_ALERT_WEBHOOK_URL`) and by e-mail (`GRONTIA_ALERT_EMAIL_TO` plus an SMTP app password, Gmail by default; see `.env.example`).
 - The tests already caught a real bug: KNMI codes "less than 0.05 mm" as `-1`, which showed up as negative rain.
 
 ---
