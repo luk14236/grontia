@@ -411,8 +411,19 @@ def ingest_leefbaarometer_dataset(dataset_name: str, url: str, files: dict) -> d
         "ingestion_date": ing_date, "status": "success",
     }
 
-    head = requests.head(url, timeout=60, allow_redirects=True)
-    head.raise_for_status()
+    # The Leefbaarometer changes every two years and this daily task only checks
+    # for a new version. When leefbaarometer.nl is down (503 on 22 Oct 2026) the
+    # version we already hold stays valid, so that must not block every other
+    # source of the day; only a first load without any version has to fail.
+    try:
+        head = requests.head(url, timeout=60, allow_redirects=True)
+        head.raise_for_status()
+    except requests.RequestException as e:
+        if _bronze_get_json(marker) is None:
+            raise
+        logger.warning("Leefbaarometer site unavailable (%s); keeping the version already ingested", e)
+        summary.update({"changed": False, "source_unavailable": str(e)})
+        return summary
     version = {
         "url": url,
         "etag": head.headers.get("ETag"),
