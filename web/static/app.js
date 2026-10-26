@@ -468,19 +468,28 @@ function rangeScale(range, asked) {
   </div>`;
 }
 
+// A price above a rough (neighbourhood-only) estimate is a reason to check, not a verdict
+const roughAbove = (p) => p.confidence === "low" && (p.asking_price_check || {}).verdict === "above_range";
+
 function purchaseCard(p) {
   const r = p.range;
   const basis = t("basis")(t("basisName")[p.central_basis] || p.central_basis, eur(p.price_per_m2_central));
+  const sure = p.confidence ? t("confidenceLine")(t("confidence")[p.confidence], p.band_pct) : "";
+  const warnings = (p.warnings || []).map((w) => t("valueWarnings")[w]);
+  const sharpen = { low: t("sharpenLow")(10), medium: t("sharpenMedium") }[p.confidence] || "";
   const check = p.asking_price_check;
   if (!check) {
-    return verdictCard("info", t("valueTitle"), t("badge").estimate, t("valueOnly")(eur(r.central), eur(r.low), eur(r.high)), [basis], rangeScale(r));
+    return verdictCard("info", t("valueTitle"), t("confidence")[p.confidence] || t("badge").estimate,
+      t("valueOnly")(eur(r.central), eur(r.low), eur(r.high)), [sure, basis, ...warnings, sharpen], rangeScale(r));
   }
-  const kind = { in_range: "ok", below_range: "ok", above_range: "bad" }[check.verdict];
+  const rough = roughAbove(p);
+  const kind = rough ? "warn" : { in_range: "ok", below_range: "ok", above_range: "bad" }[check.verdict];
   // "above"/"below" already carry the direction, so only in_range shows the sign
   const diff = check.verdict === "in_range" ? pct(check.vs_central_pct) : `${num(Math.abs(check.vs_central_pct), 1)}%`;
-  const headline = { in_range: t("priceIn"), above_range: t("priceAbove"), below_range: t("priceBelow") }[check.verdict](diff);
+  const headline = rough ? t("priceAboveRough")(diff)
+    : { in_range: t("priceIn"), above_range: t("priceAbove"), below_range: t("priceBelow") }[check.verdict](diff);
   return verdictCard(kind, t("purchaseTitle"), t("badge")[check.verdict], headline,
-    [t("priceRange")(eur(r.low), eur(r.high)), basis], rangeScale(r, check.asking_price) + caption("info.charts.scale"));
+    [t("priceRange")(eur(r.low), eur(r.high)), sure, basis, ...warnings, sharpen], rangeScale(r, check.asking_price) + caption("info.charts.scale"));
 }
 
 function rentCard(rent, outlook) {
@@ -719,7 +728,7 @@ function glance(d) {
   const check = d.purchase.asking_price_check;
   tiles.push(["value", eur(d.purchase.range.central),
     check ? t("badge")[check.verdict] : `${eur(d.purchase.price_per_m2_central)}/m²`,
-    check ? (check.verdict === "above_range" ? "bad" : "ok") : "neutral"]);
+    check ? (check.verdict !== "above_range" ? "ok" : roughAbove(d.purchase) ? "warn" : "bad") : "neutral"]);
   const typ = d.rent.scenarios.typical, rc = d.rent.rent_check;
   tiles.push(["rent", typ.segment === "free" ? t("badge").free_sector : eur(typ.max_rent_eur),
     rc ? t("badge")[rc.verdict] : `${G.perMonth} · ${t("segment")[typ.segment]}`,

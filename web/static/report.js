@@ -34,8 +34,9 @@ function table(head, rows) {
 }
 
 function inputsText(inputs) {
-  return Object.entries(inputs || {}).map(([k, v]) =>
-    `${k.replace(/_/g, " ")}: ${typeof v === "number" ? num(v, v < 10 ? 3 : 1) : v}`).join(" · ");
+  // nested index records are spelled out elsewhere; keep the flat inputs
+  return Object.entries(inputs || {}).filter(([, v]) => v === null || typeof v !== "object").map(([k, v]) =>
+    `${k.replace(/_/g, " ")}: ${typeof v === "number" && !k.endsWith("year") ? num(v, v < 10 ? 3 : 1) : v}`).join(" · ");
 }
 
 // [{ id, title, body, wide }] in reading order; empty bodies are dropped
@@ -58,12 +59,23 @@ function detailCards({ data, mode, news }, { onlyImportantNews = false } = {}) {
   ]);
 
   const ref = p.neighbourhood_reference || {};
+  const lvl = p.area_level, sp = p.size_vs_peers || {};
   const valuation = `<div class="kpis">${[[t("glance").value, eur(p.range.central)], ["−", eur(p.range.low)], ["+", eur(p.range.high)]]
       .map(([k, v]) => `<div><span>${esc(k)}</span><b>${v}</b></div>`).join("")}</div>`
-    + table([R.method, R.value, R.inputs],
-      p.estimates.map((e) => [esc(R.methods[e.method] || e.method) + hintButton(`info.methods.${e.method}`), eur(e.value), `<small>${esc(inputsText(e.inputs))}</small>`]))
-    + `<p class="detail">${esc(t("priceRange")(eur(p.range.low), eur(p.range.high)))} ${esc(t("basis")(t("basisName")[p.central_basis] || p.central_basis, eur(p.price_per_m2_central)))}</p>`
-    + (ref.est_current_avg_sale_price_eur ? `<p class="detail">${esc(R.reference(eur(ref.est_current_avg_sale_price_eur), eur(ref.avg_woz_value_eur), num(ref.woz_ratio_to_municipality, 3), (ref.index_latest_period || "").replace("KW", " Q")))}</p>` : "");
+    + table([R.method, R.value, R.vsCentre, R.inputs],
+      p.estimates.map((e) => [esc(R.methods[e.method] || e.method) + hintButton(`info.methods.${e.method}`), eur(e.value),
+        e.method === p.central_basis ? esc(R.centre) : `${signed((p.cross_checks_pct || {})[e.method])}%`,
+        `<small>${esc(inputsText(e.inputs))}</small>`]))
+    + [t("priceRange")(eur(p.range.low), eur(p.range.high))
+        + (p.confidence ? " " + t("confidenceLine")(t("confidence")[p.confidence], p.band_pct) : ""),
+       t("basis")(t("basisName")[p.central_basis] || p.central_basis, eur(p.price_per_m2_central)),
+       lvl && R.areaLevel(eur(lvl.avg_woz_value_eur), lvl.woz_value_date, num(lvl.factor, 3),
+         lvl.index_now.period_code.replace("KW", " Q"), eur(lvl.level_eur)),
+       sp.count && R.peers(R.homeTypes[sp.home_type], num(sp.count), num(sp.median_m2), num(sp.p25_m2), num(sp.p75_m2), num(sp.floor_area_m2)),
+       ...(p.warnings || []).map((w) => t("valueWarnings")[w]),
+       t("unseen"),
+       { low: t("sharpenLow")(10), medium: t("sharpenMedium") }[p.confidence],
+      ].filter(Boolean).map((x) => `<p class="detail">${esc(x)}</p>`).join("");
 
   const sc = rent.scenarios, keys = ["low", "typical", "high"];
   const wwsTable = table([R.rubric, ...keys.map((k) => t("scenario")[k === "typical" ? "base" : k])], [

@@ -69,7 +69,7 @@ def crime_context(address: dict, profile: dict) -> dict:
 
 def woz_range_from_valuation(con, address: dict, value: dict) -> tuple[float, float, float] | None:
     """Bring the market value estimate back to the WOZ value date (1 Jan 2025)."""
-    then = valuation._index(con, address["province_code"], "2024KW04")
+    then = valuation._index(con, value["index_region_code"], "2024KW04")
     now = value.get("index_now")
     if not then or not now:
         return None
@@ -90,6 +90,12 @@ def _optional(name: str, fn, *args):
 def run(args: argparse.Namespace) -> dict:
     address = sources.lookup_address(args.postcode, args.number, args.suffix)
     dwelling = sources.bag_dwelling(address["dwelling_id"])
+    if "woonfunctie" not in (dwelling.get("use") or "").split(","):
+        # a shop, office or garage: a home's value and the WWS rent don't apply
+        raise ValueError(
+            f"The BAG building register lists {address.get('street', '')} {args.number}"
+            f"{(args.suffix or '')} as '{dwelling.get('use')}', not as a home. Grontia values homes only. "
+            "If the home has its own letter or addition (for example 20-A), search for that address.")
     area = sources.buurt_area(address["buurt_code"])
     sizes = sources.buurt_dwelling_sizes(area["geometry"])
 

@@ -137,7 +137,7 @@ Every silver read goes through the `read_silver()` macro, so switching between t
 | Step | How |
 |---|---|
 | Address and home | PDOK Locatieserver and BAG: floor area, build year, use, apartment or not |
-| Value | Neighbourhood price per m², home-type ratio, indexed WOZ and a comparable sale; the centre is their median (or the comparable), range at least ±7% |
+| Value | A neighbourhood model (average WOZ of the neighbourhood, indexed, adjusted for home type and size), the indexed WOZ of the home and a comparable sale. The centre is the most specific one given; the range is ±20%, ±10% or ±7% to match. Addresses the BAG does not list as a home are rejected |
 | Legal rent | The 2026 WWS points system (`evaluation/rules/wws_2026.yml`) in three scenarios; ≤143 points social, 144–186 mid-rent, ≥187 free sector |
 | Outlook | `evaluation/outlook.py`: three 5-year growth scenarios, market rent, gross yield and the return after transfer tax (2% to live in, 8% to rent out; `evaluation/rules/costs_2026.yml`) |
 | Context | Livability, crime, key figures, official notices and headlines; an optional source that fails never sinks the evaluation |

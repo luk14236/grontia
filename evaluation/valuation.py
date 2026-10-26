@@ -1,20 +1,28 @@
 """
 Purchase question: is the asking price in line with what open data suggests?
 
-Three independent estimates, each from open data, then a range:
-  A. neighbourhood price per m²: the neighbourhood's estimated current average
-     sale price divided by the mean floor area of its dwellings (BAG), times
-     this dwelling's floor area;
-  B. home type: the neighbourhood's average price scaled by the national price
-     ratio between this home type and all homes (CBS 85791NED);
-  C. WOZ (only when the user gives it): the dwelling's WOZ value brought from
-     its reference date to today with the provincial price index;
-  D. comparable sale (only when the user gives it): a known sale of a similar
-     dwelling nearby, brought to today with the provincial index and scaled by
-     floor area. When present it is the strongest evidence and sets the centre.
+Up to three estimates, then a range whose width says how much the centre knows:
+  A. neighbourhood model (always): the neighbourhood's average WOZ value (CBS,
+     every home in the stock) brought to today with the price index, split into
+     an apartment and a single-family level with the national price ratio
+     between the two (CBS 85791NED) and the neighbourhood's mix (BAG), then
+     scaled from the typical size of that home type in the neighbourhood to
+     this home's floor area with a size elasticity;
+  B. WOZ (only when the user gives it): this home's own WOZ value brought from
+     its value date to today with the same index;
+  C. comparable sale (only when the user gives it): a known sale of a similar
+     home nearby, brought to today with the index and scaled by floor area.
 
-The neighbourhood-average methods (A, B) miss premiums for newer buildings and
-good energy labels in mixed neighbourhoods; a comparable sale corrects that.
+The centre is the most specific evidence available (C, then B, then A) and the
+other estimates are shown as cross-checks. The model sees only area, type and
+size: not condition, energy label, layout, garden, parking or floor level, so
+on its own it gets the widest range.
+
+Why WOZ and not the average sale price as the area level: sale prices describe
+the homes that sold (larger, more often owner-occupied), while the BAG floor
+areas the model divides by describe every home. The average WOZ covers the
+same stock as the BAG, so price and size refer to the same homes. Using the
+sale average put the level 9-14% too high in the neighbourhoods tested.
 """
 from __future__ import annotations
 
@@ -22,8 +30,19 @@ import statistics
 
 from . import warehouse as w
 
-# Asking price vs central estimate: within ±BAND is "in line"
-BAND = 0.07
+# A home twice the size of its neighbours costs about 1.7x, not 2x. 0.75 sits in
+# the 0.6-0.9 range Dutch hedonic price studies report; it is an assumption, not
+# fitted on transactions (Grontia has no open per-sale data to fit it on).
+SIZE_ELASTICITY = 0.75
+# Below this many homes of the same type the neighbourhood split is too thin
+MIN_PEERS = 15
+# Half-width of the value range by what the centre rests on, and how sure it is
+BANDS = {"comparable_sale": 0.07, "woz_indexed": 0.10, "neighbourhood_model": 0.20}
+CONFIDENCE = {"comparable_sale": "high", "woz_indexed": "medium", "neighbourhood_model": "low"}
+# A cross-check further than this from the centre is worth flagging
+DISAGREE = 0.25
+# Below this share of the neighbourhood's homes, the home's type is unusual there
+RARE_TYPE_SHARE = 0.15
 
 
 def _latest_type_ratio(con, home_type: str) -> dict | None:
@@ -57,6 +76,60 @@ def _quarter(period: str) -> str:
     return f"{year}KW{(month - 1) // 3 + 1:02d}"
 
 
+def _woz_value_date_index(con, region: str, woz_year: int) -> dict | None:
+    """Index at the WOZ value date: 1 January of the year before the tax year,
+    i.e. the last quarter two years before it (WOZ 2024 -> 2022KW04)."""
+    return _index(con, region, f"{woz_year - 2}KW04")
+
+
+def _area_level(con, ref: dict, index_now: dict) -> dict | None:
+    """Today's value of the neighbourhood's average home, from its average WOZ."""
+    kf = w.one(con, f"""
+        select period_code from {w.STAGING}.stg_cbs_neighbourhood_key_figures where region_code = ?
+    """, ref["region_code"])
+    if not kf or not ref.get("avg_woz_value_eur"):
+        return None
+    woz_year = int(kf["period_code"][:4])
+    then = _woz_value_date_index(con, ref["index_region_code"], woz_year)
+    if not then:
+        return None
+    factor = index_now["price_index_2020"] / then["price_index_2020"]
+    return {"avg_woz_value_eur": ref["avg_woz_value_eur"], "woz_year": woz_year,
+            "woz_value_date": f"{woz_year - 1}-01-01", "index_then": then, "index_now": index_now,
+            "factor": round(factor, 3), "level_eur": round(ref["avg_woz_value_eur"] * factor, -3)}
+
+
+def _neighbourhood_model(con, level: dict, home_type: str, m2: float, sizes: dict) -> dict | None:
+    peers = (sizes.get("by_type") or {}).get(home_type) or {}
+    value_level, inputs = level["level_eur"], {}
+    if peers.get("count", 0) >= MIN_PEERS:
+        # average = share_apt * V_apt + share_house * V_house, with V_apt = r * V_house
+        apt, house = _latest_type_ratio(con, "apartment"), _latest_type_ratio(con, "single_family")
+        n_apt = sizes["by_type"]["apartment"]["count"]
+        share_apt = n_apt / (n_apt + sizes["by_type"]["single_family"]["count"])
+        if apt and house:
+            r = apt["ratio"] / house["ratio"]
+            v_house = value_level / (share_apt * r + (1 - share_apt))
+            value_level = r * v_house if home_type == "apartment" else v_house
+            inputs = {"apartment_share": round(share_apt, 3), "apartment_to_house_ratio": round(r, 3),
+                      "type_ratio_year": apt["year"]}
+        peer_m2 = peers["mean_m2"]
+    elif sizes.get("mean_m2"):
+        peer_m2 = sizes["mean_m2"]
+    else:
+        return None
+    size_factor = (m2 / peer_m2) ** SIZE_ELASTICITY
+    return {
+        "method": "neighbourhood_model",
+        "value": round(value_level * size_factor, -3),
+        "inputs": {"area_level": level["level_eur"], "home_type": home_type,
+                   "type_level": round(value_level, -3), **inputs,
+                   "peer_mean_m2": peer_m2, "peer_count": peers.get("count") or sizes.get("count"),
+                   "floor_area_m2": m2, "size_factor": round(size_factor, 3),
+                   "size_elasticity": SIZE_ELASTICITY},
+    }
+
+
 def estimate(con, address: dict, dwelling: dict, buurt_sizes: dict,
              asking_price: float | None = None, woz_value: float | None = None,
              woz_year: int | None = None, comparable: dict | None = None) -> dict:
@@ -66,66 +139,68 @@ def estimate(con, address: dict, dwelling: dict, buurt_sizes: dict,
         raise ValueError(f"No neighbourhood reference for {address['buurt_code']}")
 
     m2 = dwelling["floor_area_m2"]
-    estimates = []
-
-    if buurt_sizes.get("mean_m2"):
-        per_m2 = ref["est_current_avg_sale_price_eur"] / buurt_sizes["mean_m2"]
-        estimates.append({
-            "method": "neighbourhood_price_per_m2",
-            "value": round(per_m2 * m2, -3),
-            "inputs": {"neighbourhood_avg_price": ref["est_current_avg_sale_price_eur"],
-                       "neighbourhood_mean_m2": buurt_sizes["mean_m2"],
-                       "price_per_m2": round(per_m2), "floor_area_m2": m2},
-        })
-
     home_type = "apartment" if dwelling["is_apartment"] else "single_family"
-    ratio = _latest_type_ratio(con, home_type)
-    if ratio:
-        estimates.append({
-            "method": "home_type_ratio",
-            "value": round(ref["est_current_avg_sale_price_eur"] * ratio["ratio"], -3),
-            "inputs": {"neighbourhood_avg_price": ref["est_current_avg_sale_price_eur"],
-                       "home_type": home_type, "year": ratio["year"],
-                       "national_type_to_all_ratio": round(ratio["ratio"], 3)},
-        })
+    # the four largest cities have their own index; elsewhere the province's
+    index_region = ref["index_region_code"]
+    index_now = _index(con, index_region, "%KW%")
+    if not index_now:
+        raise ValueError(f"No price index for {index_region}")
+    estimates: dict[str, dict] = {}
 
-    index_now = _index(con, address["province_code"], "%KW%")
-    if woz_value and index_now:
+    level = _area_level(con, ref, index_now)
+    model = _neighbourhood_model(con, level, home_type, m2, buurt_sizes) if level else None
+    if model:
+        estimates["neighbourhood_model"] = model
+
+    if woz_value:
         # WOZ value date is 1 January of the year before the decision year
-        ref_year = (woz_year or int(index_now["period_code"][:4])) - 1
-        index_then = _index(con, address["province_code"], f"{ref_year - 1}KW04")
+        tax_year = woz_year or int(index_now["period_code"][:4])
+        index_then = _woz_value_date_index(con, index_region, tax_year)
         if index_then:
             factor = index_now["price_index_2020"] / index_then["price_index_2020"]
-            estimates.append({
+            estimates["woz_indexed"] = {
                 "method": "woz_indexed",
                 "value": round(woz_value * factor, -3),
-                "inputs": {"woz_value": woz_value, "woz_value_date": f"{ref_year}-01-01",
+                "inputs": {"woz_value": woz_value, "woz_value_date": f"{tax_year - 1}-01-01",
                            "index_then": index_then, "index_now": index_now,
                            "factor": round(factor, 3)},
-            })
+            }
 
-    comparable_estimate = None
-    if comparable and index_now:
+    if comparable:
         # Use the sale quarter, or the latest published one if the sale is more recent
         sale_q = _quarter(comparable["date"])
-        index_sale = _index(con, address["province_code"], sale_q) if sale_q <= index_now["period_code"] else None
+        index_sale = _index(con, index_region, sale_q) if sale_q <= index_now["period_code"] else None
         index_sale = index_sale or index_now
         factor = index_now["price_index_2020"] / index_sale["price_index_2020"]
-        size = m2 / (comparable.get("floor_area_m2") or m2)
-        comparable_estimate = {
+        comp_m2 = comparable.get("floor_area_m2") or m2
+        size = (m2 / comp_m2) ** SIZE_ELASTICITY
+        estimates["comparable_sale"] = {
             "method": "comparable_sale",
             "value": round(comparable["price"] * factor * size, -3),
             "inputs": {"sale_price": comparable["price"], "sale_date": comparable["date"],
-                       "comparable_m2": comparable.get("floor_area_m2") or m2,
-                       "index_sale": index_sale, "index_now": index_now,
-                       "factor": round(factor, 3), "price_per_m2": round(comparable["price"] / (comparable.get("floor_area_m2") or m2))},
+                       "comparable_m2": comp_m2, "index_sale": index_sale, "index_now": index_now,
+                       "factor": round(factor, 3), "size_factor": round(size, 3),
+                       "price_per_m2": round(comparable["price"] / comp_m2)},
         }
-        estimates.append(comparable_estimate)
 
-    values = [e["value"] for e in estimates]
-    central = round(comparable_estimate["value"] if comparable_estimate else statistics.median(values), -3)
-    low = round(min(min(values), central * (1 - BAND)), -3)
-    high = round(max(max(values), central * (1 + BAND)), -3)
+    if not estimates:
+        raise ValueError(f"Not enough data to value a home in {address['buurt_code']}")
+    basis = next(k for k in ("comparable_sale", "woz_indexed", "neighbourhood_model") if k in estimates)
+    central = estimates[basis]["value"]
+    band = BANDS[basis]
+    low, high = round(central * (1 - band), -3), round(central * (1 + band), -3)
+
+    cross_checks = {k: round(100 * (e["value"] / central - 1), 1) for k, e in estimates.items() if k != basis}
+    warnings = []
+    if any(abs(v) > 100 * DISAGREE for v in cross_checks.values()):
+        warnings.append("estimates_disagree")
+    share = (model or {}).get("inputs", {}).get("apartment_share")
+    if share is not None and (share if home_type == "apartment" else 1 - share) < RARE_TYPE_SHARE:
+        # few homes of this type here: the type level leans on the national ratio
+        warnings.append("rare_type")
+    if dwelling.get("use") and dwelling["use"] != "woonfunctie":
+        # the BAG area of a mixed-use unit can include the shop or office
+        warnings.append("mixed_use")
 
     verdict = None
     if asking_price:
@@ -138,22 +213,27 @@ def estimate(con, address: dict, dwelling: dict, buurt_sizes: dict,
             verdict = "in_range"
         verdict = {"asking_price": asking_price, "vs_central_pct": round(100 * diff, 1), "verdict": verdict}
 
+    peers = (buurt_sizes.get("by_type") or {}).get(home_type) or {}
     return {
-        "estimates": estimates,
+        "estimates": list(estimates.values()),
         "range": {"low": low, "central": central, "high": high},
         "price_per_m2_central": round(central / m2),
-        "central_basis": "comparable_sale" if comparable_estimate else "median_of_estimates",
-        "model_vs_comparable_pct": (
-            round(100 * (statistics.median([e["value"] for e in estimates if e is not comparable_estimate])
-                         / comparable_estimate["value"] - 1), 1)
-            if comparable_estimate and len(estimates) > 1 else None),
+        "central_basis": basis,
+        "confidence": CONFIDENCE[basis],
+        "band_pct": round(100 * band),
+        "cross_checks_pct": cross_checks,
+        "warnings": warnings,
         "asking_price_check": verdict,
+        "area_level": level,
+        "size_vs_peers": {"home_type": home_type, "floor_area_m2": m2,
+                          **{k: peers.get(k) for k in ("count", "median_m2", "p25_m2", "p75_m2")}},
         "neighbourhood_reference": {
             k: ref[k] for k in (
                 "avg_woz_value_eur", "municipality_avg_woz_eur", "woz_ratio_to_municipality",
                 "municipality_est_current_avg_sale_price_eur", "est_current_avg_sale_price_eur",
                 "index_latest_period", "price_change_since_base_year", "price_base_year")
         },
+        "index_region_code": index_region,
         "index_now": index_now,
     }
 

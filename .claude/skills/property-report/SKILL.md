@@ -78,7 +78,7 @@ Create `<scratchpad>/narrative.json` (English). Keep each bullet one plain sente
 ```
 
 `tone` is `good`, `warn`, `bad` or `neutral`. Cover, at minimum:
-- **Sale why:** which methods, the €/m², the comparable and how far the averages were off, the asking-price verdict.
+- **Sale why:** what the centre rests on and how sure it is (`confidence`, `band_pct`), the €/m², the cross-checks, the asking-price verdict, and what would narrow the range.
 - **Rent why:** market basis (comparables or yield), WWS points and segment, which rule applies for the contract date,
   increase-cap check when there is a rent history (see methodology).
 - **Growth:** scenarios, whether the regional trend is accelerating or slowing, local drivers.

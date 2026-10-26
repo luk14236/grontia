@@ -302,7 +302,7 @@ def render(ev: dict, nar: dict) -> str:
                       band=[(pp["low"][y], pp["high"][y]) for y in proj["years"]])
 
     # Estimates table
-    names = {"neighbourhood_price_per_m2": "Neighbourhood price per m²", "home_type_ratio": "Home-type adjustment",
+    names = {"neighbourhood_model": "Neighbourhood model (type and size)",
              "woz_indexed": "WOZ value, indexed to today", "comparable_sale": "Comparable sale, indexed"}
     est_rows = "".join(f'<tr><td>{names.get(x["method"], x["method"])}</td><td class="num">{eur(x["value"])}</td></tr>'
                        for x in pur["estimates"])
@@ -346,7 +346,7 @@ def render(ev: dict, nar: dict) -> str:
   <div class="card">
     <span class="eyebrow">Estimated sale value</span>
     <span class="big">{eur(rng["central"])}</span>
-    <span class="range">range {eur(rng["low"])} – {eur(rng["high"])} · {eur(pur["price_per_m2_central"])}/m²</span>
+    <span class="range">range {eur(rng["low"])} – {eur(rng["high"])} (±{pur.get("band_pct", "")}%) · {eur(pur["price_per_m2_central"])}/m²</span>
     {sale_pill}
   </div>
   <div class="card">

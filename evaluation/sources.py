@@ -189,31 +189,52 @@ def _bbox(geometry: dict) -> tuple[float, float, float, float]:
     return min(xs), min(ys), max(xs), max(ys)
 
 
+# Care homes, student complexes and data errors registered as one huge (or tiny)
+# dwelling would skew the neighbourhood's typical size
+DWELLING_M2_RANGE = (15, 500)
+
+
+def _size_stats(sizes: list[int]) -> dict:
+    if not sizes:
+        return {"count": 0}
+    q = statistics.quantiles(sizes, n=4) if len(sizes) > 1 else [sizes[0]] * 3
+    return {"count": len(sizes), "mean_m2": round(statistics.mean(sizes), 1),
+            "median_m2": statistics.median(sizes), "p25_m2": round(q[0]), "p75_m2": round(q[2])}
+
+
 def buurt_dwelling_sizes(geometry: dict) -> dict:
-    """Floor area of every residential BAG object inside the neighbourhood."""
+    """Floor area of every residential BAG object inside the neighbourhood, overall
+    and split into apartments and single-family homes (same rule as bag_dwelling:
+    a building with more than one unit holds apartments)."""
     minx, miny, maxx, maxy = _bbox(geometry)
     url = f"{BAG}/verblijfsobject/items"
     params = {"f": "json", "bbox": f"{minx},{miny},{maxx},{maxy}", "limit": 1000}
-    sizes: list[int] = []
+    units_per_building: dict[str, int] = {}
+    homes: list[tuple[str, int]] = []
     while url:
         page = _get(url, **params).json() if params else _get(url).json()
         for f in page["features"]:
             p = f["properties"]
+            pand = (p.get("pand.href") or [None])[0] if isinstance(p.get("pand.href"), list) else p.get("pand.href")
+            if pand:
+                units_per_building[pand] = units_per_building.get(pand, 0) + 1
             if "woonfunctie" not in (p.get("gebruiksdoel") or ""):
                 continue
             if not p.get("status", "").startswith("Verblijfsobject in gebruik"):
                 continue
             x, y = f["geometry"]["coordinates"][:2]
-            if _point_in_geometry(x, y, geometry) and p.get("oppervlakte"):
-                sizes.append(p["oppervlakte"])
+            m2 = p.get("oppervlakte")
+            if _point_in_geometry(x, y, geometry) and m2 and DWELLING_M2_RANGE[0] <= m2 <= DWELLING_M2_RANGE[1]:
+                homes.append((pand, m2))
         url = next((l["href"] for l in page.get("links", []) if l.get("rel") == "next"), None)
         params = None
-    if not sizes:
+    if not homes:
         return {"count": 0}
+    apartments = [m2 for pand, m2 in homes if units_per_building.get(pand, 1) > 1]
+    houses = [m2 for pand, m2 in homes if units_per_building.get(pand, 1) <= 1]
     return {
-        "count": len(sizes),
-        "mean_m2": round(statistics.mean(sizes), 1),
-        "median_m2": statistics.median(sizes),
+        **_size_stats([m2 for _, m2 in homes]),
+        "by_type": {"apartment": _size_stats(apartments), "single_family": _size_stats(houses)},
     }
 
 

@@ -5,18 +5,21 @@ the evaluation JSON or from `render_report.py`; the narrative explains them.
 
 ## Sale value
 
-`purchase.estimates` holds up to four methods:
+`purchase.estimates` holds up to three methods. The centre is the most specific one
+(`central_basis`), and the range width follows from it (`band_pct`, `confidence`):
 
-| Method | What it is | Known bias |
-|---|---|---|
-| `neighbourhood_price_per_m2` | Neighbourhood's current average price ÷ mean floor area of its dwellings (BAG) × this floor area | Ignores age, label and finish. **Underestimated a 2011 A+ apartment in a mixed town centre by ~20%** (5461KX, Oct 2026). |
-| `home_type_ratio` | Neighbourhood average × national price ratio of this home type to all homes (CBS 85791NED) | Ignores size; national ratio. |
-| `woz_indexed` | User's WOZ value brought to today with the provincial price index | Close to market, lags about a year. |
-| `comparable_sale` | Known sale of a similar dwelling nearby, indexed and scaled by m² | Best evidence when truly similar (same building/street, size, age). Sets the centre. |
+| Method | What it is | Range | Known bias |
+|---|---|---|---|
+| `neighbourhood_model` | Neighbourhood's average WOZ (CBS, whole stock) × price index since the WOZ value date, split into an apartment or house level with the national type ratio (CBS 85791NED) and the neighbourhood's BAG mix, then scaled from the typical size of that type in the neighbourhood with elasticity 0.75 | ±20%, `low` | Sees no condition, label, layout, garden, parking or floor. **The old per-m² method underestimated a 2011 A+ apartment in a mixed town centre by ~20%** (5461KX, Oct 2026); newer and better-labelled homes still tend to sit above it. Weak when the type is rare in the neighbourhood (`warnings: rare_type`). |
+| `woz_indexed` | User's WOZ value brought from its value date to today with the same index | ±10%, `medium` | Close to market; individual WOZ values can be off for unusual homes. |
+| `comparable_sale` | Known sale of a similar dwelling nearby, indexed, size-scaled with the same elasticity | ±7%, `high` | Best evidence when truly similar (same building/street, size, age). |
 
-- Without a comparable or WOZ, say plainly that the value is a **model estimate from neighbourhood averages** and
-  that newer or better-labelled homes than the neighbourhood typical usually sell above it.
-- Check `model_vs_comparable_pct`: when a comparable exists, report how far the averages were off.
+- Without a comparable or WOZ, say plainly that the value is a **rough model estimate from neighbourhood averages**,
+  and that the WOZ value (free at wozwaardeloket.nl, which Grontia may not query automatically) narrows it.
+- `cross_checks_pct` gives each non-central estimate vs. the centre; report how far the model was off when a
+  comparable or WOZ exists. `warnings` may hold `estimates_disagree`, `rare_type`, `mixed_use`.
+- `size_vs_peers` places the home among the neighbourhood's homes of the same type (median, p25, p75 m²).
+- Addresses the BAG does not list as a home (`woonfunctie`) are rejected by the evaluation.
 - When the user gives an asking price, `asking_price_check.verdict` is `below_range`, `in_range` or `above_range`.
 
 ## Rent: two separate questions
