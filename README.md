@@ -213,7 +213,7 @@ docs/                    Full documentation (PT), deployment, brand, architectur
 
 ## 📚 Study guide
 
-A suggested order to read the project, from the data in to the page out:
+A suggested order to read the project, from the data in to the page out. To study interactively, open [`docs/study/grontia-estudo.html`](docs/study/grontia-estudo.html) in a browser.
 
 1. **The idea:** this README, then [`docs/architecture/decisions/project-structure-rationale.md`](docs/architecture/decisions/project-structure-rationale.md).
 2. **Ingestion:** [`datasets.yml`](orchestration/airflow/include/configs/datasets.yml), then [`dags/30_multi_source_daily_ingestion.py`](orchestration/airflow/dags/30_multi_source_daily_ingestion.py) (catalog → tasks, asset at the end).
@@ -233,6 +233,7 @@ A suggested order to read the project, from the data in to the page out:
 
 | Document | What it is | Access |
 |---|---|---|
+| [Grontia peça por peça](https://claude.ai/artifact/M8VoFo9GzoJAXx3oXcQ3ny) · [copy in the repo](docs/study/grontia-estudo.html) | Interactive study guide (PT): clickable architecture map, a day of the pipeline step by step, bronze→gold tracer, valuation lab, history and a quiz. The repo copy opens in any browser; keep both in sync | Private (owner only) |
 | [Grontia por dentro](https://claude.ai/artifact/EGGQnrrUF8zYGPHCePd3WQ) | Technical walkthrough of every layer (PT), lessons learned and the blueprint for a German version | Anyone with the link |
 | [Panorama Grontia](https://claude.ai/artifact/Ta2L9YS2pYdpEuVm7XFAsv) | Snapshot from 7 October 2026: inventory of the data, how each answer is built, which data to add next | Private (owner only) |
 | Property reports | Example reports made with the property-report skill | Private: they contain a real address |

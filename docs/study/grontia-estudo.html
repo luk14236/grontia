@@ -1,0 +1,857 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<!-- Copy of the study artifact https://claude.ai/artifact/M8VoFo9GzoJAXx3oXcQ3ny ; update both together -->
+<title>Grontia peça por peça</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+[hidden] { display: none !important; }
+body { margin: 0; }
+img { max-width: 100%; }
+/* Layout: a study notebook. Flag bar + sticky chapter tabs; each chapter is one view with a detail panel or an interactive exercise. */
+:root {
+  --paper: #F6F7FB; --surface: #FFFFFF; --sunk: #EDF0F7;
+  --ink: #12182B; --muted: #566079; --line: #D9DFEB;
+  --navy: #003DA5; --navy-soft: #E3EBFA; --red: #D71920; --orange: #E8731A;
+  --ok: #17703F; --ok-soft: #E2F3E9; --warn: #9A5300; --warn-soft: #FBEEDC; --bad-soft: #FBE4E4;
+  --f-display: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --f-body: "Atkinson Hyperlegible", "Segoe UI", system-ui, sans-serif;
+  --f-mono: "JetBrains Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --paper: #0D1120; --surface: #151B2E; --sunk: #1B2238;
+  --ink: #E7EBF5; --muted: #9AA4BC; --line: #2A3352;
+  --navy: #8FB1FF; --navy-soft: #1D2A4D; --red: #FF7B80; --orange: #F29A55;
+  --ok: #6AD39A; --ok-soft: #173327; --warn: #F2AE5C; --warn-soft: #382B17; --bad-soft: #3A1E24;
+  color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --paper: #0D1120; --surface: #151B2E; --sunk: #1B2238;
+  --ink: #E7EBF5; --muted: #9AA4BC; --line: #2A3352;
+  --navy: #8FB1FF; --navy-soft: #1D2A4D; --red: #FF7B80; --orange: #F29A55;
+  --ok: #6AD39A; --ok-soft: #173327; --warn: #F2AE5C; --warn-soft: #382B17; --bad-soft: #3A1E24;
+  color-scheme: dark; }
+
+* { box-sizing: border-box; }
+body { background: var(--paper); color: var(--ink); font: 16px/1.6 var(--f-body); }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--surface); }
+.wrap { max-width: 1120px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+h1, h2, h3 { font-family: var(--f-display); line-height: 1.15; text-wrap: balance; margin: 0; }
+h2 { font-size: clamp(1.5rem, 3vw, 2rem); font-weight: 800; letter-spacing: -0.01em; }
+h3 { font-size: 1.15rem; font-weight: 700; }
+p { margin: 0; }
+code, .mono { font-family: var(--f-mono); font-size: 0.86em; }
+code { background: var(--sunk); padding: 0.1em 0.35em; border-radius: 4px; overflow-wrap: anywhere; }
+pre { margin: 0; font: 13px/1.55 var(--f-mono); background: var(--sunk); border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; overflow-x: auto; }
+a { color: var(--navy); }
+button { font: inherit; color: inherit; cursor: pointer; }
+:focus-visible { outline: 2px solid var(--navy); outline-offset: 2px; }
+.eyebrow { font: 600 0.72rem/1 var(--f-mono); letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+.lede { color: var(--muted); max-width: 68ch; }
+
+/* header */
+.flag { display: grid; grid-template-rows: repeat(3, 4px); }
+.flag i:nth-child(1) { background: var(--red); } .flag i:nth-child(2) { background: var(--surface); } .flag i:nth-child(3) { background: #003DA5; }
+header.top { background: var(--surface); border-bottom: 1px solid var(--line); }
+header.top .wrap { padding-block: 28px 20px; display: grid; gap: 10px; }
+header.top h1 { font-size: clamp(2rem, 5.5vw, 3.4rem); font-weight: 800; letter-spacing: -0.02em; }
+header.top h1 span { color: var(--navy); }
+.facts { display: flex; flex-wrap: wrap; gap: 8px 18px; margin-top: 6px; color: var(--muted); font-size: 0.9rem; }
+.facts b { color: var(--ink); font-variant-numeric: tabular-nums; }
+
+nav.tabs { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 9; background: var(--surface); border-bottom: 1px solid var(--line); }
+nav.tabs .wrap { display: flex; gap: 4px; overflow-x: auto; scrollbar-width: none; }
+nav.tabs .wrap::-webkit-scrollbar { display: none; }
+nav.tabs button { flex: none; border: 0; background: none; padding: 12px 12px 10px; border-bottom: 3px solid transparent; color: var(--muted); font-weight: 700; font-size: 0.92rem; white-space: nowrap; }
+nav.tabs button[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--navy); }
+nav.tabs button .n { font: 600 0.7rem var(--f-mono); color: var(--muted); margin-right: 6px; }
+
+main .wrap { padding-block: 32px 64px; }
+section.view { display: grid; gap: 22px; }
+.head { display: grid; gap: 8px; }
+
+/* generic blocks */
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 18px; min-width: 0; }
+.grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; }
+.grid3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; }
+.stack { display: grid; gap: 10px; }
+.pill { display: inline-flex; align-items: center; gap: 6px; font: 600 0.72rem/1 var(--f-mono); padding: 5px 8px; border-radius: 999px; background: var(--sunk); color: var(--muted); white-space: nowrap; }
+.pill.ok { background: var(--ok-soft); color: var(--ok); } .pill.warn { background: var(--warn-soft); color: var(--warn); } .pill.bad { background: var(--bad-soft); color: var(--red); } .pill.navy { background: var(--navy-soft); color: var(--navy); }
+.note { border-left: 3px solid var(--orange); background: var(--sunk); padding: 10px 14px; border-radius: 0 8px 8px 0; font-size: 0.95rem; }
+table { border-collapse: collapse; width: 100%; font-size: 0.92rem; }
+th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font: 600 0.72rem var(--f-mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+.scroll { overflow-x: auto; }
+
+/* map */
+.map-layout { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); gap: 18px; align-items: start; }
+@media (max-width: 860px) { .map-layout { grid-template-columns: 1fr; } }
+.zones { display: grid; gap: 12px; }
+.zone { border: 1.5px dashed var(--line); border-radius: 12px; padding: 12px; display: grid; gap: 10px; }
+.zone > .eyebrow { display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+.nodes { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.node { border: 1px solid var(--line); background: var(--surface); border-radius: 8px; padding: 8px 11px; text-align: left; display: grid; gap: 1px; min-width: 0; }
+.node b { font-family: var(--f-display); font-size: 0.98rem; }
+.node small { color: var(--muted); font-size: 0.78rem; }
+.node:hover { border-color: var(--navy); }
+.node[aria-pressed="true"] { border-color: var(--navy); background: var(--navy-soft); box-shadow: inset 3px 0 0 var(--navy); }
+.arrow { color: var(--muted); font-family: var(--f-mono); font-size: 0.85rem; }
+.detail { position: sticky; top: 64px; display: grid; gap: 12px; }
+.detail dl { margin: 0; display: grid; gap: 10px; }
+.detail dt { font: 600 0.7rem var(--f-mono); letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+.detail dd { margin: 2px 0 0; }
+
+/* day simulation */
+.sim { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr); gap: 18px; align-items: start; }
+@media (max-width: 860px) { .sim { grid-template-columns: 1fr; } }
+.steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+.steps button { width: 100%; text-align: left; border: 0; background: none; padding: 9px 10px 9px 12px; border-radius: 8px; display: grid; grid-template-columns: 4.6rem 1fr; gap: 10px; align-items: baseline; }
+.steps .t { font: 600 0.78rem var(--f-mono); color: var(--muted); font-variant-numeric: tabular-nums; }
+.steps .done .t { color: var(--ok); }
+.steps button[aria-current="step"] { background: var(--navy-soft); }
+.steps button[aria-current="step"] .t { color: var(--navy); }
+.controls { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.btn { border: 1px solid var(--line); background: var(--surface); border-radius: 8px; padding: 7px 12px; font-weight: 700; font-size: 0.9rem; }
+.btn.primary { background: var(--navy); border-color: var(--navy); color: var(--surface); }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.seg button { border: 0; background: var(--surface); padding: 7px 11px; font-size: 0.86rem; font-weight: 700; color: var(--muted); }
+.seg button[aria-pressed="true"] { background: var(--ink); color: var(--paper); }
+.progress { height: 4px; background: var(--sunk); border-radius: 2px; overflow: hidden; }
+.progress i { display: block; height: 100%; background: var(--navy); width: 0; transition: width .3s; }
+
+/* trace */
+.trace-pick { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip { border: 1px solid var(--line); background: var(--surface); border-radius: 999px; padding: 6px 12px; font-size: 0.88rem; font-weight: 700; }
+.chip[aria-pressed="true"] { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+.trace { list-style: none; margin: 0; padding: 0; display: grid; gap: 0; }
+.trace li { display: grid; grid-template-columns: 7.5rem minmax(0, 1fr); gap: 14px; padding: 14px 0; border-bottom: 1px solid var(--line); }
+.trace li:last-child { border-bottom: 0; }
+.layer-tag { font: 700 0.76rem var(--f-mono); letter-spacing: 0.06em; text-transform: uppercase; padding-top: 3px; }
+.layer-tag.bronze { color: #9C5B1E; } .layer-tag.silver { color: var(--muted); } .layer-tag.gold { color: #8A6A00; } .layer-tag.use { color: var(--navy); } .layer-tag.src { color: var(--red); }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .layer-tag.bronze { color: #E3A167; } :root:not([data-theme="light"]) .layer-tag.gold { color: #E5C55A; } }
+:root[data-theme="dark"] .layer-tag.bronze { color: #E3A167; } :root[data-theme="dark"] .layer-tag.gold { color: #E5C55A; }
+@media (max-width: 520px) { .trace li { grid-template-columns: 1fr; gap: 4px; } }
+
+/* valuation lab */
+.lab { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr); gap: 18px; align-items: start; }
+@media (max-width: 860px) { .lab { grid-template-columns: 1fr; } }
+.fields { display: grid; gap: 12px; }
+.field { display: grid; gap: 4px; }
+.field label { font-weight: 700; font-size: 0.9rem; }
+.field small { color: var(--muted); font-size: 0.8rem; }
+.field input, .field select { font: 15px var(--f-mono); padding: 7px 9px; border: 1px solid var(--line); border-radius: 6px; background: var(--paper); color: var(--ink); width: 100%; }
+.row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.toggle { display: flex; gap: 8px; align-items: center; font-weight: 700; font-size: 0.9rem; }
+fieldset { border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px 12px; margin: 0; display: grid; gap: 10px; }
+legend { padding: 0 6px; }
+.big { font: 800 clamp(1.8rem, 4vw, 2.4rem)/1 var(--f-display); font-variant-numeric: tabular-nums; }
+.verdict { font-weight: 700; padding: 10px 12px; border-radius: 8px; }
+.verdict.in { background: var(--ok-soft); color: var(--ok); } .verdict.warn { background: var(--warn-soft); color: var(--warn); } .verdict.above { background: var(--bad-soft); color: var(--red); } .verdict.below { background: var(--navy-soft); color: var(--navy); }
+.est-list { display: grid; gap: 6px; font-size: 0.92rem; }
+.est-list div { display: flex; justify-content: space-between; gap: 10px; border-bottom: 1px dotted var(--line); padding-bottom: 4px; }
+.est-list .v { font-family: var(--f-mono); font-variant-numeric: tabular-nums; }
+svg text { font-family: var(--f-mono); }
+
+/* history */
+.era { display: grid; grid-template-columns: 9rem minmax(0, 1fr); gap: 18px; padding: 16px 0; border-top: 1px solid var(--line); }
+.era:first-child { border-top: 0; }
+.era .when { font: 700 0.85rem var(--f-mono); color: var(--navy); }
+.era ul { margin: 6px 0 0; padding-left: 18px; display: grid; gap: 3px; }
+@media (max-width: 600px) { .era { grid-template-columns: 1fr; gap: 4px; } }
+.lesson { display: grid; gap: 6px; }
+.lesson .pill { justify-self: start; }
+
+/* quiz */
+.quiz-top { display: flex; flex-wrap: wrap; gap: 12px; justify-content: space-between; align-items: center; }
+.q { display: grid; gap: 10px; }
+.q .opts { display: grid; gap: 6px; }
+.q .opts button { text-align: left; border: 1px solid var(--line); background: var(--surface); border-radius: 8px; padding: 9px 12px; }
+.q .opts button:hover:not(:disabled) { border-color: var(--navy); }
+.q .opts button.right { background: var(--ok-soft); border-color: var(--ok); color: var(--ok); font-weight: 700; }
+.q .opts button.wrong { background: var(--bad-soft); border-color: var(--red); color: var(--red); }
+.q .opts button:disabled { cursor: default; }
+.q .why { font-size: 0.93rem; color: var(--muted); }
+.cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 10px; }
+.flash { border: 1px solid var(--line); background: var(--surface); border-radius: 10px; padding: 14px; text-align: left; min-height: 120px; display: grid; align-content: start; gap: 6px; }
+.flash b { font-family: var(--f-display); font-size: 1.05rem; }
+.flash .back { color: var(--muted); font-size: 0.92rem; }
+.flash[aria-expanded="false"] .back { display: none; }
+.flash[aria-expanded="false"]::after { content: "toque para ver"; font: 0.72rem var(--f-mono); color: var(--muted); }
+
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+</style>
+</head>
+<body>
+<div class="flag" aria-hidden="true"><i></i><i></i><i></i></div>
+<header class="top">
+  <div class="wrap">
+    <span class="eyebrow">Material de estudo · estado em 26 out 2026 · commit ae0ae57</span>
+    <h1>Grontia <span>peça por peça</span></h1>
+    <p class="lede">Tudo o que construímos, do dado aberto do governo holandês até o veredito na tela. Cada capítulo aponta o arquivo onde a coisa acontece. Clique, simule, mexa nos números e termine com o quiz.</p>
+    <div class="facts">
+      <span><b>14</b> datasets no catálogo</span>
+      <span><b>4</b> DAGs em produção</span>
+      <span><b>21</b> modelos dbt</span>
+      <span><b>122</b> testes de qualidade</span>
+      <span><b>67</b> commits desde dez 2025</span>
+    </div>
+  </div>
+</header>
+
+<nav class="tabs" aria-label="Capítulos">
+  <div class="wrap" role="tablist" id="tablist"></div>
+</nav>
+
+<main><div class="wrap" id="views">
+
+<!-- 1 MAPA -->
+<section class="view" id="v-mapa" data-title="Mapa">
+  <div class="head">
+    <span class="eyebrow">Capítulo 1</span>
+    <h2>Três lugares, cada um com um trabalho</h2>
+    <p class="lede">O pipeline roda na sua máquina, o banco vive no MotherDuck e só a app web está no Heroku. Clique em qualquer peça para ver o que ela faz, onde está no código e por que foi feita assim.</p>
+  </div>
+  <div class="map-layout">
+    <div class="zones" id="zones"></div>
+    <aside class="card detail" id="node-detail" aria-live="polite"></aside>
+  </div>
+</section>
+
+<!-- 2 UM DIA -->
+<section class="view" id="v-dia" data-title="Um dia" hidden>
+  <div class="head">
+    <span class="eyebrow">Capítulo 2</span>
+    <h2>Um dia na vida do pipeline</h2>
+    <p class="lede">Siga a execução diária passo a passo. O modo "Hoje" usa os horários reais de 26 out 2026, quando o PC voltou da hibernação às 17:41 UTC.</p>
+  </div>
+  <div class="controls">
+    <div class="seg" role="group" aria-label="Cenário">
+      <button type="button" id="mode-normal" aria-pressed="true">Dia normal</button>
+      <button type="button" id="mode-today" aria-pressed="false">Hoje, 26 out</button>
+    </div>
+    <button type="button" class="btn" id="sim-prev">← Anterior</button>
+    <button type="button" class="btn primary" id="sim-play">▶ Reproduzir</button>
+    <button type="button" class="btn" id="sim-next">Próximo →</button>
+  </div>
+  <div class="progress" aria-hidden="true"><i id="sim-bar"></i></div>
+  <div class="sim">
+    <div class="card"><ol class="steps" id="steps"></ol></div>
+    <article class="card stack" id="step-detail" aria-live="polite"></article>
+  </div>
+</section>
+
+<!-- 3 CAMADAS -->
+<section class="view" id="v-camadas" data-title="Camadas" hidden>
+  <div class="head">
+    <span class="eyebrow">Capítulo 3</span>
+    <h2>Bronze, silver, gold: siga um dado</h2>
+    <p class="lede">A arquitetura medalhão separa o dado bruto (bronze), o dado limpo e tipado (silver) e as respostas prontas (gold). Escolha um dataset e veja o caminho exato que ele percorre.</p>
+  </div>
+  <div class="grid3">
+    <div class="card stack"><span class="layer-tag bronze">Bronze</span><p>Arquivo exatamente como a fonte mandou, uma pasta por dia. Nunca é editado; reprocessar um dia apaga a pasta daquele dia e escreve de novo (<code>clear_prefix</code>).</p><code>s3://bronze/{fonte}/{fonte}_bronze/{dataset}/ingestion_date=AAAA-MM-DD/</code></div>
+    <div class="card stack"><span class="layer-tag silver">Silver</span><p>Parquet tipado e deduplicado pelo PySpark, particionado por <code>ingestion_date</code>. Reescrever um dia troca só aquela partição (<code>partitionOverwriteMode=dynamic</code>).</p><code>s3://silver/{fonte}/{dataset}/</code></div>
+    <div class="card stack"><span class="layer-tag gold">Gold</span><p>Modelos dbt no MotherDuck: 15 staging (um por dataset) e 6 marts. Todo acesso ao silver passa pelo macro <code>read_silver()</code>.</p><code>main_STAGING · main_MARTS · main_OBSERVABILITY</code></div>
+  </div>
+  <div class="trace-pick" id="trace-pick" role="group" aria-label="Dataset"></div>
+  <div class="card"><ol class="trace" id="trace"></ol></div>
+  <div class="card stack">
+    <h3>O macro que deixa o dbt rodar em dois lugares</h3>
+    <pre>{% macro read_silver(dataset_path) -%}
+read_parquet('s3://silver/{{ dataset_path }}/**/*.parquet', hive_partitioning = true
+    {%- if target.name == 'motherduck' %}, MD_RUN = LOCAL{% endif %})
+{%- endmacro %}</pre>
+    <p>Sem <code>MD_RUN = LOCAL</code>, o MotherDuck tentaria ler o S3 a partir da nuvem dele, e o SeaweedFS da sua máquina não é acessível de fora. Com a opção, o DuckDB local lê os Parquets e só envia o resultado. Trocar o target entre o arquivo DuckDB local (<code>dev</code>) e o MotherDuck não muda nenhuma linha de SQL.</p>
+    <p class="mono" style="color:var(--muted)">analytics/dbt/macros/read_silver.sql</p>
+  </div>
+</section>
+
+<!-- 4 AVALIAÇÃO -->
+<section class="view" id="v-avaliacao" data-title="Avaliação" hidden>
+  <div class="head">
+    <span class="eyebrow">Capítulo 4</span>
+    <h2>O motor de avaliação, com as mãos</h2>
+    <p class="lede">Este laboratório roda a mesma regra de <code>valuation.estimate()</code> desde 26 out. O centro é a evidência mais específica disponível: a venda comparável, depois o WOZ do próprio imóvel, depois o modelo do bairro. A largura da faixa diz quanta confiança ela merece. Os números iniciais vêm do caso real de Den Haag (Laan van Meerdervoort 500, casa de 180 m²), arredondados.</p>
+  </div>
+  <div class="lab">
+    <form class="card fields" id="lab-form" autocomplete="off">
+      <span class="eyebrow">Modelo do bairro (sempre)</span>
+      <div class="row2">
+        <div class="field"><label for="f-wozavg">WOZ médio do bairro (€)</label><input id="f-wozavg" type="number" value="288000" step="1000"><small>CBS 85984NED, data de valor 1 jan 2023</small></div>
+        <div class="field"><label for="f-idx">Fator do índice até hoje</label><input id="f-idx" type="number" value="1.192" step="0.001"><small>índice 2026 T3 / 2022 T4</small></div>
+      </div>
+      <div class="row2">
+        <div class="field"><label for="f-share">% de apartamentos no bairro</label><input id="f-share" type="number" value="95" min="0" max="100"><small>BAG: prédio com mais de 1 unidade</small></div>
+        <div class="field"><label for="f-r">Razão apartamento / casa</label><input id="f-r" type="number" value="0.747" step="0.001"><small>nacional, CBS 85791NED</small></div>
+      </div>
+      <div class="row2">
+        <div class="field"><label for="f-type">Tipo do imóvel</label><select id="f-type"><option value="house">Casa (unifamiliar)</option><option value="apt">Apartamento</option></select></div>
+        <div class="field"><label for="f-peer">m² médio desse tipo no bairro</label><input id="f-peer" type="number" value="137.8" step="0.1"><small>BAG, entre 15 e 500 m²</small></div>
+      </div>
+      <div class="field"><label for="f-m2">m² do imóvel</label><input id="f-m2" type="number" value="180"><small>BAG do endereço</small></div>
+      <fieldset><legend class="toggle"><input type="checkbox" id="f-use-woz"> <label for="f-use-woz">WOZ do imóvel informado</label></legend>
+        <div class="row2">
+          <div class="field"><label for="f-woz">WOZ (€)</label><input id="f-woz" type="number" value="640000" step="1000"><small>o usuário consulta em wozwaardeloket.nl</small></div>
+          <div class="field"><label for="f-wozf">Fator do índice</label><input id="f-wozf" type="number" value="1.07" step="0.01"><small>agora / data de valor do WOZ</small></div>
+        </div>
+      </fieldset>
+      <fieldset><legend class="toggle"><input type="checkbox" id="f-use-comp"> <label for="f-use-comp">Venda comparável</label></legend>
+        <div class="row2">
+          <div class="field"><label for="f-comp">Preço da venda (€)</label><input id="f-comp" type="number" value="760000" step="1000"></div>
+          <div class="field"><label for="f-compm2">m² da comparável</label><input id="f-compm2" type="number" value="170"></div>
+        </div>
+        <div class="field"><label for="f-compf">Fator do índice desde a venda</label><input id="f-compf" type="number" value="1.03" step="0.01"></div>
+      </fieldset>
+      <div class="field"><label for="f-ask">Preço pedido (€)</label><input id="f-ask" type="number" value="795000" step="1000"></div>
+    </form>
+    <div class="stack">
+      <div class="card stack" id="lab-out" aria-live="polite"></div>
+      <div class="card stack">
+        <h3>Como ler o código</h3>
+        <pre>level   = avg_woz_bairro * indice_agora / indice_data_woz
+v_casa  = level / (share_apto * r + (1 - share_apto))
+v_tipo  = r * v_casa if apartamento else v_casa
+modelo  = v_tipo * (m2 / m2_medio_do_tipo) ** 0.75
+
+basis   = primeiro de: comparable_sale, woz_indexed, neighbourhood_model
+band    = {comparable_sale: .07, woz_indexed: .10, neighbourhood_model: .20}[basis]
+low, high = central * (1 - band), central * (1 + band)</pre>
+        <p>O WOZ médio cobre todo o estoque do bairro, assim como os m² da BAG. Dividir o preço médio de <em>venda</em> (casas maiores) pelo m² de <em>todas</em> as casas inflava o nível em 9–14%.</p>
+        <p class="mono" style="color:var(--muted)">evaluation/valuation.py</p>
+      </div>
+    </div>
+  </div>
+  <div class="card stack">
+    <h3>Antes e depois (26 out 2026)</h3>
+    <div class="scroll"><table>
+      <tr><th>Problema até 25 out</th><th>Efeito</th><th>Como ficou</th></tr>
+      <tr><td>A "razão por tipo" ignorava o tamanho</td><td>Casa de 180 m² em Den Haag: 429 mil por um método e 884 mil pelo outro, com centro em 656 mil</td><td>Um modelo só, que considera tipo e tamanho (elasticidade 0,75)</td></tr>
+      <tr><td>Preço de venda ÷ m² do estoque</td><td>Nível do bairro 9–14% alto</td><td>WOZ médio do bairro corrigido pelo índice</td></tr>
+      <tr><td>Faixa sempre ±7%</td><td>Falsa precisão e falsos "caro demais"</td><td>±7%, ±10% ou ±20% conforme a base, com rótulo de confiança</td></tr>
+      <tr><td>Loja e escritório recebiam valor</td><td>Loja de 306 m² em Utrecht avaliada em €1,4 mi</td><td>Recusado, com mensagem clara</td></tr>
+    </table></div>
+    <p>Um preço acima de uma estimativa grosseira agora aparece em laranja ("confira"), não em vermelho, junto com o próximo passo: consultar o WOZ. O Grontia não pode buscar o WOZ sozinho, porque o art. 40a da Wet WOZ proíbe consulta automatizada ao WOZ-waardeloket.</p>
+    <p class="note">Limite que continua: não há dado aberto de vendas individuais (Kadaster e NVM são pagos). Por isso o erro real do modelo não pode ser medido, e a elasticidade de 0,75 vem da literatura, não de um ajuste feito com vendas.</p>
+  </div>
+  <div class="grid2">
+    <div class="card stack">
+      <h3>Aluguel legal: o sistema de pontos WWS</h3>
+      <p>O <code>wws.py</code> soma pontos por rubrica (área dos cômodos, outros espaços, aquecimento, energia, cozinha, banheiro, área externa, WOZ). O total define o segmento e o aluguel máximo:</p>
+      <table><tr><th>Pontos</th><th>Segmento</th><th>Regra</th></tr>
+        <tr><td class="mono">≤ 143</td><td>Social</td><td>Teto legal de aluguel</td></tr>
+        <tr><td class="mono">144–186</td><td>Médio</td><td>Teto legal de aluguel</td></tr>
+        <tr><td class="mono">≥ 187</td><td>Livre</td><td>Sem teto pelo WWS</td></tr></table>
+      <p>Pegadinha: o WOZ pode ser no máximo 33% do total e esse corte nunca leva o total abaixo de 186. Casas novas de 2015 a 2019 têm no mínimo 40 pontos de WOZ. Como o usuário raramente sabe tudo, a conta roda em três cenários (baixo, típico, alto). As regras ficam em <code>evaluation/rules/wws_2026.yml</code>: quando a lei muda, muda o YAML, não o código.</p>
+    </div>
+    <div class="card stack">
+      <h3>Perspectiva de 5 anos</h3>
+      <p><code>outlook.py</code> cria três cenários de valorização anual:</p>
+      <table><tr><th>Cenário</th><th>De onde vem</th></tr>
+        <tr><td>Base</td><td>média da variação anual do índice da província nos últimos 4 trimestres</td></tr>
+        <tr><td>Baixo</td><td>metade da base</td></tr>
+        <tr><td>Alto</td><td>CAGR de 5 anos do preço no município (nunca abaixo da base)</td></tr></table>
+      <p>O retorno desconta o imposto de transmissão de 2026: <b>2%</b> para morar e <b>8%</b> para alugar (<code>rules/costs_2026.yml</code>). Para quem aluga, o aluguel de mercado é limitado ao teto legal quando o imóvel cai em segmento regulado.</p>
+    </div>
+  </div>
+</section>
+
+<!-- 5 QUALIDADE -->
+<section class="view" id="v-qualidade" data-title="Qualidade" hidden>
+  <div class="head">
+    <span class="eyebrow">Capítulo 5</span>
+    <h2>Dado errado para o build, dado velho só avisa</h2>
+    <p class="lede">São 122 testes dbt rodando em cada build. A política é simples: um erro (severity <code>error</code>) para o <code>dbt build</code> e os marts de ontem continuam no ar. Um aviso (severity <code>warn</code>) deixa o build passar e vira alerta.</p>
+  </div>
+  <div class="grid2">
+    <div class="card stack">
+      <h3>Os quatro testes próprios</h3>
+      <table>
+        <tr><th>Teste</th><th>Pergunta</th></tr>
+        <tr><td class="mono">unique_combination</td><td>A granularidade é única? (ex.: região + ano)</td></tr>
+        <tr><td class="mono">expect_between</td><td>O valor está numa faixa plausível?</td></tr>
+        <tr><td class="mono">expect_min_row_count</td><td>Chegaram linhas suficientes?</td></tr>
+        <tr><td class="mono">expect_recent</td><td>O dado é recente? (freshness)</td></tr>
+      </table>
+      <p class="mono" style="color:var(--muted)">analytics/dbt/macros/tests/</p>
+    </div>
+    <div class="card stack">
+      <h3>Como um teste é escrito</h3>
+      <pre>{% test expect_recent(model, column_name, max_age_days) %}
+select max({{ column_name }}) as most_recent,
+       current_date - max({{ column_name }})::date as age_days
+from {{ model }}
+having max({{ column_name }}) is null
+    or current_date - max({{ column_name }})::date > {{ max_age_days }}
+{% endtest %}</pre>
+      <p>Um teste dbt é uma query que procura problemas: zero linhas significa que passou.</p>
+    </div>
+  </div>
+  <div class="card stack">
+    <h3>Caso real de hoje</h3>
+    <p><span class="pill warn">WARN 1</span> <code>expect_recent_mart_traffic_site_profile_last_hour</code>. Resultado do DAG 40: <span class="mono">PASS=142 WARN=1 ERROR=0 TOTAL=143</span> (21 modelos + 122 testes).</p>
+    <p>O DAG 60 ficou parado de 22 a 26 out porque o PC estava desligado, então o mart de tráfego não tinha dados da última hora. É um aviso e não um erro porque dado velho não está errado: o site continua útil. O aviso some quando o rollup horário volta a ter snapshots.</p>
+  </div>
+  <div class="grid3">
+    <div class="card stack"><span class="eyebrow">Histórico</span><p>O hook <code>on-run-end</code> (<code>log_run_results</code>) grava cada modelo e teste em <code>main_OBSERVABILITY.dbt_run_results</code>. A qualidade vira uma tabela que dá para consultar ao lado dos marts.</p></div>
+    <div class="card stack"><span class="eyebrow">Alertas</span><p><code>grontia_alerts.py</code>: <code>task_failure_alert</code> em toda task dos DAGs 30 e 40, <code>dbt_failure_alert</code> no build e <code>check_data_quality</code> para os avisos. Os alertas saem pelo log, por webhook estilo Slack e por e-mail via SMTP.</p></div>
+    <div class="card stack"><span class="eyebrow">Bug que o teste pegou</span><p>O KNMI codifica "menos de 0,05 mm" como <code>-1</code>, e isso aparecia como chuva negativa. Um <code>expect_between</code> no staging pegou o problema, e a correção ficou em <code>stg_knmi_daily_weather</code>.</p></div>
+  </div>
+</section>
+
+<!-- 6 ENTREGA -->
+<section class="view" id="v-entrega" data-title="Entrega" hidden>
+  <div class="head">
+    <span class="eyebrow">Capítulo 6</span>
+    <h2>Do warehouse para o visitante</h2>
+    <p class="lede">A app é FastAPI com um mapa Leaflet do PDOK, em inglês e holandês. Ela lê o MotherDuck em modo somente leitura, consulta APIs públicas ao vivo e não grava nada que o visitante manda.</p>
+  </div>
+  <div class="grid2">
+    <div class="card stack">
+      <h3>Rotas da API</h3>
+      <div class="scroll"><table>
+        <tr><th>Rota</th><th>O que faz</th></tr>
+        <tr><td class="mono">POST /api/evaluate</td><td>Roda <code>evaluation.run()</code> sem notícias (limite de 30 s do Heroku)</td></tr>
+        <tr><td class="mono">POST /api/listing</td><td>Lê o PDF do anúncio na memória e preenche o formulário</td></tr>
+        <tr><td class="mono">GET /api/news</td><td>Notícias e publicações oficiais, carregadas depois do resultado</td></tr>
+        <tr><td class="mono">GET /api/suggest · lookup · locate</td><td>Busca de endereço via PDOK com hedged requests</td></tr>
+        <tr><td class="mono">GET /api/health</td><td>Usado pelo deploy para confirmar que subiu</td></tr>
+      </table></div>
+      <p class="mono" style="color:var(--muted)">web/app.py</p>
+    </div>
+    <div class="card stack">
+      <h3>Defesas da app</h3>
+      <ul style="margin:0;padding-left:18px;display:grid;gap:6px">
+        <li><b>Rate limit</b> por IP: 10 avaliações a cada 10 min; a 11ª recebe <code>429</code> com <code>Retry-After</code>.</li>
+        <li><b>Senha opcional</b> para o site inteiro (<code>GRONTIA_WEB_PASSWORD</code>).</li>
+        <li><b>Timeout de 8 s</b> por fonte externa e um retry em timeout ou 502/503/504.</li>
+        <li><b>Hedged request</b>: se o PDOK demora, uma segunda chamada sai em paralelo e vale a que responder primeiro.</li>
+        <li><b>Fonte opcional não derruba</b>: <code>_optional()</code> troca a falha por <code>{"error": …}</code>.</li>
+        <li><b>MotherDuck read-only</b> pelo config <code>access_mode=READ_ONLY</code>. Como parâmetro de URL, ele era ignorado sem aviso.</li>
+      </ul>
+    </div>
+  </div>
+  <div class="card stack">
+    <h3>CI/CD</h3>
+    <div class="scroll"><table>
+      <tr><th>Workflow</th><th>Quando</th><th>O que faz</th></tr>
+      <tr><td class="mono">ci-cd.yml</td><td>Todo push e PR</td><td>Compila os DAGs, valida o catálogo, <code>dbt parse</code>, scan de segurança</td></tr>
+      <tr><td class="mono">pr-validation.yml</td><td>PR que mexe no pipeline</td><td>Carrega os DAGs num DagBag, valida o catálogo, <code>dbt parse</code></td></tr>
+      <tr><td class="mono">deploy-web.yml</td><td>Push em main que mexe em web/, evaluation/ ou arquivos do Heroku</td><td>Testa o import e o leitor de PDF, faz <code>git push</code> no Heroku, espera o <code>/api/health</code></td></tr>
+      <tr><td class="mono">security-scan.yml</td><td>Semanal</td><td>Bandit e Safety</td></tr>
+    </table></div>
+    <p>O <code>.slugignore</code> deixa pipeline, dbt e docs fora do Heroku, e o <code>requirements.txt</code> da raiz tem só 7 pacotes. Resultado: slug de 49 MB.</p>
+  </div>
+  <div class="card stack">
+    <h3>Quanto custa hoje</h3>
+    <div class="scroll"><table>
+      <tr><th>Peça</th><th>Onde</th><th>Custo</th></tr>
+      <tr><td>Pipeline (Airflow, Spark, dbt, SeaweedFS)</td><td>Seu PC, WSL + Docker; ~5 GB de RAM no pico, 1,6 GB de dados no S3</td><td><span class="pill ok">grátis</span> mas só roda com o PC ligado</td></tr>
+      <tr><td>Warehouse</td><td>MotherDuck, plano gratuito</td><td><span class="pill ok">grátis</span> com cota diária de compute dividida entre o build e o site</td></tr>
+      <tr><td>App web</td><td>Heroku, 1 dyno <b>Basic</b>, EU, sem add-ons</td><td><span class="pill warn">≈ US$ 7/mês</span> cobrado por hora enquanto o dyno está ligado</td></tr>
+    </table></div>
+  </div>
+</section>
+
+<!-- 7 HISTÓRIA -->
+<section class="view" id="v-historia" data-title="História" hidden>
+  <div class="head">
+    <span class="eyebrow">Capítulo 7</span>
+    <h2>Como chegamos aqui</h2>
+    <p class="lede">O projeto começou na nuvem da Azure, passou pelo Databricks e terminou 100% open source na sua máquina. O <code>git log</code> conta essa história em 67 commits.</p>
+  </div>
+  <div class="card" id="eras"></div>
+  <h3>Lições que valem para qualquer projeto de dados</h3>
+  <div class="grid3" id="lessons"></div>
+</section>
+
+<!-- 8 QUIZ -->
+<section class="view" id="v-quiz" data-title="Quiz" hidden>
+  <div class="head">
+    <span class="eyebrow">Capítulo 8</span>
+    <h2>Teste o que ficou</h2>
+    <p class="lede">São 16 perguntas sobre o projeto. Cada resposta vem com a explicação e o arquivo. Seu placar fica salvo neste navegador.</p>
+  </div>
+  <div class="quiz-top">
+    <span class="big" id="score">0 / 16</span>
+    <button type="button" class="btn" id="quiz-reset">Recomeçar</button>
+  </div>
+  <div class="grid2" id="quiz"></div>
+  <h3>Glossário em cartões</h3>
+  <div class="cards" id="glossary"></div>
+</section>
+
+</div></main>
+
+<script>
+const $ = (s, el = document) => el.querySelector(s);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const store = {
+  get(k, d) { try { const v = localStorage.getItem("grontia-estudo:" + k); return v == null ? d : JSON.parse(v); } catch { return d; } },
+  set(k, v) { try { localStorage.setItem("grontia-estudo:" + k, JSON.stringify(v)); } catch {} },
+};
+
+/* ---------- tabs ---------- */
+const views = [...document.querySelectorAll("section.view")];
+const tablist = $("#tablist");
+views.forEach((v, i) => {
+  const b = document.createElement("button");
+  b.type = "button"; b.role = "tab"; b.id = "tab-" + v.id.slice(2);
+  b.innerHTML = `<span class="n">${i + 1}</span>${v.dataset.title}`;
+  b.addEventListener("click", () => show(v.id.slice(2), true));
+  tablist.appendChild(b);
+});
+function show(id, scroll) {
+  if (!views.some(v => v.id === "v-" + id)) id = "mapa";
+  views.forEach(v => v.hidden = v.id !== "v-" + id);
+  tablist.querySelectorAll("button").forEach(b => b.setAttribute("aria-selected", b.id === "tab-" + id));
+  store.set("tab", id);
+  try { history.replaceState(null, "", "#" + id); } catch {}
+  if (scroll) window.scrollTo({ top: Math.min(window.scrollY, $("header.top").offsetHeight), behavior: "instant" in window ? "instant" : "auto" });
+}
+
+/* ---------- 1 map ---------- */
+const NODES = {
+  fontes: { t: "Fontes abertas", s: "CBS · PDOK · KNMI · NDW · Leefbaarometer", where: "Internet, APIs públicas do governo holandês",
+    file: "orchestration/airflow/include/configs/datasets.yml",
+    what: "Os 14 datasets do catálogo: 9 tabelas do CBS (WOZ, preços, índice, renda, estoque…), 2 camadas BAG do PDOK, o Leefbaarometer, o clima do KNMI e o tráfego do NDW.",
+    why: "O catálogo é um YAML: adicionar uma tabela do CBS quase sempre é editar só esse arquivo, porque o DAG 30 gera as tasks a partir dele.",
+    learn: "Configuração como dado (config-driven pipelines)." },
+  dag30: { t: "DAG 30", s: "ingestão diária · 00:00 UTC", where: "Airflow 3.0.6 na sua máquina (LocalExecutor)",
+    file: "orchestration/airflow/dags/30_multi_source_daily_ingestion.py",
+    what: "Para cada dataset, uma task de ingestão e uma de validação (30 tasks no total). A última task, publish_bronze, publica o asset s3://bronze/daily com o ingestion_date no extra.",
+    why: "retries=2 com 5 min de intervalo absorve APIs instáveis. clear_prefix apaga a pasta do dia antes de gravar, então rodar de novo é seguro (idempotente).",
+    learn: "Fan-out/fan-in, DAGs dinâmicos, idempotência, Assets do Airflow 3." },
+  bronze: { t: "Bronze", s: "SeaweedFS · S3 :9000", where: "Container s3 (SeaweedFS), 1,6 GB hoje",
+    file: "orchestration/airflow/docker-compose.yml",
+    what: "Guarda o JSON/CSV/XML bruto por fonte, dataset e dia. É a fonte da verdade: dá para reconstruir silver e gold a partir dele.",
+    why: "SeaweedFS fala a API S3, então o mesmo código boto3/s3a funcionaria na AWS ou no R2. O MinIO saiu do projeto e o SeaweedFS entrou no lugar.",
+    learn: "Object storage, data lake, compatibilidade S3." },
+  dag40: { t: "DAG 40", s: "silver + marts · por asset", where: "Airflow, disparado quando o DAG 30 publica o asset",
+    file: "orchestration/airflow/dags/40_silver_and_marts.py",
+    what: "resolve_ingestion_date → bronze_to_silver → ensure_warehouse → dbt_build → check_data_quality.",
+    why: "Agendar por asset em vez de horário garante que o silver nunca é montado sobre um bronze pela metade. Para reprocessar um dia, rode à mão com {\"ingestion_date\": \"AAAA-MM-DD\"}.",
+    learn: "Data-aware scheduling, parâmetros de DAG, XCom." },
+  spark: { t: "PySpark", s: "bronze → silver", where: "Dentro do container do scheduler, ~1 GB de heap",
+    file: "processing/local/bronze_to_silver.py",
+    what: "Uma função transform_* por fonte. Ela achata, tipa e adiciona metadados (fonte, dataset, ingestion_date, ingestion_timestamp), deduplica com row_number() sobre ingestion_timestamp e grava Parquet particionado.",
+    why: "partitionOverwriteMode=dynamic troca só a partição do dia. É o que torna o reprocessamento seguro.",
+    learn: "Window functions, particionamento, s3a/hadoop-aws." },
+  silver: { t: "Silver", s: "Parquet particionado", where: "s3://silver/{fonte}/{dataset}/",
+    file: "processing/local/bronze_to_silver.py · _write_silver()",
+    what: "Dados limpos e com esquema estável. O NDW ao vivo grava direto aqui: traffic_live (snapshots de 2 dias) e traffic_hourly (35 dias).",
+    why: "Parquet é colunar e comprimido, então DuckDB e Spark leem só as colunas que precisam.",
+    learn: "Formatos colunares, hive partitioning." },
+  dbt: { t: "dbt", s: "21 modelos · 122 testes", where: "Roda no Airflow, escreve no MotherDuck",
+    file: "analytics/dbt/",
+    what: "15 modelos de staging (um por dataset) e 6 marts: neighbourhood_reference, livability, housing_market, regional_dashboard, traffic_site_profile, weather_summary.",
+    why: "SQL versionado, testado e com linhagem. O dbt build roda modelos e testes na ordem do grafo e para ao primeiro erro.",
+    learn: "ELT, ref(), materializações, testes genéricos, hooks." },
+  dag60: { t: "DAG 60", s: "tráfego NDW · a cada 5 min", where: "Airflow, schedule */5 * * * *",
+    file: "orchestration/airflow/dags/60_ndw_traffic_live.py",
+    what: "fetch_snapshot (~20 mil pontos de medição) → rollup_hours (uma linha por ponto e hora) → prune.",
+    why: "Pula o bronze de propósito: ~1 MB a cada 5 min dominaria o armazenamento. Não tem alerta por task, senão uma queda do NDW alertaria a cada 5 min; o teste de freshness avisa uma vez por dia.",
+    learn: "Near real-time em lote, retenção, catch-up idempotente." },
+  md: { t: "MotherDuck", s: "banco grontia · plano grátis", where: "Nuvem do MotherDuck (DuckDB gerenciado)",
+    file: "analytics/dbt/profiles.yml · evaluation/warehouse.py",
+    what: "Guarda os schemas main_STAGING, main_MARTS e main_OBSERVABILITY. O dbt escreve, o Heroku lê.",
+    why: "Desacopla o pipeline do site: se o PC desliga, o site continua servindo a última carga. O Heroku tem token próprio, que dá para revogar sem parar o pipeline.",
+    learn: "Warehouse serverless, separação leitura/escrita." },
+  alerts: { t: "Alertas", s: "log · webhook · e-mail", where: "Callbacks do Airflow",
+    file: "orchestration/airflow/dags/grontia_alerts.py",
+    what: "Falha de task, falha do dbt e avisos de qualidade viram mensagem no log, num webhook estilo Slack (GRONTIA_ALERT_WEBHOOK_URL) e num e-mail via SMTP do Gmail.",
+    why: "Um pipeline que roda sozinho precisa avisar quando quebra. O último commit (23 out) adicionou o e-mail.",
+    learn: "on_failure_callback, observabilidade." },
+  web: { t: "App web", s: "FastAPI + Leaflet · Heroku", where: "Heroku EU, 1 dyno Basic, stack heroku-24",
+    file: "web/app.py · web/static/app.js · evaluation/",
+    what: "Busca de endereço, upload de PDF do anúncio, resumo com quatro números, relatório detalhado em seis setores, PDF A4. Idiomas: EN e NL.",
+    why: "Só a app vai para a nuvem; o pipeline pesado fica em casa. Tudo foi pensado para caber nos 30 s do roteador do Heroku.",
+    learn: "APIs com FastAPI, deploy PaaS, limites de plataforma." },
+  live: { t: "APIs ao vivo", s: "Locatieserver · BAG · Politie · notícias", where: "Chamadas por requisição, a partir do Heroku",
+    file: "evaluation/sources.py",
+    what: "Endereço e polígono do bairro, dados BAG do imóvel, crimes por bairro e mês, publicações oficiais e Google News.",
+    why: "São dados por endereço que não valem a pena guardar todo dia. Cada fonte tem timeout, retry e, na busca do PDOK, hedged requests.",
+    learn: "Resiliência: timeouts, retries, degradação graciosa." },
+  user: { t: "Visitante", s: "navegador", where: "Qualquer lugar",
+    file: "web/static/",
+    what: "Digita um endereço ou sobe um PDF e recebe o veredito de compra e de aluguel.",
+    why: "Nada do que ele manda é gravado. O Grontia nunca acessa portais como Funda ou Pararius.",
+    learn: "Privacidade por design, LGPD/GDPR." },
+};
+const ZONES = [
+  { label: "Internet pública", right: "dados de entrada", rows: [["fontes"]] },
+  { label: "Sua máquina · Docker Compose no WSL", right: "só roda com o PC ligado", rows: [["dag30", "→", "bronze", "→", "dag40", "→", "spark", "→", "silver"], ["dag60", "→", "silver"], ["dbt", "alerts"]] },
+  { label: "MotherDuck", right: "grátis", rows: [["md"]] },
+  { label: "Heroku", right: "≈ US$ 7/mês", rows: [["live", "→", "web", "←", "user"]] },
+];
+function renderMap() {
+  $("#zones").innerHTML = ZONES.map(z => `<div class="zone"><span class="eyebrow"><span>${z.label}</span><span>${z.right}</span></span>${
+    z.rows.map(r => `<div class="nodes">${r.map(k => NODES[k] ? `<button type="button" class="node" data-k="${k}" aria-pressed="false"><b>${NODES[k].t}</b><small>${NODES[k].s}</small></button>` : `<span class="arrow" aria-hidden="true">${k}</span>`).join("")}</div>`).join("")
+  }</div>`).join("");
+  $("#zones").addEventListener("click", e => { const b = e.target.closest(".node"); if (b) pickNode(b.dataset.k); });
+  pickNode(store.get("node", "dag30"));
+}
+function pickNode(k) {
+  if (!NODES[k]) k = "dag30";
+  const n = NODES[k];
+  document.querySelectorAll(".node").forEach(b => b.setAttribute("aria-pressed", b.dataset.k === k));
+  $("#node-detail").innerHTML = `<span class="eyebrow">${esc(n.s)}</span><h3>${esc(n.t)}</h3><dl>
+    <div><dt>Onde roda</dt><dd>${esc(n.where)}</dd></div>
+    <div><dt>Arquivo</dt><dd><code>${esc(n.file)}</code></dd></div>
+    <div><dt>O que faz</dt><dd>${esc(n.what)}</dd></div>
+    <div><dt>Por que assim</dt><dd>${esc(n.why)}</dd></div>
+    <div><dt>Para estudar</dt><dd>${esc(n.learn)}</dd></div></dl>`;
+  store.set("node", k);
+}
+
+/* ---------- 2 day ---------- */
+const STEPS = [
+  { n: "00:00:00", t: "17:41:46", h: "O scheduler cria o run do dia",
+    b: "Às 00:00 UTC o scheduler cria <code>scheduled__AAAA-MM-DDT00:00:00</code>. O <code>logical_date</code> é a meia-noite do intervalo que acabou de fechar, não a hora em que roda.",
+    today: "O PC estava desligado desde 22/10 23:10. Com <code>catchup=False</code>, o Airflow não repetiu os dias 23, 24 e 25: rodou só o intervalo mais recente, uma vez, assim que a stack voltou.",
+    f: "30_multi_source_daily_ingestion.py · schedule=\"@daily\", catchup=False" },
+  { n: "00:00:01", t: "17:41:46", h: "Fan-out: uma task por dataset",
+    b: "<code>start</code> (EmptyOperator) libera 14 tasks de ingestão em paralelo, geradas em laço a partir do <code>datasets.yml</code>. Cada uma baixa da fonte, limpa a pasta do dia no bronze e grava.",
+    today: "Duas tasks falharam às 17:41:53 com <code>EndpointConnectionError</code>: o SeaweedFS ainda estava subindo. O retry 5 min depois passou. É exatamente para isso que existe <code>retries=2</code>.",
+    f: "ingest_cbs_dataset · ingest_pdok_dataset · ingest_knmi_dataset · ingest_ndw_dataset · ingest_leefbaarometer_dataset" },
+  { n: "~00:03", t: "~17:46", h: "Validação de cada ingestão",
+    b: "Cada ingest devolve um resumo e <code>validate_ingestion</code> levanta erro se o status não for <code>success</code>. O Leefbaarometer só baixa o zip quando sai versão nova; se o site deles está fora do ar, a ingestão não trava (fix de 22 out).",
+    today: "As 14 validações passaram.", f: "validate_ingestion()" },
+  { n: "~00:05", t: "17:47:20", h: "Fan-in: publish_bronze emite o asset",
+    b: "Só roda quando as 14 validações passaram. Ela publica <code>Asset(\"s3://bronze/daily\")</code> com <code>extra={\"ingestion_date\": …}</code>. Esse evento é o gatilho do DAG 40.",
+    today: "Asset emitido às 17:47:20; DAG 30 em <span class=\"pill ok\">success</span>.", f: "publish_bronze(outlets=[BRONZE_DAILY]) · grontia_assets.py" },
+  { n: "+1 s", t: "17:47:21", h: "DAG 40 acorda e decide a data",
+    b: "<code>resolve_ingestion_date</code> usa, em ordem: o parâmetro manual, o <code>extra</code> do asset, a data de hoje em UTC. Por isso um rerun manual com <code>{\"ingestion_date\": \"2026-10-20\"}</code> reprocessa aquele dia.",
+    today: "Começou 1 s depois do asset.", f: "40_silver_and_marts.py · schedule=[BRONZE_DAILY]" },
+  { n: "+1 min", t: "17:47:22", h: "bronze_to_silver (PySpark)",
+    b: "Uma <code>BashOperator</code> chama o script no venv do pipeline. O Spark lê o bronze via <code>s3a://</code>, tipa, deduplica e grava o Parquet particionado.",
+    today: "Os avisos <code>MemoryManager … 95% of heap</code> são normais e não afetam o resultado.", f: "processing/local/bronze_to_silver.py" },
+  { n: "+1 min", t: "17:48:09", h: "ensure_warehouse",
+    b: "Se o target é <code>motherduck</code>, roda <code>create database if not exists grontia</code>. O token vem do ambiente e nunca aparece no log.",
+    today: "Banco já existia; passou em 3 s.", f: "ensure_warehouse (BashOperator + heredoc Python)" },
+  { n: "+2 min", t: "17:48:12", h: "dbt build: modelos e testes",
+    b: "O <code>dbt build</code> roda staging → marts e cada teste logo depois do seu modelo. Um erro para tudo e os marts de ontem ficam no ar. No fim, o hook <code>log_run_results</code> grava o histórico.",
+    today: "<span class=\"mono\">PASS=142 WARN=1 ERROR=0</span>. O aviso: tráfego sem dado da última hora, porque o DAG 60 ficou 4 dias parado.", f: "analytics/dbt · dbt_failure_alert" },
+  { n: "+2 min", t: "17:48:30", h: "check_data_quality",
+    b: "Lê os avisos do run em <code>dbt_run_results</code> e, se houver algum, chama <code>send_alert</code> (log, webhook, e-mail).",
+    today: "1 aviso, alertado. DAG 40 em <span class=\"pill ok\">success</span> às 17:48:31.", f: "check_data_quality() · grontia_alerts.dbt_problems" },
+  { n: "o dia todo", t: "desde 17:40", h: "Em paralelo: DAG 60 a cada 5 min",
+    b: "O DAG 60 tira um snapshot do tráfego, fecha as horas completas (com 10 min de margem) e apaga o que passou da retenção. Uma vez por dia o DAG 40 transforma as horas em <code>mart_traffic_site_profile</code>.",
+    today: "Voltou às 17:40; tem um buraco de 22 a 26 out. O rollup recupera qualquer hora que ainda tenha snapshots, até 2 dias para trás.", f: "60_ndw_traffic_live.py" },
+  { n: "sempre", t: "sempre", h: "O site lê o resultado",
+    b: "O Heroku abre o MotherDuck em <code>READ_ONLY</code> e consulta os marts a cada avaliação. Se o pipeline não roda, o site segue com a última carga.",
+    today: "De 22 a 26 out o site serviu os dados de 22 out sem cair.", f: "evaluation/warehouse.py" },
+];
+let step = 0, today = false, timer = null;
+function renderSteps() {
+  $("#steps").innerHTML = STEPS.map((s, i) => `<li class="${i < step ? "done" : ""}"><button type="button" data-i="${i}" ${i === step ? 'aria-current="step"' : ""}><span class="t">${today ? s.t : s.n}</span><span>${s.h}</span></button></li>`).join("");
+  const s = STEPS[step];
+  $("#step-detail").innerHTML = `<span class="eyebrow">Passo ${step + 1} de ${STEPS.length} · ${today ? "26 out, UTC" : "horário típico, UTC"}</span><h3>${s.h}</h3><p>${s.b}</p>${today ? `<div class="note"><b>Hoje:</b> ${s.today}</div>` : ""}<p class="mono" style="color:var(--muted)">${esc(s.f)}</p>`;
+  $("#sim-bar").style.width = ((step + 1) / STEPS.length * 100) + "%";
+}
+function go(i) { step = Math.max(0, Math.min(STEPS.length - 1, i)); renderSteps(); }
+function stopPlay() { clearInterval(timer); timer = null; $("#sim-play").textContent = "▶ Reproduzir"; }
+function initDay() {
+  $("#steps").addEventListener("click", e => { const b = e.target.closest("button"); if (b) { stopPlay(); go(+b.dataset.i); } });
+  $("#sim-prev").onclick = () => { stopPlay(); go(step - 1); };
+  $("#sim-next").onclick = () => { stopPlay(); go(step + 1); };
+  $("#sim-play").onclick = () => {
+    if (timer) return stopPlay();
+    if (step === STEPS.length - 1) go(0);
+    $("#sim-play").textContent = "❚❚ Pausar";
+    timer = setInterval(() => step === STEPS.length - 1 ? stopPlay() : go(step + 1), 3200);
+  };
+  const setMode = t => { today = t; $("#mode-normal").setAttribute("aria-pressed", !t); $("#mode-today").setAttribute("aria-pressed", t); renderSteps(); };
+  $("#mode-normal").onclick = () => setMode(false);
+  $("#mode-today").onclick = () => setMode(true);
+  renderSteps();
+}
+
+/* ---------- 3 trace ---------- */
+const TRACES = {
+  "Preço de venda (CBS 83625NED)": [
+    ["src", "Fonte", "API OData do CBS, tabela <code>83625NED</code>: preço médio de venda por município e ano."],
+    ["bronze", "Bronze", "<code>s3://bronze/cbs/cbs_bronze/sale_prices_annual/ingestion_date=2026-10-26/typeddataset.json</code> e os JSON de metadados, gravados por <code>ingest_cbs_dataset</code>."],
+    ["silver", "Silver", "<code>transform_cbs()</code> lê o JSON multiline, deduplica pela chave do dataset e grava em <code>s3://silver/cbs/sale_prices_annual/</code>."],
+    ["gold", "Staging", "<code>stg_cbs_sale_prices_annual</code> renomeia para inglês, tipa ano e preço. Testes: grão único, faixa de valores."],
+    ["gold", "Mart", "<code>mart_neighbourhood_reference</code>: preço do último ano × (índice do último trimestre ÷ média do índice naquele ano) × razão do WOZ do bairro sobre o município."],
+    ["use", "Uso", "Gráfico de preços do município e cenário alto da perspectiva de 5 anos (CAGR). Desde 26 out, o <b>valor do imóvel não usa mais esse preço</b>: <code>valuation.estimate()</code> parte do WOZ médio do bairro (<code>avg_woz_value_eur</code> deste mesmo mart), porque o preço de venda descreve só as casas vendidas, que são maiores."]],
+  "Clima (KNMI)": [
+    ["src", "Fonte", "Endpoint de dados diários do KNMI, todas as estações, em CSV com cabeçalho comentado."],
+    ["bronze", "Bronze", "<code>s3://bronze/knmi/knmi_bronze/daily_weather_all_stations/ingestion_date=…/raw.txt</code> e <code>data.csv</code> (já limpo por <code>_knmi_clean_csv</code>)."],
+    ["silver", "Silver", "<code>transform_knmi()</code> → <code>s3://silver/knmi/daily_weather_all_stations/</code>."],
+    ["gold", "Staging", "<code>stg_knmi_daily_weather</code> converte décimos de grau e de mm, e trata o <code>-1</code> (menos de 0,05 mm), o bug que o <code>expect_between</code> pegou."],
+    ["gold", "Mart", "<code>mart_weather_summary</code>: clima diário por estação."],
+    ["use", "Uso", "Ainda não aparece no site; é base para contexto futuro (enchentes, calor)."]],
+  "Tráfego (NDW)": [
+    ["src", "Fonte", "<code>opendata.ndw.nu/trafficspeed.xml.gz</code>, DATEX II, ~20 mil pontos, atualizado a cada minuto."],
+    ["bronze", "Bronze", "Só uma cópia bruta diária pelo DAG 30 (<code>current_traffic_flow</code>). Os snapshots de 5 min pulam o bronze."],
+    ["silver", "Silver", "DAG 60: <code>ndw/traffic_live/date=…/HHMMSS.parquet</code> (2 dias) e <code>ndw/traffic_hourly/date=…/hour=HH/data.parquet</code> (35 dias), gravados com pyarrow sem Spark."],
+    ["gold", "Staging", "<code>stg_ndw_traffic_hourly</code> é <b>ephemeral</b>: não vira tabela, entra como CTE no mart."],
+    ["gold", "Mart", "<code>mart_traffic_site_profile</code>: velocidade e fluxo típicos por ponto, dia útil/fim de semana e hora. Tem o teste de freshness que avisou hoje."],
+    ["use", "Uso", "Contexto de infraestrutura do bairro."]],
+  "Habitabilidade (Leefbaarometer)": [
+    ["src", "Fonte", "Zip do Leefbaarometer 3.0 (Ministério BZK), notas de 2002 a 2024."],
+    ["bronze", "Bronze", "Baixado só quando aparece versão nova; <code>_bronze_get_json</code> compara com o que já está no bronze. Se o site está fora do ar, a ingestão não trava."],
+    ["silver", "Silver", "<code>transform_leefbaarometer()</code> junta notas e dimensões → <code>s3://silver/leefbaarometer/scores/</code>."],
+    ["gold", "Staging", "<code>stg_leefbaarometer_scores</code>."],
+    ["gold", "Mart", "<code>mart_livability</code>: nota, percentil nacional, cinco dimensões (ambiente físico, segurança, coesão social, serviços, moradias) e a evolução."],
+    ["use", "Uso", "<code>livability()</code> em <code>evaluation/__main__.py</code>: bairro, distrito e município."]],
+};
+let trace = store.get("trace", Object.keys(TRACES)[0]);
+function renderTrace() {
+  if (!TRACES[trace]) trace = Object.keys(TRACES)[0];
+  $("#trace-pick").innerHTML = Object.keys(TRACES).map(k => `<button type="button" class="chip" aria-pressed="${k === trace}">${k}</button>`).join("");
+  $("#trace").innerHTML = TRACES[trace].map(([c, l, d]) => `<li><span class="layer-tag ${c}">${l}</span><p>${d}</p></li>`).join("");
+}
+$("#trace-pick").addEventListener("click", e => { const b = e.target.closest(".chip"); if (b) { trace = b.textContent; store.set("trace", trace); renderTrace(); } });
+
+/* ---------- 4 valuation lab ---------- */
+const eur = v => "€ " + Math.round(v).toLocaleString("pt-BR");
+const r3 = v => Math.round(v / 1000) * 1000;
+function median(a) { const s = [...a].sort((x, y) => x - y), m = s.length >> 1; return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2; }
+const SIZE_ELASTICITY = 0.75;
+const BASES = {
+  comp:  { band: 0.07, label: "Alta confiança", pill: "ok", name: "venda comparável" },
+  woz:   { band: 0.10, label: "Confiança média", pill: "navy", name: "WOZ do imóvel indexado" },
+  model: { band: 0.20, label: "Estimativa grosseira", pill: "warn", name: "modelo do bairro" },
+};
+const pctTxt = p => (p >= 0 ? "+" : "") + p.toFixed(1).replace(".", ",") + "%";
+function lab() {
+  const n = id => parseFloat($(id).value) || 0;
+  const m2 = n("#f-m2") || 1, peer = n("#f-peer") || m2, apt = $("#f-type").value === "apt";
+  const level = r3(n("#f-wozavg") * n("#f-idx"));
+  const share = Math.min(1, Math.max(0, n("#f-share") / 100)), r = n("#f-r") || 1;
+  const vHouse = level / (share * r + (1 - share)), vType = apt ? r * vHouse : vHouse;
+  const sf = Math.pow(m2 / peer, SIZE_ELASTICITY);
+  const est = {};
+  est.model = { k: "Modelo do bairro", v: r3(vType * sf),
+    how: `nível ${eur(level)} → ${apt ? "apartamento" : "casa"} ${eur(vType)} × (${m2}/${peer} m²)^0,75 = × ${sf.toFixed(3).replace(".", ",")}` };
+  if ($("#f-use-woz").checked && n("#f-woz")) est.woz = { k: "WOZ indexado", v: r3(n("#f-woz") * n("#f-wozf")), how: `${eur(n("#f-woz"))} × ${n("#f-wozf")}` };
+  if ($("#f-use-comp").checked && n("#f-comp")) {
+    const cm2 = n("#f-compm2") || m2, s2 = Math.pow(m2 / cm2, SIZE_ELASTICITY);
+    est.comp = { k: "Venda comparável", v: r3(n("#f-comp") * n("#f-compf") * s2), how: `${eur(n("#f-comp"))} × ${n("#f-compf")} × (${m2}/${cm2} m²)^0,75` };
+  }
+  const basis = ["comp", "woz", "model"].find(k => est[k]), B = BASES[basis];
+  const central = est[basis].v, comp = est[basis];
+  const low = r3(central * (1 - B.band)), high = r3(central * (1 + B.band));
+  const vals = Object.values(est).map(e => e.v);
+  const ask = n("#f-ask");
+  let verdict = "";
+  if (ask) {
+    const s = pctTxt((ask / central - 1) * 100);
+    verdict = ask > high && basis === "model" ? `<div class="verdict warn">Acima desta estimativa grosseira (${s}). Confira com o WOZ antes de concluir que está caro.</div>`
+      : ask > high ? `<div class="verdict above">Acima da faixa: pedido ${s} sobre o centro</div>`
+      : ask < low ? `<div class="verdict below">Abaixo da faixa: pedido ${s} sobre o centro</div>`
+      : `<div class="verdict in">Dentro da faixa: pedido ${s} sobre o centro</div>`;
+  }
+  const list = ["comp", "woz", "model"].filter(k => est[k]).map(k => est[k]);
+  // chart on one scale
+  const pts = [...vals, low, high, ask || central];
+  const lo = Math.min(...pts) * 0.97, hi = Math.max(...pts) * 1.03, W = 560, X = v => 20 + (v - lo) / (hi - lo) * (W - 40);
+  const rowH = 26, top = 34, H = top + list.length * rowH + 30;
+  const svg = `<div class="scroll"><svg viewBox="0 0 ${W} ${H}" width="100%" style="min-width:420px" role="img" aria-label="Estimativas, faixa e preço pedido na mesma escala">
+    <rect x="${X(low)}" y="14" width="${X(high) - X(low)}" height="${H - 34}" fill="var(--ok-soft)"/>
+    <line x1="${X(central)}" x2="${X(central)}" y1="14" y2="${H - 20}" stroke="var(--ok)" stroke-width="2"/>
+    <text x="${X(central)}" y="10" text-anchor="middle" font-size="11" fill="var(--ok)">centro</text>
+    ${list.map((e, i) => `<circle cx="${X(e.v)}" cy="${top + i * rowH}" r="6" fill="${e === comp ? "var(--navy)" : "var(--ink)"}"/><text x="${X(e.v) + (X(e.v) > W - 170 ? -10 : 10)}" y="${top + i * rowH + 4}" font-size="11" fill="var(--muted)" text-anchor="${X(e.v) > W - 170 ? "end" : "start"}">${e.k}</text>`).join("")}
+    ${ask ? `<line x1="${X(ask)}" x2="${X(ask)}" y1="14" y2="${H - 20}" stroke="var(--red)" stroke-width="2" stroke-dasharray="4 3"/><text x="${X(ask)}" y="${H - 6}" text-anchor="middle" font-size="11" fill="var(--red)">pedido</text>` : ""}
+    <text x="${X(low)}" y="${H - 6}" text-anchor="${X(ask || 0) - X(low) < 60 && ask ? "end" : "middle"}" font-size="10" fill="var(--muted)">${Math.round(low / 1000)}k</text>
+    <text x="${X(high)}" y="${H - 6}" text-anchor="${Math.abs(X(ask || 0) - X(high)) < 60 && ask ? "start" : "middle"}" font-size="10" fill="var(--muted)">${Math.round(high / 1000)}k</text>
+  </svg></div>`;
+  $("#lab-out").innerHTML = `<span class="eyebrow">Valor estimado · centro = ${B.name}</span>
+    <span class="big">${eur(central)}</span><span style="color:var(--muted)">faixa ${eur(low)} – ${eur(high)} · ${eur(central / m2)}/m²</span>
+    <span><span class="pill ${B.pill}">${B.label} · ±${Math.round(B.band * 100)}%</span></span>
+    ${verdict}${svg}
+    <div class="est-list">${list.map(e => `<div><span>${e.k}${e === comp ? " · <b>centro</b>" : ` · ${pctTxt((e.v / central - 1) * 100)} vs. centro`}<br><small class="mono" style="color:var(--muted)">${e.how}</small></span><span class="v">${eur(e.v)}</span></div>`).join("")}</div>
+    ${basis === "model" ? `<p class="note">Próximo passo de quem compra: consultar o WOZ grátis em wozwaardeloket.nl. Marque "WOZ do imóvel informado" e veja a faixa cair de ±20% para ±10%.</p>` : ""}`;
+}
+$("#lab-form").addEventListener("input", lab);
+$("#lab-form").addEventListener("submit", e => e.preventDefault());
+
+/* ---------- 7 history ---------- */
+const ERAS = [
+  ["dez 2025 – jan 2026", "O começo", ["README e diagramas: a ideia de responder compra e aluguel com dado aberto", "Primeiro pipeline do CBS com Astro (Astronomer) e Airflow", "DAG do CBS gravando no Azure Data Lake (ADLS)"]],
+  ["mar – abr 2026", "A fase Azure", ["Terraform e DAGs para um Airflow na Azure, com Databricks", "6 abr: Databricks sai e entram MinIO, Delta Lake e Dagster em teste", "CI reduzida a checar sintaxe, sem terraform apply"]],
+  ["jun 2026", "Só open source", ["Documentação nova com a decisão de usar apenas ferramentas livres e gratuitas"]],
+  ["2 – 15 out", "Ponta a ponta", ["docker compose funcionando com Airflow 3", "bronze → silver → dbt rodando com dado real e a referência de preço por bairro", "SeaweedFS como S3 local; sobras de Terraform/Databricks removidas", "Novas fontes, PR #1 de organização, healthcheck na rota do Airflow 3"]],
+  ["19 out", "O dia das fases 4, 5 e 6", ["Testes de qualidade, histórico e alertas (fase 4)", "Marts publicados no MotherDuck pelo Airflow (fase 5)", "Upgrade do Airflow 3.0.0 → 3.0.6: o DAG processor travava", "Primeira app web com mapa; tráfego NDW a cada 5 min (fase 6)"]],
+  ["20 out", "O site no ar", ["App preparada para o Heroku, MotherDuck read-only, deploy automático pelo GitHub Actions", "EN/NL, relatório PDF, cores da bandeira, kit de marca, dicas ⓘ em tudo", "Correção: cenário do setor livre não pode dar \"acima do limite legal\""]],
+  ["21 – 23 out", "Resiliência", ["Retry único em timeout e 502/503/504 nas APIs públicas", "Busca de endereço com hedged requests quando o PDOK trava", "Leefbaarometer fora do ar não bloqueia mais a carga diária", "Alertas por e-mail de falhas e avisos de qualidade"]],
+  ["26 out", "Valor honesto", ["Feedbacks duvidando da precisão do valor levaram a uma revisão com 6 endereços reais", "Modelo do bairro com WOZ indexado, tipo e tamanho (elasticidade 0,75)", "Faixa de ±7%, ±10% ou ±20% conforme a base, com rótulo de confiança e próximo passo", "Lojas e escritórios recusados; avisos de tipo raro e de uso misto"]],
+];
+const LESSONS = [
+  ["Rede", "A nuvem não enxerga sua máquina", "O MotherDuck não alcança o SeaweedFS local, por isso <code>MD_RUN = LOCAL</code>: o cliente lê e só o resultado sobe."],
+  ["Plataforma", "Limites viram arquitetura", "Os 30 s do roteador do Heroku levaram a timeout de 8 s por fonte, fontes em paralelo e notícias numa rota separada."],
+  ["Silêncio", "Configuração ignorada sem aviso", "<code>access_mode=READ_ONLY</code> na URL não fazia nada; só funciona como config da conexão. Teste se a proteção protege."],
+  ["Qualidade", "Teste pega o que o olho não vê", "Chuva negativa do KNMI (<code>-1</code> = menos de 0,05 mm) só apareceu porque havia um teste de faixa."],
+  ["Agendamento", "catchup=False tem consequência", "PC desligado significa dias sem bronze. O site fica estável, mas o histórico ganha buracos."],
+  ["Precisão", "Faixa estreita não é precisão", "Um ±7% fixo sobre médias de bairro parecia exato e errava feio. A largura da faixa deve dizer o que o número sabe."],
+];
+function renderHistory() {
+  $("#eras").innerHTML = ERAS.map(([w, t, items]) => `<div class="era"><span class="when">${w}</span><div><h3>${t}</h3><ul>${items.map(i => `<li>${esc(i)}</li>`).join("")}</ul></div></div>`).join("");
+  $("#lessons").innerHTML = LESSONS.map(([tag, t, b]) => `<div class="card lesson"><span class="pill navy">${tag}</span><h3>${t}</h3><p>${b}</p></div>`).join("");
+}
+
+/* ---------- 8 quiz ---------- */
+const QUIZ = [
+  ["O que dispara o DAG 40?", ["Um cron às 00:05 UTC", "O asset s3://bronze/daily publicado pelo DAG 30", "Um sensor que olha o bucket a cada minuto", "O GitHub Actions"], 1, "schedule=[BRONZE_DAILY] em 40_silver_and_marts.py. publish_bronze só roda depois que as 14 validações passam."],
+  ["O PC hibernou por 3 dias. O que o Airflow faz ao voltar?", ["Roda os 3 dias em sequência", "Não roda nada até a próxima meia-noite", "Roda só o intervalo mais recente, uma vez", "Roda os 3 dias em paralelo"], 2, "catchup=False: só o último intervalo perdido. Foi o que aconteceu hoje às 17:41."],
+  ["Por que o dbt usa MD_RUN = LOCAL ao ler o silver?", ["Porque é mais barato no MotherDuck", "Porque o MotherDuck não alcança o S3 da sua máquina", "Porque o Parquet não funciona na nuvem", "Para evitar o cache"], 1, "A leitura acontece no DuckDB local e só o resultado sobe. Veja macros/read_silver.sql."],
+  ["Rodar o DAG 30 duas vezes no mesmo dia...", ["Duplica os arquivos no bronze", "Substitui a pasta do dia (clear_prefix)", "Falha por conflito de chave", "Cria uma pasta _v2"], 1, "clear_prefix apaga ingestion_date=… antes de gravar, e o Spark usa partitionOverwriteMode=dynamic. O pipeline é idempotente."],
+  ["Um teste com severity warn falhou. O que acontece?", ["O build para e os marts de ontem ficam", "O build passa e check_data_quality manda um alerta", "Nada, ninguém fica sabendo", "O DAG 30 é reexecutado"], 1, "Dado errado para o build; dado velho só avisa. check_data_quality lê dbt_run_results e chama send_alert."],
+  ["Por que os snapshots de 5 min do NDW não passam pelo bronze?", ["Porque o Airflow não deixa", "Porque ~1 MB a cada 5 min dominaria o armazenamento", "Porque são confidenciais", "Porque o Spark não lê XML"], 1, "O DAG 30 já guarda uma cópia bruta diária; os snapshots vão direto ao silver com retenção de 2 dias."],
+  ["Na avaliação, quando há uma venda comparável, o centro da faixa é...", ["A média de todas as estimativas", "A mediana das estimativas", "O valor da venda comparável indexada", "O WOZ"], 2, "A ordem é venda comparável, depois o WOZ do imóvel, depois o modelo do bairro. As outras estimativas viram comparações em cross_checks_pct."],
+  ["Sem WOZ e sem venda comparável, qual é a faixa do valor?", ["±7%", "±10%", "±20%", "±30%"], 2, "BANDS['neighbourhood_model'] = 0.20. O modelo só conhece bairro, tipo e tamanho; o WOZ do imóvel baixa a faixa para ±10% e a comparável para ±7%."],
+  ["Um imóvel com 190 pontos WWS está em qual segmento?", ["Social", "Médio", "Livre", "Depende do WOZ"], 2, "≥187 é setor livre, sem teto de aluguel pelo WWS. ≤143 é social; 144–186 é médio."],
+  ["O que o Heroku roda?", ["Airflow e dbt", "Só a app web (web/ + evaluation/)", "Spark e a app", "O MotherDuck"], 1, "O .slugignore tira o pipeline do slug e o requirements.txt da raiz tem só a app. O pipeline fica na sua máquina."],
+  ["Por que a rota /api/evaluate não traz notícias?", ["Notícias são pagas", "Para caber nos 30 s do roteador do Heroku", "Por privacidade", "Porque o MotherDuck não guarda notícias"], 1, "A busca de publicações oficiais leva ~10 s ou mais. Ela foi para /api/news, carregada depois do resultado."],
+  ["Como a app garante que não escreve no MotherDuck?", ["Usa um token read-only do plano Business", "Abre a conexão com config access_mode=READ_ONLY", "Usa ?read_only=true na URL", "Não garante"], 1, "No plano grátis não há token read-only. Como parâmetro de URL era ignorado; precisou ser config. Veja evaluation/warehouse.py."],
+  ["Onde se adiciona uma nova tabela do CBS?", ["Criando um DAG novo", "No datasets.yml (e no staging do dbt)", "Em web/app.py", "No docker-compose.yml"], 1, "O DAG 30 gera as tasks em laço a partir do catálogo. Depois falta só o modelo de staging e os testes."],
+  ["Hoje duas tasks do DAG 30 deram EndpointConnectionError. Por que o run terminou em success?", ["O erro foi ignorado", "O retry rodou depois que o SeaweedFS terminou de subir", "O DAG 40 corrigiu", "A task foi pulada"], 1, "retries=2 com retry_delay de 5 min. Na segunda tentativa o S3 já estava de pé."],
+  ["Por que o nível do bairro passou a usar o WOZ médio, e não o preço médio de venda?", ["O WOZ é mais recente", "O WOZ cobre o mesmo estoque que os m² da BAG; as vendas são de casas maiores", "O preço de venda não existe por bairro", "Por exigência legal"], 1, "Dividir o preço das casas vendidas pelo m² de todas as casas inflava o €/m² em 9–14% nos bairros testados."],
+  ["Por que o Grontia não busca o WOZ do imóvel sozinho?", ["A API é paga", "O art. 40a da Wet WOZ proíbe consulta automatizada ao WOZ-waardeloket", "O WOZ não é público", "O Heroku bloqueia"], 1, "Só uma pessoa pode consultar um imóvel no wozwaardeloket.nl. Por isso o site pede o valor e mostra o link."],
+];
+let answers = store.get("quiz", {});
+function renderQuiz() {
+  $("#quiz").innerHTML = QUIZ.map(([q, opts, ok, why], i) => {
+    const a = answers[i];
+    return `<div class="card q" data-i="${i}"><span class="eyebrow">Pergunta ${i + 1}</span><h3>${esc(q)}</h3><div class="opts">${
+      opts.map((o, j) => `<button type="button" data-j="${j}" ${a != null ? "disabled" : ""} class="${a != null && j === ok ? "right" : a === j && j !== ok ? "wrong" : ""}">${esc(o)}</button>`).join("")
+    }</div>${a != null ? `<p class="why">${a === ok ? "✓ Certo. " : "✗ Não. "}${esc(why)}</p>` : ""}</div>`;
+  }).join("");
+  const right = Object.entries(answers).filter(([i, a]) => QUIZ[i] && QUIZ[i][2] === a).length;
+  $("#score").textContent = `${right} / ${QUIZ.length}`;
+}
+$("#quiz").addEventListener("click", e => {
+  const b = e.target.closest("button[data-j]"); if (!b) return;
+  answers[b.closest(".q").dataset.i] = +b.dataset.j; store.set("quiz", answers); renderQuiz();
+});
+$("#quiz-reset").onclick = () => { answers = {}; store.set("quiz", answers); renderQuiz(); };
+
+const GLOSS = [
+  ["logical_date", "O início do intervalo que o run cobre. O run do dia 26 tem logical_date 26/10 00:00, mesmo que rode às 17:41."],
+  ["Asset (Airflow 3)", "Um dado nomeado (ex.: s3://bronze/daily). Uma task o publica com outlets; outro DAG agenda por ele com schedule=[asset]."],
+  ["Idempotência", "Rodar de novo dá o mesmo resultado. Aqui: clear_prefix no bronze e sobrescrita dinâmica de partição no silver."],
+  ["Arquitetura medalhão", "Bronze (bruto), silver (limpo e tipado), gold (pronto para responder perguntas)."],
+  ["Ephemeral (dbt)", "Modelo que não vira tabela: entra como CTE em quem o referencia. Ex.: stg_ndw_traffic_hourly."],
+  ["WOZ", "Valor oficial do imóvel para impostos, com data de valor em 1º de janeiro do ano anterior à decisão. É público, mas só pode ser consultado à mão, imóvel por imóvel, em wozwaardeloket.nl."],
+  ["Elasticidade de tamanho", "Quanto o valor sobe com o m². Com 0,75, uma casa 10% maior vale cerca de 7,5% a mais, e uma com o dobro do tamanho vale ~1,7×."],
+  ["WWS", "Sistema de pontos que define o aluguel máximo legal na Holanda. Regras em evaluation/rules/wws_2026.yml."],
+  ["Leefbaarometer", "Índice de habitabilidade do governo, por bairro, com cinco dimensões."],
+  ["Hedged request", "Mandar uma segunda chamada idêntica quando a primeira demora e usar a que voltar primeiro."],
+  ["Dyno", "O container do Heroku que roda a app. Basic custa por hora ligado e nunca dorme; Eco dorme sem tráfego."],
+  ["LocalExecutor", "Executor do Airflow que roda tasks como processos na mesma máquina do scheduler. Por isso o Spark consome a memória do container do scheduler."],
+  ["BAG", "Cadastro oficial de prédios e endereços: área, ano de construção, uso."],
+];
+function renderGloss() {
+  $("#glossary").innerHTML = GLOSS.map(([t, d]) => `<button type="button" class="flash" aria-expanded="false"><b>${esc(t)}</b><span class="back">${esc(d)}</span></button>`).join("");
+  $("#glossary").addEventListener("click", e => { const b = e.target.closest(".flash"); if (b) b.setAttribute("aria-expanded", b.getAttribute("aria-expanded") !== "true"); });
+}
+
+/* ---------- boot ---------- */
+renderMap(); initDay(); renderTrace(); lab(); renderHistory(); renderQuiz(); renderGloss();
+show((location.hash || "").slice(1) || store.get("tab", "mapa"), false);
+</script>
+</body>
+</html>
