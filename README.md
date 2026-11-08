@@ -268,7 +268,6 @@ docs/                    Full documentation (Portuguese), deployment, brand, stu
 scripts/local/           WSL autostart for Windows
 .github/workflows/       CI, PR validation, Heroku deploy, security scan
 .claude/skills/          property-report skill for Claude Code (evaluation JSON -> written report)
-processing/databricks/   Legacy code from the project's Azure/Databricks phase
 ```
 
 ---
@@ -316,7 +315,7 @@ An interactive study guide in Portuguese is in [`docs/study/grontia-estudo.html`
 | 7. Address evaluation (CLI, DAG 50) | ✅ |
 | 8. Public web app on Heroku with automatic deploys, PDF report, EN/NL | ✅ |
 
-The project started on Azure and Databricks and moved to a fully open-source local stack; the legacy code is still in `processing/databricks/`. A possible next step is splitting `evaluation/` into a country-agnostic core and country adapters, for a German version.
+The project started on Azure, Terraform and Databricks and moved to a fully open-source local stack; that earlier code lives in the git history. A possible next step is splitting `evaluation/` into a country-agnostic core and country adapters, for a German version.
 
 ---
 
