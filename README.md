@@ -1,34 +1,68 @@
 <p align="center"><img src="web/static/brand/grontia-wordmark.svg" alt="Grontia" width="520"></p>
 
-# Grontia
+<p align="center">
+  <b>Is this Dutch home fairly priced? Is the rent legal?</b><br>
+  An end-to-end data engineering project built only with open government data and free, open-source tools.
+</p>
 
-**Grontia** answers two questions about any home in the Netherlands, using only open government data:
+<p align="center">
+  <a href="https://grontia-304a9d81f22f.herokuapp.com/"><img alt="Live demo" src="https://img.shields.io/badge/live-demo-003DA5"></a>
+  <img alt="Python 3.11" src="https://img.shields.io/badge/python-3.11-3776AB">
+  <img alt="Airflow 3.0.6" src="https://img.shields.io/badge/airflow-3.0.6-017CEE">
+  <img alt="PySpark" src="https://img.shields.io/badge/pyspark-bronze→silver-E25A1C">
+  <img alt="dbt + DuckDB" src="https://img.shields.io/badge/dbt-DuckDB%20%2F%20MotherDuck-FF694B">
+  <img alt="FastAPI" src="https://img.shields.io/badge/fastapi-web%20app-009688">
+</p>
+
+---
+
+## What it is
+
+**Grontia** answers two questions about any home in the Netherlands:
 
 - **Buying:** is the asking price in line with what the home is worth?
-- **Renting:** is the asked rent within the legal maximum?
+- **Renting:** is the asked rent within the legal maximum set by the Dutch points system (WWS)?
 
-Around those answers it shows a 5-year outlook, the neighbourhood (income, livability, safety, price trend), official notices and news, and a PDF report. It is also a hands-on data engineering project: a real batch and near real-time pipeline, built only with free and open-source tools.
+Around those answers it shows a 5-year outlook, the neighbourhood (income, livability, safety, price trend), official notices and local news, and exports a PDF report, in English and Dutch.
 
-**Live site:** https://grontia-304a9d81f22f.herokuapp.com/ · Full documentation (Portuguese): [`docs/PROJETO_COMPLETO.md`](docs/PROJETO_COMPLETO.md)
+Behind the website sits a real data platform: a daily batch pipeline and a near real-time one, a medallion lake (bronze, silver, gold), 21 dbt models guarded by 122 data-quality tests, alerting, CI/CD and a deployed web app.
+
+**Try it:** [grontia-304a9d81f22f.herokuapp.com](https://grontia-304a9d81f22f.herokuapp.com/)
+
+> **Project status.** Grontia is a portfolio and learning project, kept online for reference. It is not a commercial product and is maintained on a best-effort basis. The pipeline runs on the author's own machine, so the data on the live site can be a few days old.
 
 ---
 
 ## Contents
 
-1. [How it fits together](#-how-it-fits-together)
-2. [Scheduling: when each pipeline runs](#-scheduling-when-each-pipeline-runs)
-3. [Data sources](#-data-sources)
-4. [Pipeline: bronze, silver, gold](#-pipeline-bronze-silver-gold)
-5. [Data quality and observability](#-data-quality-and-observability)
-6. [Evaluation engine](#-evaluation-engine)
-7. [Web app](#-web-app)
-8. [Deployment and CI/CD](#-deployment-and-cicd)
-9. [Brand](#-brand)
-10. [Quick start](#-quick-start)
-11. [Repository layout](#-repository-layout)
-12. [Study guide](#-study-guide)
-13. [Artifacts and documents](#-artifacts-and-documents)
-14. [Roadmap and history](#-roadmap-and-history)
+1. [Highlights](#-highlights)
+2. [How it fits together](#-how-it-fits-together)
+3. [Tech stack](#-tech-stack)
+4. [Scheduling](#-scheduling)
+5. [Data sources](#-data-sources)
+6. [Pipeline: bronze, silver, gold](#-pipeline-bronze-silver-gold)
+7. [Data quality and observability](#-data-quality-and-observability)
+8. [Evaluation engine](#-evaluation-engine)
+9. [Web app](#-web-app)
+10. [Deployment and CI/CD](#-deployment-and-cicd)
+11. [Run it yourself](#-run-it-yourself)
+12. [Repository layout](#-repository-layout)
+13. [Lessons learned](#-lessons-learned)
+14. [Reading the code](#-reading-the-code)
+15. [History](#-history)
+16. [Disclaimer and license](#-disclaimer-and-license)
+
+---
+
+## ✨ Highlights
+
+- **Config-driven ingestion.** 14 datasets from 5 public sources are declared in one YAML catalog; the daily DAG generates its tasks from it.
+- **Data-aware scheduling.** The silver and dbt DAG starts when the ingestion DAG publishes an Airflow 3 *asset*, never on a half-written bronze layer.
+- **Hybrid local + cloud.** Heavy processing runs locally for free; only the finished tables go to MotherDuck, and only the web app runs in the cloud.
+- **Quality gates.** Wrong data stops the build and yesterday's tables stay online; stale data only warns. Every test result is kept in a history table.
+- **Near real-time traffic.** A second pipeline takes a snapshot of ~20,000 road sensors every 5 minutes and rolls it up per hour.
+- **Rules as data.** The 2026 rent law and transaction costs live in versioned YAML/CSV files, not in code.
+- **Privacy and legality by design.** The site stores nothing a visitor sends, never scrapes listing portals and never queries the WOZ register automatically (forbidden by art. 40a of the Wet WOZ).
 
 ---
 
@@ -59,22 +93,37 @@ flowchart LR
 | Warehouse | MotherDuck (free plan), database `grontia` | Staging and mart tables plus the history of every data-quality test |
 | Web app | Heroku, EU region | Reads MotherDuck (read-only) and live public APIs; stores nothing a visitor sends |
 
-The local S3 store is never exposed: MotherDuck's cloud can't reach it, so dbt reads the silver files on the local machine (`MD_RUN = LOCAL`) and only uploads results.
+The local S3 store is never exposed to the internet. MotherDuck's cloud can't reach it, so dbt reads the silver files on the local machine (`MD_RUN = LOCAL`) and only uploads the results. If the machine is off, the site keeps serving the last published data.
 
 ---
 
-## ⏰ Scheduling: when each pipeline runs
+## 🧰 Tech stack
+
+| Layer | Tools |
+|---|---|
+| Orchestration | Apache Airflow 3.0.6 (LocalExecutor, assets), PostgreSQL for Airflow's metadata |
+| Storage | SeaweedFS (S3-compatible object store), Parquet |
+| Processing | PySpark 3 with S3A |
+| Transformation and tests | dbt with dbt-duckdb, custom generic tests, an `on-run-end` observability hook |
+| Warehouse | DuckDB locally, MotherDuck in the cloud |
+| Web | FastAPI, Uvicorn, Leaflet with PDOK base maps, vanilla JavaScript |
+| Infrastructure | Docker Compose on WSL2, autoheal, Heroku (web app only) |
+| CI/CD | GitHub Actions: DAG and dbt validation, security scan, automatic Heroku deploy |
+
+---
+
+## ⏰ Scheduling
 
 | DAG | Schedule | What it does |
 |---|---|---|
-| `30_multi_source_daily_ingestion` | `0 0 * * *` (daily at 00:00 UTC) | Fetches every dataset in the catalog into bronze, validates each one, then publishes the asset `s3://bronze/daily` |
+| `30_multi_source_daily_ingestion` | `@daily` (00:00 UTC) | Fetches every dataset in the catalog into bronze, validates each one, then publishes the asset `s3://bronze/daily` |
 | `40_silver_and_marts` | When that asset is published | Bronze → silver (PySpark) → `ensure_warehouse` → `dbt build` (models + 122 tests) → `check_data_quality` |
 | `60_ndw_traffic_live` | `*/5 * * * *` (every 5 minutes) | NDW traffic snapshot → hourly rollup per measurement site → prune old files |
 | `50_evaluate_address` | Manual (form in the Airflow UI) | One address evaluation, written to the warehouse volume |
 
-**How a day works.** At 00:00 UTC the scheduler creates the run for the day that just ended (`logical_date` = that midnight). DAG 30 needs no clock of its own for DAG 40: when its last task publishes the asset, DAG 40 starts within seconds, so silver and the marts are never built on a half-finished bronze. Reprocessing a past day is a manual DAG 40 run with `{"ingestion_date": "YYYY-MM-DD"}`.
+**A normal day.** At 00:00 UTC the scheduler starts DAG 30. When its last task publishes the asset, DAG 40 starts within seconds and the new tables are on MotherDuck about two minutes later. Reprocessing a past day is a manual DAG 40 run with `{"ingestion_date": "YYYY-MM-DD"}`.
 
-**When the computer is off or hibernating.** Nothing runs while the machine sleeps. `catchup=False` means Airflow does not replay every missed day: when the stack comes back it runs only the most recent missed interval, once. Example from 20 October 2026: the PC was hibernating at midnight, Airflow ran DAG 30 at 16:29 UTC when it woke up, and DAG 40 followed at 16:30. The website keeps serving the last published data in the meantime; the freshness tests warn if the data gets older than two days. DAG 60 simply has a gap for the hours the machine was off; its hourly rollup catches up on any hour that still has snapshots (up to two days back).
+**When the machine is off.** Nothing runs. With `catchup=False`, Airflow does not replay every missed day: when the stack comes back it runs the most recent interval once. The freshness tests warn when data gets old, and the traffic pipeline simply has a gap.
 
 **Staying up.** Every service has `restart: unless-stopped`, an `autoheal` container restarts anything that turns unhealthy, and `scripts/local/register-wsl-autostart.ps1` starts WSL (and with it Docker) when Windows logs in.
 
@@ -93,7 +142,9 @@ The local S3 store is never exposed: MotherDuck's cloud can't reach it, so dbt r
 | **KNMI** | Daily weather, all stations | CSV, daily | Weather mart |
 | **NDW** | Traffic speed and flow, ~20k sites | DATEX II XML, daily raw + every 5 minutes | Traffic profile mart |
 
-Datasets are declared in [`orchestration/airflow/include/configs/datasets.yml`](orchestration/airflow/include/configs/datasets.yml): adding a CBS table usually means editing only that file. Grontia never visits listing portals (Funda, Pararius, …); a visitor can upload a listing PDF, which is read in memory and discarded.
+Datasets are declared in [`orchestration/airflow/include/configs/datasets.yml`](orchestration/airflow/include/configs/datasets.yml): adding a CBS table usually means editing only that file. All data belongs to its publishers and is used under their open-data terms.
+
+Grontia never visits listing portals (Funda, Pararius, …). A visitor can upload a listing PDF instead; it is read in memory and discarded.
 
 ---
 
@@ -102,10 +153,12 @@ Datasets are declared in [`orchestration/airflow/include/configs/datasets.yml`](
 | Layer | Content | Where |
 |---|---|---|
 | **Bronze** | Raw files exactly as the source sent them, one folder per day | `s3://bronze/{source}/{source}_bronze/{dataset}/ingestion_date=YYYY-MM-DD/` |
-| **Silver** | Flattened, typed metadata, deduplicated Parquet | `s3://silver/{source}/{dataset}/` |
-| **Gold** | dbt marts | MotherDuck (`main_STAGING`, `main_MARTS`, `main_OBSERVABILITY`) or a local DuckDB file |
+| **Silver** | Flattened, typed, deduplicated Parquet with ingestion metadata | `s3://silver/{source}/{dataset}/` |
+| **Gold** | dbt staging models and marts | MotherDuck (`main_STAGING`, `main_MARTS`, `main_OBSERVABILITY`) or a local DuckDB file |
 
-dbt has **21 models**: 15 staging models (one per dataset; the hourly traffic one is ephemeral) and 6 marts:
+Re-running a day is safe at every layer: ingestion clears the day's bronze folder before writing, and Spark overwrites only that day's silver partition (`partitionOverwriteMode=dynamic`).
+
+dbt has **21 models**: 15 staging models (one per dataset) and 6 marts:
 
 | Mart | Answers |
 |---|---|
@@ -123,26 +176,30 @@ Every silver read goes through the `read_silver()` macro, so switching between t
 ## ✅ Data quality and observability
 
 - **122 dbt tests** on every staging model and mart: grain uniqueness (`unique_combination`), value ranges (`expect_between`), minimum row counts, referential integrity and freshness (`expect_recent`). Custom generic tests live in `analytics/dbt/macros/tests/`.
-- **Policy:** wrong data stops the build (yesterday's marts stay); stale data only warns.
+- **Policy:** wrong data stops the build (yesterday's marts stay online); stale data only warns.
 - **History:** an `on-run-end` hook writes every model and test result to `main_OBSERVABILITY.dbt_run_results`.
-- **Alerts:** failures and warnings in DAGs 30 and 40 go to the task log and, when configured, to a Slack-compatible webhook (`GRONTIA_ALERT_WEBHOOK_URL`) and by e-mail (`GRONTIA_ALERT_EMAIL_TO` plus an SMTP app password, Gmail by default; see `.env.example`).
+- **Alerts:** failures and warnings in DAGs 30 and 40 go to the task log and, when configured, to a Slack-compatible webhook and by e-mail over SMTP (see `.env.example`).
 - The tests already caught a real bug: KNMI codes "less than 0.05 mm" as `-1`, which showed up as negative rain.
 
 ---
 
 ## 🧮 Evaluation engine
 
-`evaluation/` turns a postcode and house number into one JSON, used by the CLI, the web app, DAG 50 and the property-report skill:
+`evaluation/` turns a postcode and house number into one JSON document, used by the CLI, the web app and DAG 50:
 
 | Step | How |
 |---|---|
 | Address and home | PDOK Locatieserver and BAG: floor area, build year, use, apartment or not |
-| Value | A neighbourhood model (average WOZ of the neighbourhood, indexed, adjusted for home type and size), the indexed WOZ of the home and a comparable sale. The centre is the most specific one given; the range is ±20%, ±10% or ±7% to match. Addresses the BAG does not list as a home are rejected |
+| Value | A neighbourhood model (average WOZ of the neighbourhood, indexed, adjusted for home type and size), the indexed WOZ of the home and a comparable sale. The centre is the most specific estimate available; the range is ±20%, ±10% or ±7% to match. Addresses the BAG does not list as a home are rejected |
 | Legal rent | The 2026 WWS points system (`evaluation/rules/wws_2026.yml`) in three scenarios; ≤143 points social, 144–186 mid-rent, ≥187 free sector |
-| Outlook | `evaluation/outlook.py`: three 5-year growth scenarios, market rent, gross yield and the return after transfer tax (2% to live in, 8% to rent out; `evaluation/rules/costs_2026.yml`) |
+| Outlook | `evaluation/outlook.py`: three 5-year growth scenarios, market rent, gross yield and the return after transfer tax (`evaluation/rules/costs_2026.yml`) |
 | Context | Livability, crime, key figures, official notices and headlines; an optional source that fails never sinks the evaluation |
 
-Rules are versioned files: when the law changes, the YAML changes, not the code.
+```bash
+python -m evaluation --postcode 1017GL --number 12 --asking-price 450000 --out result.json
+```
+
+**Known limit.** There is no open data on individual sale prices in the Netherlands (Kadaster and NVM data are paid), so the valuation's real error can't be measured. The wide ranges are deliberate.
 
 ---
 
@@ -150,14 +207,13 @@ Rules are versioned files: when the law changes, the YAML changes, not the code.
 
 English and Dutch, on a full-screen PDOK map, in the colours of the Dutch flag.
 
-- **Search** an address (the map zooms to it as soon as you pick a suggestion) or **upload a listing PDF**; the form is filled for you to check.
-- **Summary** in the side panel: four headline numbers coloured by state (value, legal rent, livability, crime) and the verdict.
-- **Detailed view**: a full-screen report in six sectors (verdict, the home and its price, 5-year outlook, the neighbourhood, news, sources) with a sticky menu, larger charts, the valuation and WWS tables and an explanation on every card.
-- **Hints**: every field, number and card has an ⓘ with an explanation on hover, focus or tap.
-- **Export PDF**: the same cards as an A4 report, saved through the browser's print window.
+- **Search** an address, or **upload a listing PDF** and check the form it fills in.
+- **Summary**: four headline numbers coloured by state (value, legal rent, livability, crime) and the verdict.
+- **Detailed view**: a full-screen report in six sections with larger charts, the valuation and WWS tables and an explanation on every card.
+- **Export PDF**: the same content as an A4 report.
 - **About** page with the method, the data, privacy and limits.
 
-API: `POST /api/evaluate`, `POST /api/listing`, `GET /api/news`, and the address search `GET /api/suggest`, `/api/lookup`, `/api/locate` (proxied to PDOK with hedged requests, because its search intermittently hangs); docs at `/api/docs`. Nothing a visitor sends is stored.
+API: `POST /api/evaluate`, `POST /api/listing`, `GET /api/news`, and the address search `GET /api/suggest`, `/api/lookup`, `/api/locate` (proxied to PDOK with hedged requests, because its search intermittently hangs). Interactive docs at `/api/docs`. Protections: per-IP rate limit, an 8-second timeout per external source, and a read-only warehouse connection.
 
 ---
 
@@ -167,83 +223,82 @@ API: `POST /api/evaluate`, `POST /api/listing`, `GET /api/news`, and the address
 |---|---|---|
 | `ci-cd.yml` | Every push and pull request | Compiles the DAGs, validates the catalog, `dbt parse`, security scan |
 | `pr-validation.yml` | Pull requests touching the pipeline | Loads the DAGs in a DagBag, validates the catalog, `dbt parse` |
-| `deploy-web.yml` | Push to `main` that touches `web/`, `evaluation/` or the Heroku files | Installs the Heroku requirements, imports the app, tests the PDF parser, deploys to Heroku and waits for `/api/health` |
+| `deploy-web.yml` | Push to `main` that touches `web/`, `evaluation/` or the Heroku files | Installs the Heroku requirements, imports the app, tests the PDF parser, deploys and waits for `/api/health` |
 | `security-scan.yml` | Weekly | Bandit and Safety |
 
-On Heroku the app has a per-visitor rate limit, an optional site password, an 8-second timeout per external source (Heroku cuts requests at 30 s) and opens MotherDuck in read-only mode. Step by step: [`docs/deploy-heroku.md`](docs/deploy-heroku.md).
+Only the web app ships to Heroku: `.slugignore` leaves the pipeline out and the root `requirements.txt` has seven packages. Step by step: [`docs/deploy-heroku.md`](docs/deploy-heroku.md).
 
 ---
 
-## 🎨 Brand
+## ⚡ Run it yourself
 
-The official kit is in [`web/static/brand/`](web/static/brand/): symbol, wordmark, favicons and colours (Dutch red `#D71920`, Dutch blue `#003DA5`). Usage rules: [`docs/brand.md`](docs/brand.md).
-
----
-
-## ⚡ Quick start
+You need Docker (on Windows, Docker in WSL2) and about 6 GB of free RAM.
 
 ```bash
-cp .env.example orchestration/airflow/.env      # add MOTHERDUCK_TOKEN to publish to MotherDuck
-
+git clone https://github.com/luk14236/grontia.git
+cd grontia
+cp .env.example orchestration/airflow/.env      # optional: add MOTHERDUCK_TOKEN
 cd orchestration/airflow && docker compose up -d
-#   Airflow UI   http://localhost:8080
-#   S3 browser   http://localhost:8888/buckets/
-#   Web app      http://localhost:8000
-#   Trigger 30_multi_source_daily_ingestion; DAG 40 follows by itself
 ```
 
-`GRONTIA_DBT_TARGET=dev` builds into a local DuckDB file; `motherduck` publishes to MotherDuck. Step by step: [`docs/PROJETO_COMPLETO.md`](docs/PROJETO_COMPLETO.md).
+| What | Where |
+|---|---|
+| Airflow UI | http://localhost:8080 · user `admin`; the password is generated on first start: `docker exec airflow-airflow-api-server-1 cat /opt/airflow/simple_auth_manager_passwords.json.generated` |
+| S3 file browser | http://localhost:8888/buckets/ |
+| Web app (local copy) | http://localhost:8000 |
+
+In the Airflow UI, unpause the DAGs and trigger `30_multi_source_daily_ingestion`; DAG 40 follows by itself. With `GRONTIA_DBT_TARGET=dev` the marts are built into a local DuckDB file; with `motherduck` they are published to MotherDuck.
 
 ---
 
 ## 📁 Repository layout
 
 ```
-orchestration/airflow/   Airflow DAGs (30, 40, 50, 60), dataset catalog, alerts, Docker Compose
+orchestration/airflow/   Airflow image, Docker Compose, DAGs (30, 40, 50, 60), dataset catalog, alerts
 processing/local/        PySpark bronze -> silver
-analytics/dbt/           dbt staging, marts, custom tests, observability hook
+analytics/dbt/           dbt staging models, marts, custom tests, observability hook
 evaluation/              Evaluation engine: value, WWS rent, outlook, context; rules as YAML/CSV
 web/                     FastAPI app and the front end (map, summary, detailed view, PDF report)
-docs/                    Full documentation (PT), deployment, brand, architecture decisions
+docs/                    Full documentation (Portuguese), deployment, brand, study guide
+scripts/local/           WSL autostart for Windows
 .github/workflows/       CI, PR validation, Heroku deploy, security scan
-.claude/skills/          property-report skill (evaluation JSON -> written report)
+.claude/skills/          property-report skill for Claude Code (evaluation JSON -> written report)
+processing/databricks/   Legacy code from the project's Azure/Databricks phase
 ```
 
 ---
 
-## 📚 Study guide
+## 💡 Lessons learned
 
-A suggested order to read the project, from the data in to the page out. To study interactively, open [`docs/study/grontia-estudo.html`](docs/study/grontia-estudo.html) in a browser.
-
-1. **The idea:** this README, then [`docs/architecture/decisions/project-structure-rationale.md`](docs/architecture/decisions/project-structure-rationale.md).
-2. **Ingestion:** [`datasets.yml`](orchestration/airflow/include/configs/datasets.yml), then [`dags/30_multi_source_daily_ingestion.py`](orchestration/airflow/dags/30_multi_source_daily_ingestion.py) (catalog → tasks, asset at the end).
-3. **Silver:** [`processing/local/bronze_to_silver.py`](processing/local/bronze_to_silver.py).
-4. **Gold:** [`analytics/dbt/macros/read_silver.sql`](analytics/dbt/macros/read_silver.sql), one staging model (`models/staging/cbs/stg_cbs_sale_prices_by_home_type.sql`), then `models/marts/mart_neighbourhood_reference.sql`.
-5. **Quality:** `analytics/dbt/macros/tests/`, the `schema.yml` files, `macros/observability/log_run_results.sql`, [`dags/grontia_alerts.py`](orchestration/airflow/dags/grontia_alerts.py).
-6. **Orchestration:** [`dags/40_silver_and_marts.py`](orchestration/airflow/dags/40_silver_and_marts.py) (asset trigger, MotherDuck), [`dags/60_ndw_traffic_live.py`](orchestration/airflow/dags/60_ndw_traffic_live.py) (near real-time).
-7. **Evaluation:** `evaluation/__main__.py` (`run()`), then `valuation.py`, `wws.py`, `outlook.py`, `sources.py`.
-8. **Serving:** `web/app.py`, `web/listing.py`, then `web/static/app.js` and `report.js`.
-9. **Shipping:** [`docs/deploy-heroku.md`](docs/deploy-heroku.md) and `.github/workflows/deploy-web.yml`.
-
-`git log` tells the story in order: each commit message explains what changed and why.
+- **Schedule on data, not on the clock.** Triggering the transform DAG from an asset removed every "ran before the data arrived" problem.
+- **Keep bronze immutable.** Being able to rebuild silver and gold from raw files made every fix cheap.
+- **Stale is not wrong.** Splitting test severities into error (stop the build) and warn (tell me) kept the site useful while the pipeline machine was off.
+- **Read the platform limits first.** Heroku's 30-second request limit shaped the API: news loads in a second request, and every external call has a timeout.
+- **Hedge flaky dependencies.** PDOK's address search sometimes hangs; sending a second request after a short delay and taking the first answer fixed it.
+- **Check that a setting is really applied.** MotherDuck silently ignored `access_mode=READ_ONLY` as a URL parameter; it only works in the connection config.
+- **Know the law around the data.** The per-home WOZ is the best open signal for a home's value, but automated lookups are illegal, so the user types it in.
+- **Free tools go a long way.** The whole platform runs on open-source software, a free warehouse plan and one small web dyno.
 
 ---
 
-## 🗂️ Artifacts and documents
+## 📚 Reading the code
 
-| Document | What it is | Access |
-|---|---|---|
-| [Grontia peça por peça](https://claude.ai/artifact/M8VoFo9GzoJAXx3oXcQ3ny) · [copy in the repo](docs/study/grontia-estudo.html) | Interactive study guide (PT): clickable architecture map, a day of the pipeline step by step, bronze→gold tracer, valuation lab, history and a quiz. The repo copy opens in any browser; keep both in sync | Private (owner only) |
-| [Grontia por dentro](https://claude.ai/artifact/EGGQnrrUF8zYGPHCePd3WQ) | Technical walkthrough of every layer (PT), lessons learned and the blueprint for a German version | Anyone with the link |
-| [Panorama Grontia](https://claude.ai/artifact/Ta2L9YS2pYdpEuVm7XFAsv) | Snapshot from 7 October 2026: inventory of the data, how each answer is built, which data to add next | Private (owner only) |
-| Property reports | Example reports made with the property-report skill | Private: they contain a real address |
-| [`docs/PROJETO_COMPLETO.md`](docs/PROJETO_COMPLETO.md) | Full documentation in Portuguese | In the repo |
-| [`docs/deploy-heroku.md`](docs/deploy-heroku.md) | Web app deployment and the automatic deploy | In the repo |
-| [`docs/brand.md`](docs/brand.md) | Brand colours, files and usage | In the repo |
+A suggested order, from the data in to the page out:
+
+1. **Ingestion:** [`datasets.yml`](orchestration/airflow/include/configs/datasets.yml), then [`dags/30_multi_source_daily_ingestion.py`](orchestration/airflow/dags/30_multi_source_daily_ingestion.py).
+2. **Silver:** [`processing/local/bronze_to_silver.py`](processing/local/bronze_to_silver.py).
+3. **Gold:** [`analytics/dbt/macros/read_silver.sql`](analytics/dbt/macros/read_silver.sql), a staging model such as `models/staging/cbs/stg_cbs_average_woz_value.sql`, then `models/marts/mart_neighbourhood_reference.sql`.
+4. **Quality:** `analytics/dbt/macros/tests/`, the `schema.yml` files, `macros/observability/log_run_results.sql` and [`dags/grontia_alerts.py`](orchestration/airflow/dags/grontia_alerts.py).
+5. **Orchestration:** [`dags/40_silver_and_marts.py`](orchestration/airflow/dags/40_silver_and_marts.py) and [`dags/60_ndw_traffic_live.py`](orchestration/airflow/dags/60_ndw_traffic_live.py).
+6. **Evaluation:** `evaluation/__main__.py` (`run()`), then `valuation.py`, `wws.py`, `outlook.py` and `sources.py`.
+7. **Serving:** `web/app.py`, `web/listing.py`, then `web/static/app.js`.
+8. **Shipping:** [`docs/deploy-heroku.md`](docs/deploy-heroku.md) and `.github/workflows/deploy-web.yml`.
+
+An interactive study guide in Portuguese is in [`docs/study/grontia-estudo.html`](docs/study/grontia-estudo.html); open it in a browser. Each commit message in `git log` explains what changed and why.
 
 ---
 
-## 🧪 Roadmap and history
+## 🧪 History
 
 | Phase | Status |
 |---|---|
@@ -253,14 +308,17 @@ A suggested order to read the project, from the data in to the page out. To stud
 | 4. Data quality and observability (122 tests, run history, alerts) | ✅ |
 | 5. Warehouse on MotherDuck, published from the local Airflow | ✅ |
 | 6. Near real-time NDW traffic (every 5 minutes) | ✅ |
-| 7. Address evaluation (CLI, DAG 50, skill) | ✅ |
+| 7. Address evaluation (CLI, DAG 50) | ✅ |
 | 8. Public web app on Heroku with automatic deploys, PDF report, EN/NL | ✅ |
-| Next | Refactor `evaluation/` into `core` + `nl` adapters, then a German version (see *Grontia por dentro*) |
 
-Along the way: Airflow upgraded from 3.0.0 to 3.0.6 after the DAG processor kept hanging; the news search capped for Heroku's 30-second limit; the address check now warns when the BAG says the address is not a home.
+The project started on Azure and Databricks and moved to a fully open-source local stack; the legacy code is still in `processing/databricks/`. A possible next step is splitting `evaluation/` into a country-agnostic core and country adapters, for a German version.
 
 ---
 
-## 🤖 About using AI
+## ⚖️ Disclaimer and license
 
-AI assistants are used to speed up research, documentation, code and design. They accelerate the work; the author decides the architecture, reviews the changes and runs the platform.
+Grontia gives estimates from public statistics. It is not financial, legal or valuation advice, and it is not affiliated with the Dutch government or any of the data publishers. For a binding rent check, use the Huurcommissie's official Huurprijscheck at [huurcommissie.nl](https://www.huurcommissie.nl).
+
+AI assistants were used to speed up research, documentation, code and design. The author decided the architecture, reviewed the changes and runs the platform.
+
+This repository is public for reference and learning. It has no open-source license, so all rights are reserved: you are welcome to read the code and learn from it, but please ask before reusing it.

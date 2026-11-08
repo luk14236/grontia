@@ -10,7 +10,10 @@ docker compose up -d
 docker compose ps
 ```
 
-- Airflow UI: http://localhost:8080 (admin / admin)
+- Airflow UI: http://localhost:8080, user `admin`. Airflow 3's simple auth
+  manager generates the password on first start; read it with
+  `docker exec airflow-airflow-api-server-1 cat /opt/airflow/simple_auth_manager_passwords.json.generated`
+  (it changes when the api-server container is recreated)
 - S3 API: http://localhost:9000, file browser: http://localhost:8888/buckets/
 
 ## Contents
@@ -22,7 +25,11 @@ docker compose ps
 | `dags/11_cbs_bronze_ingestion_local.py` | Legacy: CBS ingestion to local disk (`include/output/`) |
 | `dags/30_multi_source_daily_ingestion.py` | **Main DAG**: CBS, PDOK, KNMI and NDW into the `bronze` bucket, daily |
 | `dags/40_silver_and_marts.py` | Bronze → silver (PySpark) → `dbt build`, triggered by DAG 30 |
+| `dags/50_evaluate_address.py` | Manual: evaluate one address from a form in the UI |
+| `dags/60_ndw_traffic_live.py` | NDW traffic snapshot every 5 minutes, hourly rollup, pruning |
 | `dags/grontia_assets.py` | Asset that links DAG 30 to DAG 40 |
+| `dags/grontia_alerts.py` | Failure and data-quality alerts (log, webhook, e-mail) |
+| `dags/grontia_ndw.py` | NDW DATEX II XML parser shared by DAGs 30 and 60 |
 | `include/configs/datasets.yml` | Dataset catalog read by the DAGs |
 | `docker-compose.yml` | Postgres, Airflow services, SeaweedFS and bucket creation |
 | `Dockerfile`, `requirements.txt` | Airflow image with project dependencies |
