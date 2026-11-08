@@ -14,6 +14,11 @@
   <img alt="FastAPI" src="https://img.shields.io/badge/fastapi-web%20app-009688">
 </p>
 
+<p align="center">
+  🔗 <b>Explore the live site: <a href="https://grontia-304a9d81f22f.herokuapp.com/">grontia-304a9d81f22f.herokuapp.com</a></b><br>
+  Search any Dutch address, or click one of the examples on the start page.
+</p>
+
 ---
 
 ## What it is
@@ -27,7 +32,7 @@ Around those answers it shows a 5-year outlook, the neighbourhood (income, livab
 
 Behind the website sits a real data platform: a daily batch pipeline and a near real-time one, a medallion lake (bronze, silver, gold), 21 dbt models guarded by 122 data-quality tests, alerting, CI/CD and a deployed web app.
 
-**Try it:** [grontia-304a9d81f22f.herokuapp.com](https://grontia-304a9d81f22f.herokuapp.com/)
+**Try it:** [grontia-304a9d81f22f.herokuapp.com](https://grontia-304a9d81f22f.herokuapp.com/). The API has interactive docs at [`/api/docs`](https://grontia-304a9d81f22f.herokuapp.com/api/docs).
 
 > **Project status.** Grontia is a portfolio and learning project, kept online for reference. It is not a commercial product and is maintained on a best-effort basis. The pipeline runs on the author's own machine, so the data on the live site can be a few days old.
 
